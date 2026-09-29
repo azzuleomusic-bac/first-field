@@ -158,6 +158,13 @@
       height: calc(var(--tile) * 1.25);
       z-index: 3;
     }
+        .tile.sheep {
+      background: linear-gradient(180deg, #d8d0c0 0%, #8a8374 70%, #4a463c 100%);
+      border: 3px solid #efe6d8;
+      width: calc(var(--tile) * 1.15);
+      height: calc(var(--tile) * 1.15);
+      z-index: 3;
+    }
     .tile.horse {
       background: linear-gradient(180deg, #8b5a2b 0%, #5c3a1a 70%, #3a2410 100%);
       border: 3px solid #d4a574;
@@ -532,6 +539,7 @@
             <div class="row"><span>5 🥛 milk → 1 ⚡ sat</span><button type="button" id="sell-milk">Sell milk</button></div>
             <div class="row"><span>8 🥚 eggs → 1 ⚡ sat</span><button type="button" id="sell-eggs">Sell eggs</button></div>
             <div class="row"><span>1 🐴 hair → 2 ⚡ sats</span><button type="button" id="sell-hair">Sell hair</button></div>
+            <div class="row"><span>4 🧶 wool → 1 ⚡ sat</span><button type="button" id="sell-wool">Sell wool</button></div>
             <div class="row"><span>1 🍮 pudding → 2 ⚡ sats</span><button type="button" id="sell-pudding">Sell pudding</button></div>
             <div class="row"><span>10 🥕 carrots → 1 ⚡ sat</span><button type="button" id="sell-carrots">Sell carrots</button></div>
             <div class="row"><span>40 🌽 corn → 1 ⚡ sat</span><button type="button" id="sell-corn">Sell corn</button></div>
@@ -548,7 +556,8 @@
           </div>
           <div id="asset-animals-list">
             <div class="row"><span>8 ⚡ sats → horse</span><button type="button" id="buy-horse">Buy horse</button></div>
-            <div class="row"><span>5 ⚡ sats → extra cow</span><button type="button" id="buy-cow">Buy cow</button></div>
+            <div class="row"><span>7 ⚡ sats → cow</span><button type="button" id="buy-cow">Buy cow</button></div>
+            <div class="row"><span>4 ⚡ sats → sheep</span><button type="button" id="buy-sheep">Buy sheep</button></div>
             <div class="row"><span>3 ⚡ sats → chicken</span><button type="button" id="buy-chicken">Buy chicken</button></div>
           </div>
           <div id="asset-structures-list" hidden>
@@ -582,7 +591,7 @@
       <div id="shed-panel" class="side-panel" aria-hidden="true">
         <h3>Cow shed</h3>
         <p id="shed-status">1 cow</p>
-        <div class="row"><span>Feed 1 cow — 5🌽 + 3💧</span><button type="button" id="shed-feed">Feed</button></div>
+        <div class="row"><span>Feed 1 cow — 6🌽 + 4💧</span><button type="button" id="shed-feed">Feed</button></div>
         <div class="row"><span>Collect ready milk</span><button type="button" id="shed-milk">Milk</button></div>
         <button type="button" class="ghost" id="shed-close">Close</button>
       </div>
@@ -623,13 +632,14 @@
   (function () {
     const FF = Object.assign({
       starterSats: 30, pack30Bonus: 20, wellMs: 4000, cornGrowMs: 20000, carrotGrowMs: 30000,
-      cowMs: 25000, chickenMs: 15000, horseMs: 20000, wellMax: 10, canPerWell: 20,
-      cowFeed: { corn: 5, water: 3, milk: 3 },
+      cowMs: 25000, chickenMs: 15000, horseMs: 20000, sheepMs: 22000, wellMax: 10, canPerWell: 20,
+      cowFeed: { corn: 6, water: 4, milk: 3 },
       chickenFeed: { corn: 2, water: 1, eggs: 2 },
-      horseFeed: { carrots: 3, water: 2, hair: 2 },
+      horseFeed: { carrots: 3, water: 4, hair: 2 },
+      sheepFeed: { corn: 3, water: 2, wool: 3 },
       pudding: { milk: 4, eggs: 3, sellSats: 2 },
-      prices: { well: 15, plot: 10, cow: 5, chicken: 3, horse: 8, expandBase: 20, silo: 25, siloUpgrade: 20 }, siloBase: 50, siloMaxUpgrades: 3,
-      sell: { milk: { qty: 5, sats: 1 }, water: { qty: 50, sats: 1 }, eggs: { qty: 8, sats: 1 }, hair: { qty: 1, sats: 2 }, carrots: { qty: 10, sats: 1 }, corn: { qty: 40, sats: 1 } },
+      prices: { well: 15, plot: 10, cow: 7, chicken: 3, horse: 8, sheep: 4, expandBase: 20, silo: 25, siloUpgrade: 20 }, siloBase: 50, siloMaxUpgrades: 3,
+      sell: { milk: { qty: 5, sats: 1 }, water: { qty: 50, sats: 1 }, eggs: { qty: 8, sats: 1 }, hair: { qty: 1, sats: 2 }, wool: { qty: 4, sats: 1 }, carrots: { qty: 10, sats: 1 }, corn: { qty: 40, sats: 1 } },
       buy: { water: { sats: 1, qty: 25 }, carrotSeeds: { sats: 1, qty: 5 }, cornSeeds: { sats: 1, qty: 10 } }
     }, window.FF || {});
     const SAVE_KEY = "first-field-v1";
@@ -673,6 +683,8 @@
       pudding: 0,
       horseHair: 0,
       horseShed: { horses: [] },
+      sheepPen: { sheep: [] },
+      wool: 0,
       sats: FF.starterSats,
       starterSats: true,
       hideZero: false,
@@ -733,7 +745,9 @@
         milk: state.milk,
         eggs: state.eggs || 0,
         horseHair: state.horseHair || 0,
+        wool: state.wool || 0,
         horseShed: state.horseShed,
+        sheepPen: state.sheepPen,
         pudding: state.pudding || 0,
         coop: state.coop,
         silos: state.silos,
@@ -786,6 +800,9 @@
       if (!state.horseShed) state.horseShed = { horses: [] };
       if (!Array.isArray(state.horseShed.horses)) state.horseShed.horses = [];
       if (typeof state.horseHair !== "number") state.horseHair = 0;
+      if (!state.sheepPen) state.sheepPen = { sheep: [] };
+      if (!Array.isArray(state.sheepPen.sheep)) state.sheepPen.sheep = [];
+      if (typeof state.wool !== "number") state.wool = 0;
       if (!Array.isArray(state.coop.chickens)) state.coop.chickens = [];
       if (typeof state.eggs !== "number") state.eggs = 0;
       if (typeof state.pudding !== "number") state.pudding = 0;
@@ -822,6 +839,7 @@
       tickCow();
       tickChicken();
       tickHorse();
+      tickSheep();
       markSaved(savedAt, fromFile);
     }
 
@@ -944,6 +962,7 @@
       if (kind === "shed") return "shed";
       if (kind === "coop") return "coop";
       if (kind === "horse") return "horse";
+      if (kind === "sheep") return "sheep";
       if (kind === "market") return "market";
       return plot.id;
     }
@@ -954,6 +973,7 @@
         .concat([{ id: "shed", x: state.shed.x, y: state.shed.y }])
         .concat(chickens().length && state.coop && typeof state.coop.x === "number" ? [{ id: "coop", x: state.coop.x, y: state.coop.y }] : [])
         .concat(horses().length && state.horseShed && typeof state.horseShed.x === "number" ? [{ id: "horse", x: state.horseShed.x, y: state.horseShed.y }] : [])
+        .concat(sheep().length && state.sheepPen && typeof state.sheepPen.x === "number" ? [{ id: "sheep", x: state.sheepPen.x, y: state.sheepPen.y }] : [])
         .concat(state.plots.map((p) => ({ id: p.id, x: p.x, y: p.y })));
     }
 
@@ -963,6 +983,7 @@
       if (kind === "shed") return state.shed;
       if (kind === "coop") return state.coop;
       if (kind === "horse") return state.horseShed;
+      if (kind === "sheep") return state.sheepPen;
       if (kind === "market") return state.market;
       return plot;
     }
@@ -986,6 +1007,9 @@
       }
       if (kind === "horse") {
         return [{ id: "horse", x: state.horseShed.x, y: state.horseShed.y }].filter((p) => p.id !== skipId);
+      }
+      if (kind === "sheep") {
+        return (state.sheepPen && typeof state.sheepPen.x === "number") ? [{ id: "sheep", x: state.sheepPen.x, y: state.sheepPen.y }].filter((p) => p.id !== skipId) : [];
       }
       if (kind === "coop") {
         return [{ id: "coop", x: state.coop.x, y: state.coop.y }].filter((p) => p.id !== skipId);
@@ -1147,8 +1171,8 @@
         toast(cows().some((c) => c.stage === "milk") ? "Collect milk first" : "No hungry cow");
         return;
       }
-      if (state.corn < FF.cowFeed.corn) { toast("Need 5 corn"); return; }
-      if (state.water < FF.cowFeed.water) { toast("Need 3 water"); return; }
+      if (state.corn < FF.cowFeed.corn) { toast("Need 6 corn"); return; }
+      if (state.water < FF.cowFeed.water) { toast("Need 4 water"); return; }
       state.corn -= FF.cowFeed.corn;
       state.water -= FF.cowFeed.water;
       hungry.stage = "making";
@@ -1183,7 +1207,7 @@
       if (cows().some((c) => c.stage === "hungry") && state.corn >= 5 && state.water >= 3) {
         feedCow(false); return;
       }
-      if (cows().some((c) => c.stage === "hungry")) toast("Need 5 corn + 3 water");
+      if (cows().some((c) => c.stage === "hungry")) toast("Need 6 corn + 4 water");
       else toast("Cows working");
     }
 
@@ -1315,7 +1339,7 @@
       const hungry = horses().find((h) => h.stage === "hungry");
       if (!hungry) { toast(horses().some((h) => h.stage === "hair") ? "Collect hair first" : "No hungry horse"); return; }
       if ((state.carrots || 0) < FF.horseFeed.carrots) { toast("Need 3 carrots"); return; }
-      if (state.water < FF.horseFeed.water) { toast("Need 2 water"); return; }
+      if (state.water < FF.horseFeed.water) { toast("Need 4 water"); return; }
       state.carrots -= FF.horseFeed.carrots;
       state.water -= FF.horseFeed.water;
       hungry.stage = "making";
@@ -1329,9 +1353,98 @@
       if (horses().some((h) => h.stage === "hair")) { collectHair(); return; }
       if (horses().some((h) => h.stage === "hungry") && (state.carrots || 0) >= 3 && state.water >= 2) { feedHorse(); return; }
       if (!horses().length) toast("Buy a horse in Market → Assets");
-      else if (horses().some((h) => h.stage === "hungry")) toast("Need 3 carrots + 2 water");
+      else if (horses().some((h) => h.stage === "hungry")) toast("Need 3 carrots + 4 water");
       else toast("Horses working");
     }
+
+    function sheep() { return (state.sheepPen && state.sheepPen.sheep) || []; }
+    function tickSheep() {
+      sheep().forEach((s) => {
+        if (s.stage === "making" && now() >= s.readyAt) s.stage = "wool";
+      });
+    }
+    function sheepInner() {
+      tickSheep();
+      const n = sheep().length;
+      if (!n) return '<div class="emoji">🐑</div><div class="label">buy sheep</div>';
+      const ready = sheep().filter((s) => s.stage === "wool").length;
+      const making = sheep().filter((s) => s.stage === "making");
+      if (ready) return '<div class="emoji">🧶</div><div class="label">' + ready + " wool</div>";
+      if (making.length) {
+        const soon = Math.min.apply(null, making.map((s) => s.readyAt));
+        return '<div class="emoji">🐑</div><div class="timer">' + making.length + " · " + fmtLeft(soon - now()) + "</div>";
+      }
+      return '<div class="emoji">🐑</div><div class="label">' + n + ' sheep</div>';
+    }
+    function collectWool() {
+      tickSheep();
+      let n = 0;
+      sheep().forEach((s) => {
+        if (s.stage === "wool") { n += 1; s.stage = "hungry"; s.readyAt = 0; }
+      });
+      if (!n) { toast(sheep().length ? "No wool yet" : "Buy a sheep in Assets"); return; }
+      const got = n * (FF.sheepFeed.wool || 3);
+      state.wool = (state.wool || 0) + got;
+      toast("Collected " + got + " wool");
+      save();
+      render();
+    }
+    function feedSheep() {
+      tickSheep();
+      const hungry = sheep().find((s) => s.stage === "hungry");
+      if (!hungry) { toast(sheep().some((s) => s.stage === "wool") ? "Collect wool first" : "No hungry sheep"); return; }
+      if ((state.corn || 0) < FF.sheepFeed.corn) { toast("Need 3 corn"); return; }
+      if (state.water < FF.sheepFeed.water) { toast("Need 2 water"); return; }
+      state.corn -= FF.sheepFeed.corn;
+      state.water -= FF.sheepFeed.water;
+      hungry.stage = "making";
+      hungry.readyAt = now() + (FF.sheepMs || 22000);
+      toast("Sheep fed — wool in 0:22");
+      save();
+      render();
+    }
+    function onSheepTap() {
+      tickSheep();
+      if (sheep().some((s) => s.stage === "wool")) { collectWool(); return; }
+      if (sheep().some((s) => s.stage === "hungry") && (state.corn || 0) >= 3 && state.water >= 2) { feedSheep(); return; }
+      if (!sheep().length) toast("Buy a sheep in Market → Assets");
+      else if (sheep().some((s) => s.stage === "hungry")) toast("Need 3 corn + 2 water");
+      else toast("Sheep working");
+    }
+    async function buySheep() {
+      if (!(await askYes("Buy a sheep for 4 sats?"))) return;
+      if (state.sats < (FF.prices.sheep || 4)) { toast("Need 4 sats"); return; }
+      const first = !sheep().length;
+      if (first) {
+        let spot = findSpot("sheep");
+        if (!spot) spot = await needSpace("sheep shed");
+        if (!spot) return;
+        state.sheepPen = { x: spot.x, y: spot.y, sheep: [] };
+      }
+      state.sats -= FF.prices.sheep || 4;
+      if (!state.sheepPen) state.sheepPen = { sheep: [] };
+      if (!state.sheepPen.sheep) state.sheepPen.sheep = [];
+      state.sheepPen.sheep.push({ id: "sh" + Date.now().toString(36), stage: "hungry", readyAt: 0 });
+      logMarket("Bought a sheep −4 sats");
+      toast(first ? "Sheep shed placed" : "Sheep in the shed");
+      save();
+      render();
+      openMarket(true);
+    }
+    async function sellWool() {
+      const unit = (FF.sell.wool && FF.sell.wool.qty) || 3;
+      const pay = (FF.sell.wool && FF.sell.wool.sats) || 1;
+      const n = await askSellBundles(state.wool || 0, unit, "wool");
+      if (!n) return;
+      state.wool -= n * unit;
+      state.sats += n * pay;
+      logMarket("Sold " + (n * unit) + " wool +" + (n * pay) + " sat");
+      toast("Sold " + (n * unit) + " wool for " + (n * pay) + " sat");
+      save();
+      render();
+      openMarket(true);
+    }
+
     async function buyHorse() {
       if (!(await askYes("Buy a horse for 8 sats?"))) return;
       if (state.sats < (FF.prices.horse || 8)) { toast("Need 8 sats"); return; }
@@ -1372,15 +1485,15 @@
     }
 
     async function buyCow() {
-      if (!(await askYes("Buy an extra cow for 5 sats?"))) return;
-      if (state.sats < FF.prices.cow) { toast("Need 5 sats"); return; }
+      if (!(await askYes("Buy a cow for 7 sats?"))) return;
+      if (state.sats < FF.prices.cow) { toast("Need 7 sats"); return; }
       state.sats -= FF.prices.cow;
       state.shed.cows.push({
         id: "c" + Date.now().toString(36),
         stage: "hungry",
         readyAt: 0
       });
-      logMarket("Bought a cow −5 sats");
+      logMarket("Bought a cow −7 sats");
       toast("New cow in the shed");
       save();
       render();
@@ -1460,29 +1573,33 @@
       if (room > 0 && pool > 0) collectWell(state.wells[0]);
     }
     function autoAnimals() {
-      tickCow(); tickChicken(); tickHorse();
+      tickCow(); tickChicken(); tickHorse(); tickSheep();
       const hungryCows = cows().filter((c) => c.stage === "hungry");
       const hungryChx = chickens().filter((c) => c.stage === "hungry");
       const hungryH = horses().filter((h) => h.stage === "hungry");
+      const hungryS = sheep().filter((s) => s.stage === "hungry");
       if (cows().some((c) => c.stage === "milk")) collectMilkAll(false);
       if (chickens().some((c) => c.stage === "eggs")) collectEggs();
       if (horses().some((h) => h.stage === "hair")) collectHair();
+      if (sheep().some((s) => s.stage === "wool")) collectWool();
       const canCow = hungryCows.length && state.corn >= (FF.cowFeed.corn) && state.water >= (FF.cowFeed.water);
       const canChx = hungryChx.length && state.corn >= (FF.chickenFeed.corn) && state.water >= (FF.chickenFeed.water);
       const canH = hungryH.length && (state.carrots || 0) >= (FF.horseFeed.carrots) && state.water >= (FF.horseFeed.water);
-      const order = ["cow", "chicken", "horse"];
+      const canS = hungryS.length && (state.corn || 0) >= (FF.sheepFeed.corn) && state.water >= (FF.sheepFeed.water);
+      const order = ["cow", "chicken", "horse", "sheep"];
       let i = order.indexOf(state.autoNext);
       if (i < 0) i = 0;
-      for (let k = 0; k < 3; k++) {
-        const who = order[(i + k) % 3];
+      for (let k = 0; k < 4; k++) {
+        const who = order[(i + k) % 4];
         if (who === "cow") {
           if (hungryCows.length && !canCow) return;
           if (canCow) { feedCow(false); state.autoNext = "chicken"; return; }
         } else if (who === "chicken") {
-          if (hungryChx.length && !canChx && !canCow && !canH) return;
           if (canChx) { feedChicken(); state.autoNext = "horse"; return; }
-        } else if (who === "horse" && canH) {
-          feedHorse(); state.autoNext = "cow"; return;
+        } else if (who === "horse") {
+          if (canH) { feedHorse(); state.autoNext = "sheep"; return; }
+        } else if (who === "sheep" && canS) {
+          feedSheep(); state.autoNext = "cow"; return;
         }
       }
     }
@@ -1514,6 +1631,7 @@
       add("Goods", "Milk  " + (state.milk || 0), state.milk || 0, packWorth(state.milk || 0, FF.sell.milk.qty, FF.sell.milk.sats));
       add("Goods", "Eggs  " + (state.eggs || 0), state.eggs || 0, packWorth(state.eggs || 0, FF.sell.eggs.qty, FF.sell.eggs.sats));
       add("Goods", "Horse hair  " + (state.horseHair || 0), state.horseHair || 0, (state.horseHair || 0) * ((FF.sell.hair && FF.sell.hair.sats) || 2));
+      add("Goods", "Wool  " + (state.wool || 0), state.wool || 0, packWorth(state.wool || 0, (FF.sell.wool && FF.sell.wool.qty) || 3, (FF.sell.wool && FF.sell.wool.sats) || 1));
       add("Goods", "Carrots  " + (state.carrots || 0), state.carrots || 0, packWorth(state.carrots || 0, FF.sell.carrots.qty, FF.sell.carrots.sats));
       add("Goods", "Corn  " + (state.corn || 0), state.corn || 0, packWorth(state.corn || 0, FF.sell.corn.qty, FF.sell.corn.sats));
       add("Goods", "Pudding  " + (state.pudding || 0), state.pudding || 0, (state.pudding || 0) * (FF.pudding.sellSats || 2));
@@ -1524,6 +1642,7 @@
       add("Assets", "Cows  " + cows().length, cows().length, cows().length * (FF.prices.cow || 5));
       add("Assets", "Chickens  " + chickens().length, chickens().length, chickens().length * (FF.prices.chicken || 3));
       add("Assets", "Horses  " + horses().length, horses().length, horses().length * (FF.prices.horse || 8));
+      add("Assets", "Sheep  " + sheep().length, sheep().length, sheep().length * (FF.prices.sheep || 4));
       let siloVal = 0;
       (state.silos || []).forEach((s) => {
         siloVal += (FF.prices.silo || 25) + (s.upgrades || 0) * (FF.prices.siloUpgrade || 20);
@@ -1568,6 +1687,8 @@
     }
     const BASE_UPDATES = [
       "Sep 29 — Horse shed appears when you buy a horse (8 sats). 3 carrots + 2 water, 2 hairs, 2 sats each.",
+      "Sep 29 — Sheep: 6 sats, shed on first buy, 3 corn + 2 water, 3 wool / 22s, 4 wool → 1 sat.",
+      "Sep 29 — Horses feed 3 carrots + 3 water. Cows stay 5 corn + 3 water.",
       "Sep 29 — Market Assets: Animals and Structures tabs.",
       "Sep 29 — Chicken coop appears when you buy the first chicken.",
       "Sep 29 — Carrot seeds 5 for 1 sat.",
@@ -1613,6 +1734,7 @@
         ["🥛 Milk", state.milk, state.milk],
         ["🥚 Eggs", state.eggs || 0, state.eggs || 0],
         ["🐴 Horse hair", state.horseHair || 0, state.horseHair || 0],
+        ["🧶 Wool", state.wool || 0, state.wool || 0],
         ["🍮 Pudding", state.pudding || 0, state.pudding || 0],
         ["🌱 Carrot seeds", state.carrotSeeds, state.carrotSeeds],
         ["🌱 Corn seeds", state.cornSeeds, state.cornSeeds],
@@ -1838,6 +1960,10 @@
       if (horses().length && state.horseShed) {
         state.horseShed.x = c.sx;
         state.horseShed.y = clamp(c.sy + 0.22, 0.08, 0.92);
+      }
+      if (sheep().length && state.sheepPen) {
+        state.sheepPen.x = clamp(c.sx + 0.18, 0.08, 0.92);
+        state.sheepPen.y = clamp(c.sy + 0.22, 0.08, 0.92);
       }
       save();
       render();
@@ -2265,6 +2391,15 @@
         bindTile(stable, "horse", null);
         grid.appendChild(stable);
       }
+      if (sheep().length && state.sheepPen && typeof state.sheepPen.x === "number") {
+        const pen = document.createElement("div");
+        pen.className = "tile sheep";
+        if (sheep().some((s) => s.stage === "wool")) pen.classList.add("ready");
+        placeEl(pen, state.sheepPen.x, state.sheepPen.y);
+        pen.innerHTML = sheepInner();
+        bindTile(pen, "sheep", null);
+        grid.appendChild(pen);
+      }
     }
 
     function bindTile(el, kind, plot) {
@@ -2292,6 +2427,7 @@
         else if (kind === "shed") onShedTap();
         else if (kind === "coop") onCoopTap();
         else if (kind === "horse") onHorseTap();
+        else if (kind === "sheep") onSheepTap();
         else if (kind === "silo") openSilo(plot);
         else onPlotTap(plot);
       }
@@ -2393,6 +2529,10 @@
     document.getElementById("buy-chicken").onclick = buyChicken;
     const buyHorseBtn = document.getElementById("buy-horse");
     if (buyHorseBtn) buyHorseBtn.onclick = buyHorse;
+    const buySheepBtn = document.getElementById("buy-sheep");
+    if (buySheepBtn) buySheepBtn.onclick = buySheep;
+    const sellWoolBtn = document.getElementById("sell-wool");
+    if (sellWoolBtn) sellWoolBtn.onclick = sellWool;
     const sellHairBtn = document.getElementById("sell-hair");
     if (sellHairBtn) sellHairBtn.onclick = sellHair;
     document.getElementById("sell-eggs").onclick = sellEggs;
@@ -2475,9 +2615,10 @@
       tickCow();
       tickChicken();
       tickHorse();
+      tickSheep();
       if (autoOn()) autoTick();
       const due = state.plots.some((p) => p.crop && p.crop.stage === "growing")
-        || cows().some((c) => c.stage === "making") || chickens().some((c) => c.stage === "making" || c.stage === "eggs") || horses().some((h) => h.stage === "making" || h.stage === "hair");
+        || cows().some((c) => c.stage === "making") || chickens().some((c) => c.stage === "making" || c.stage === "eggs") || horses().some((h) => h.stage === "making" || h.stage === "hair") || sheep().some((s) => s.stage === "making" || s.stage === "wool");
       const afterWell = state.wells.reduce((n, w) => n + w.water, 0);
       if (afterWell !== beforeWell || due || t - lastPaint > 400) {
         lastPaint = t;
