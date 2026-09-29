@@ -527,22 +527,25 @@
           <button type="button" id="mtab-assets">Assets</button>
         </div>
         <div id="msec-resources">
-          <div class="modes" id="res-toggle" style="margin-bottom:8px">
-            <button type="button" id="res-buy">Buy</button>
-            <button type="button" id="res-sell">Sell</button>
+          <div class="modes three" id="res-cats" style="margin-bottom:8px">
+            <button type="button" id="rcat-feed">Feed</button>
+            <button type="button" id="rcat-animal">Animal products</button>
+            <button type="button" id="rcat-craft">Crafts</button>
           </div>
-          <div id="res-buy-list">
-            <div class="row"><span>1 ⚡ sat → 25 💧 water</span><button type="button" id="buy-water">Buy water</button></div>
-          </div>
-          <div id="res-sell-list" hidden>
+          <div id="rcat-feed-list">
             <div class="row"><span>50 💧 water → 1 ⚡ sat</span><button type="button" id="sell-water">Sell water</button></div>
+            <div class="row"><span>10 🥕 carrots → 1 ⚡ sat</span><button type="button" id="sell-carrots">Sell carrots</button></div>
+            <div class="row"><span>40 🌽 corn → 1 ⚡ sat</span><button type="button" id="sell-corn">Sell corn</button></div>
+          </div>
+          <div id="rcat-animal-list" hidden>
             <div class="row"><span>5 🥛 milk → 1 ⚡ sat</span><button type="button" id="sell-milk">Sell milk</button></div>
             <div class="row"><span>8 🥚 eggs → 1 ⚡ sat</span><button type="button" id="sell-eggs">Sell eggs</button></div>
             <div class="row"><span>1 🐴 hair → 2 ⚡ sats</span><button type="button" id="sell-hair">Sell hair</button></div>
             <div class="row"><span>4 🧶 wool → 1 ⚡ sat</span><button type="button" id="sell-wool">Sell wool</button></div>
+          </div>
+          <div id="rcat-craft-list" hidden>
             <div class="row"><span>1 🍮 pudding → 2 ⚡ sats</span><button type="button" id="sell-pudding">Sell pudding</button></div>
-            <div class="row"><span>10 🥕 carrots → 1 ⚡ sat</span><button type="button" id="sell-carrots">Sell carrots</button></div>
-            <div class="row"><span>40 🌽 corn → 1 ⚡ sat</span><button type="button" id="sell-corn">Sell corn</button></div>
+            <div class="row"><span>1 👖 pants → 4 ⚡ sats</span><button type="button" id="sell-pants">Sell pants</button></div>
           </div>
         </div>
         <div id="msec-seeds" hidden>
@@ -580,6 +583,7 @@
         <h3>Craft</h3>
         <p>Combine farm goods.</p>
         <div class="row"><span>4 🥛 + 3 🥚 → 1 🍮</span><button type="button" id="craft-pudding">Make pudding</button></div>
+        <div class="row"><span>6 🧶 + 2 🐴 → 1 👖</span><button type="button" id="craft-pants">Make pants</button></div>
         <button type="button" class="ghost" id="craft-close">Close</button>
       </div>
       <div id="silo-panel" aria-hidden="true">
@@ -638,6 +642,7 @@
       horseFeed: { carrots: 3, water: 4, hair: 2 },
       sheepFeed: { corn: 3, water: 2, wool: 3 },
       pudding: { milk: 4, eggs: 3, sellSats: 2 },
+      pants: { wool: 6, hair: 2, sellSats: 4 },
       prices: { well: 15, plot: 10, cow: 7, chicken: 3, horse: 8, sheep: 4, expandBase: 20, silo: 25, siloUpgrade: 20 }, siloBase: 50, siloMaxUpgrades: 3,
       sell: { milk: { qty: 5, sats: 1 }, water: { qty: 50, sats: 1 }, eggs: { qty: 8, sats: 1 }, hair: { qty: 1, sats: 2 }, wool: { qty: 4, sats: 1 }, carrots: { qty: 10, sats: 1 }, corn: { qty: 40, sats: 1 } },
       buy: { water: { sats: 1, qty: 25 }, carrotSeeds: { sats: 1, qty: 5 }, cornSeeds: { sats: 1, qty: 10 } }
@@ -681,6 +686,7 @@
       milk: 0,
       eggs: 0,
       pudding: 0,
+      pants: 0,
       horseHair: 0,
       horseShed: { horses: [] },
       sheepPen: { sheep: [] },
@@ -749,6 +755,7 @@
         horseShed: state.horseShed,
         sheepPen: state.sheepPen,
         pudding: state.pudding || 0,
+        pants: state.pants || 0,
         coop: state.coop,
         silos: state.silos,
         sats: state.sats,
@@ -806,6 +813,7 @@
       if (!Array.isArray(state.coop.chickens)) state.coop.chickens = [];
       if (typeof state.eggs !== "number") state.eggs = 0;
       if (typeof state.pudding !== "number") state.pudding = 0;
+      if (typeof state.pants !== "number") state.pants = 0;
       if (!Array.isArray(state.shed.cows) || !state.shed.cows.length) {
         state.shed.cows = [{
           id: "c1",
@@ -911,7 +919,7 @@
       });
     }
     function fixNums() {
-      ["water","carrots","corn","carrotSeeds","cornSeeds","milk","eggs","pudding","sats"].forEach((k) => {
+      ["water","carrots","corn","carrotSeeds","cornSeeds","milk","eggs","pudding","pants","wool","horseHair","sats"].forEach((k) => {
         const n = Number(state[k]);
         state[k] = Number.isFinite(n) ? n : 0;
       });
@@ -1523,6 +1531,37 @@
       render();
       openCraft(true);
     }
+
+    async function craftPants() {
+      if (!(await askYes("Craft 1 pants from 6 wool and 2 horse hair?"))) return;
+      if ((state.wool || 0) < FF.pants.wool) { toast("Need 6 wool"); return; }
+      if ((state.horseHair || 0) < FF.pants.hair) { toast("Need 2 horse hair"); return; }
+      state.wool -= FF.pants.wool;
+      state.horseHair -= FF.pants.hair;
+      state.pants = (state.pants || 0) + 1;
+      logMarket("Crafted pants");
+      toast("Pants ready");
+      save();
+      render();
+      openCraft(true);
+    }
+    async function sellPants() {
+      const have = state.pants || 0;
+      if (have < 1) { toast("No pants"); return; }
+      const pay = FF.pants.sellSats || 4;
+      let n = 1;
+      if (have > 1) {
+        if (await askYes("Sell ALL pants? " + have + " for " + (have * pay) + " sats")) n = have;
+        else if (!(await askYes("Sell 1 pants for " + pay + " sats?"))) return;
+      } else if (!(await askYes("Sell 1 pants for " + pay + " sats?"))) return;
+      state.pants -= n;
+      state.sats += n * pay;
+      logMarket("Sold " + n + " pants +" + (n * pay) + " sat");
+      toast("Sold " + n + " pants for " + (n * pay) + " sats");
+      save();
+      render();
+      openMarket(true);
+    }
     async function sellPudding() {
       const have = state.pudding || 0;
       if (have < 1) { toast("No pudding"); return; }
@@ -1635,6 +1674,7 @@
       add("Goods", "Carrots  " + (state.carrots || 0), state.carrots || 0, packWorth(state.carrots || 0, FF.sell.carrots.qty, FF.sell.carrots.sats));
       add("Goods", "Corn  " + (state.corn || 0), state.corn || 0, packWorth(state.corn || 0, FF.sell.corn.qty, FF.sell.corn.sats));
       add("Goods", "Pudding  " + (state.pudding || 0), state.pudding || 0, (state.pudding || 0) * (FF.pudding.sellSats || 2));
+      add("Goods", "Pants  " + (state.pants || 0), state.pants || 0, (state.pants || 0) * (FF.pants.sellSats || 4));
       add("Goods", "Carrot seeds  " + (state.carrotSeeds || 0), state.carrotSeeds || 0, packWorth(state.carrotSeeds || 0, FF.buy.carrotSeeds.qty, FF.buy.carrotSeeds.sats));
       add("Goods", "Corn seeds  " + (state.cornSeeds || 0), state.cornSeeds || 0, packWorth(state.cornSeeds || 0, FF.buy.cornSeeds.qty, FF.buy.cornSeeds.sats));
       add("Assets", "Wells  " + (state.wells || []).length, (state.wells || []).length, (state.wells || []).length * (FF.prices.well || 15));
@@ -1736,6 +1776,7 @@
         ["🐴 Horse hair", state.horseHair || 0, state.horseHair || 0],
         ["🧶 Wool", state.wool || 0, state.wool || 0],
         ["🍮 Pudding", state.pudding || 0, state.pudding || 0],
+        ["👖 Pants", state.pants || 0, state.pants || 0],
         ["🌱 Carrot seeds", state.carrotSeeds, state.carrotSeeds],
         ["🌱 Corn seeds", state.cornSeeds, state.cornSeeds],
         ["⚡ Sats", state.sats, state.sats]
@@ -1786,17 +1827,16 @@
       if (state.marketLog.length > 50) state.marketLog.length = 50;
     }
 
-    function showResSide(side) {
-      state.resSide = side === "sell" ? "sell" : "buy";
-      const buyBtn = document.getElementById("res-buy");
-      const sellBtn = document.getElementById("res-sell");
-      const buyList = document.getElementById("res-buy-list");
-      const sellList = document.getElementById("res-sell-list");
-      if (buyBtn) buyBtn.classList.toggle("active", state.resSide === "buy");
-      if (sellBtn) sellBtn.classList.toggle("active", state.resSide === "sell");
-      if (buyList) buyList.hidden = state.resSide !== "buy";
-      if (sellList) sellList.hidden = state.resSide !== "sell";
+    function showResCat(cat) {
+      state.resCat = cat === "animal" || cat === "craft" ? cat : "feed";
+      ["feed", "animal", "craft"].forEach((name) => {
+        const btn = document.getElementById("rcat-" + name);
+        const list = document.getElementById("rcat-" + name + "-list");
+        if (btn) btn.classList.toggle("active", state.resCat === name);
+        if (list) list.hidden = state.resCat !== name;
+      });
     }
+    function showResSide(side) { showResCat(state.resCat || "feed"); }
 
     function showAssetSide(side) {
       state.assetSide = side === "structures" ? "structures" : "animals";
@@ -1840,7 +1880,7 @@
       closeAllTabs();
       if (wasOpen && !force) return;
       showMarketTab(state.marketTab || "resources");
-      showResSide(state.resSide || "buy");
+      showResCat(state.resCat || "feed");
       showAssetSide(state.assetSide || "animals");
       renderMarketHistory();
       pan.classList.add("open");
@@ -2317,7 +2357,7 @@
           carrot: "Tap an empty plot to plant carrot.",
           corn: "Tap an empty plot to plant corn.",
           sell: "Market: Resources, Seeds, Assets.",
-          craft: "Craft pudding: 4 milk + 3 eggs.",
+          craft: "Craft in this tab only.",
           barn: "Barn holds water, crops, milk, eggs, pudding, seeds."
         },
         move: { any: "Hold 1 second to pick up. Drop on free space." }
@@ -2536,8 +2576,6 @@
     const sellHairBtn = document.getElementById("sell-hair");
     if (sellHairBtn) sellHairBtn.onclick = sellHair;
     document.getElementById("sell-eggs").onclick = sellEggs;
-    document.getElementById("res-buy").onclick = () => showResSide("buy");
-    document.getElementById("res-sell").onclick = () => showResSide("sell");
     document.getElementById("shed-close").onclick = closeShed;
     document.getElementById("tool-sell").onclick = () => { state.mode = "farm"; state.tool = "sell"; openMarket(); render(); };
     document.getElementById("tool-craft").onclick = () => { state.mode = "farm"; state.tool = "craft"; openCraft(); render(); };
@@ -2554,11 +2592,14 @@
       save();
     };
     document.getElementById("craft-pudding").onclick = craftPudding;
+    document.getElementById("craft-pants").onclick = craftPants;
+    document.getElementById("sell-pants").onclick = sellPants;
     document.getElementById("sell-pudding").onclick = sellPudding;
     document.getElementById("craft-close").onclick = closeAllTabs;
     document.getElementById("sell-milk").onclick = sellMilk;
     document.getElementById("sell-water").onclick = sellWater;
-    document.getElementById("buy-water").onclick = buyWater;
+    const bw = document.getElementById("buy-water");
+    if (bw) bw.onclick = buyWater;
     document.getElementById("buy-carrot-seeds").onclick = buyCarrotSeeds;
     document.getElementById("buy-corn-seeds").onclick = buyCornSeeds;
     document.getElementById("sell-carrots").onclick = sellCarrots;
@@ -2573,6 +2614,12 @@
     document.getElementById("buy-expand").onclick = buyExpand;
     document.getElementById("buy-plot").onclick = buyPlot;
     document.getElementById("mtab-resources").onclick = () => showMarketTab("resources");
+    const rf = document.getElementById("rcat-feed");
+    const ra = document.getElementById("rcat-animal");
+    const rc = document.getElementById("rcat-craft");
+    if (rf) rf.onclick = () => showResCat("feed");
+    if (ra) ra.onclick = () => showResCat("animal");
+    if (rc) rc.onclick = () => showResCat("craft");
     document.getElementById("mtab-seeds").onclick = () => showMarketTab("seeds");
     document.getElementById("mtab-assets").onclick = () => showMarketTab("assets");
     const aa = document.getElementById("asset-animals");
