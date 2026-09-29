@@ -17,6 +17,7 @@ window.FF = {
   horseFeed: { carrots: 3, water: 4, hair: 2 },
   sheepFeed: { corn: 3, water: 2, wool: 3 },
   pudding: { milk: 4, eggs: 3, sellSats: 2 },
+  pants: { wool: 6, hair: 3, sellSats: 4 },
   prices: {
     well: 15,
     plot: 10,
@@ -32,7 +33,7 @@ window.FF = {
     milk: { qty: 5, sats: 1 },
     water: { qty: 50, sats: 1 },
     eggs: { qty: 8, sats: 1 },
-    hair: { qty: 1, sats: 2 },
+    hair: { qty: 1, sats: 1 },
     wool: { qty: 4, sats: 1 },
     carrots: { qty: 10, sats: 1 },
     corn: { qty: 40, sats: 1 }
@@ -43,7 +44,7 @@ window.FF = {
     cornSeeds: { sats: 1, qty: 10 }
   },
   updates: [
-    "Sep 29 \u2014 Market sell rows show how many you have, including wool."
+    "Sep 29 \u2014 1 horse hair \u2192 1 sat. Pants: 6 wool + 3 horse hair."
   ]
 };
 
@@ -54,10 +55,9 @@ window.FF = {
       if (!btn) return;
       var box = btn.closest(".row");
       if (!box) return;
-      var price = box.querySelector(".price") || document.getElementById("lbl-" + id.replace("buy-","").replace("sell-",""));
+      var price = box.querySelector(".price");
       if (price) { price.textContent = text; return; }
-      var have = box.querySelector(".have");
-      if (have) return;
+      if (box.querySelector(".have")) return;
       var span = box.querySelector("span");
       if (span) span.textContent = text;
     }
@@ -68,7 +68,6 @@ window.FF = {
     row("buy-chicken", window.FF.prices.chicken + " \u26A1 sats \u2192 chicken");
     row("buy-corn-seeds", "1 \u26A1 sat \u2192 " + window.FF.buy.cornSeeds.qty + " \uD83C\uDF3D seeds");
     row("buy-carrot-seeds", "1 \u26A1 sat \u2192 " + window.FF.buy.carrotSeeds.qty + " \uD83C\uDF51 seeds");
-    row("sell-wool", window.FF.sell.wool.qty + " \uD83E\uDDF6 wool \u2192 " + window.FF.sell.wool.sats + " \u26A1 sat");
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", relabel);
   else relabel();
