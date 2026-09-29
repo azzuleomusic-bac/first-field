@@ -33,7 +33,10 @@ window.FF = {
     water: { sats: 1, qty: 25 },
     carrotSeeds: { sats: 1, qty: 10 },
     cornSeeds: { sats: 1, qty: 10 }
-  }
+  },
+  updates: [
+    "Sep 29 \u2014 Updates tab reads new lines from config so future pushes show here."
+  ]
 };
 
 (function () {
