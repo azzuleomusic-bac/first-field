@@ -330,7 +330,7 @@
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
     }
-    #market-panel, #shed-panel, #log-panel, #craft-panel, #barn-panel, #silo-panel, #worth-panel {
+    #market-panel, #shed-panel, #log-panel, #craft-panel, #barn-panel, #silo-panel, #worth-panel, #mine-panel {
       max-height: min(58vh, 420px);
       overflow-y: auto;
     }
@@ -436,7 +436,7 @@
       line-height: 1.45;
     }
     #log-panel li { margin-bottom: 6px; }
-    #market-panel, #craft-panel, #barn-panel, #silo-panel, #worth-panel {
+    #market-panel, #craft-panel, #barn-panel, #silo-panel, #worth-panel, #mine-panel {
       display: none;
       position: absolute;
       left: 50%;
@@ -450,9 +450,10 @@
       padding: 12px;
       color: var(--cream);
     }
-    #market-panel.open, #craft-panel.open, #barn-panel.open, #silo-panel.open, #worth-panel.open { display: block; }
-    #market-panel h3, #craft-panel h3, #barn-panel h3, #worth-panel h3 { margin: 0 0 8px; font-size: 14px; color: var(--gold); }
-    #market-panel p, #craft-panel p, #barn-panel p, #worth-panel p { margin: 0 0 10px; font-size: 12px; opacity: 0.8; }
+    #market-panel.open, #craft-panel.open, #barn-panel.open, #silo-panel.open, #worth-panel.open, #mine-panel.open { display: block; }
+    #market-panel h3, #craft-panel h3, #barn-panel h3, #worth-panel h3, #mine-panel h3 { margin: 0 0 8px; font-size: 14px; color: var(--gold); }
+    #market-panel p, #craft-panel p, #barn-panel p, #worth-panel p, #mine-panel p { margin: 0 0 10px; font-size: 12px; opacity: 0.8; }
+        #market-panel .have { display:block; font-size:11px; opacity:0.75; margin-top:2px; font-weight:600; color:var(--gold); }
     #market-panel .row, #craft-panel .row, #barn-panel .row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; font-size: 13px; }
 
     #barn-hide-zero {
@@ -550,19 +551,19 @@
             <button type="button" id="rcat-craft">Crafts</button>
           </div>
           <div id="rcat-feed-list">
-            <div class="row"><span>50 💧 water → 1 ⚡ sat</span><button type="button" id="sell-water">Sell water</button></div>
-            <div class="row"><span>10 🥕 carrots → 1 ⚡ sat</span><button type="button" id="sell-carrots">Sell carrots</button></div>
-            <div class="row"><span>40 🌽 corn → 1 ⚡ sat</span><button type="button" id="sell-corn">Sell corn</button></div>
+            <div class="row"><span>50 💧 water → 1 ⚡ sat<br><small class="have" data-have="water"></small></span><button type="button" id="sell-water">Sell water</button></div>
+            <div class="row"><span>10 🥕 carrots → 1 ⚡ sat<br><small class="have" data-have="carrots"></small></span><button type="button" id="sell-carrots">Sell carrots</button></div>
+            <div class="row"><span>40 🌽 corn → 1 ⚡ sat<br><small class="have" data-have="corn"></small></span><button type="button" id="sell-corn">Sell corn</button></div>
           </div>
           <div id="rcat-animal-list" hidden>
-            <div class="row"><span>5 🥛 milk → 1 ⚡ sat</span><button type="button" id="sell-milk">Sell milk</button></div>
-            <div class="row"><span>8 🥚 eggs → 1 ⚡ sat</span><button type="button" id="sell-eggs">Sell eggs</button></div>
-            <div class="row"><span>1 horse hair → 2 ⚡ sats</span><button type="button" id="sell-hair">Sell hair</button></div>
-            <div class="row"><span>4 🧶 wool → 1 ⚡ sat</span><button type="button" id="sell-wool">Sell wool</button></div>
+            <div class="row"><span>5 🥛 milk → 1 ⚡ sat<br><small class="have" data-have="milk"></small></span><button type="button" id="sell-milk">Sell milk</button></div>
+            <div class="row"><span>8 🥚 eggs → 1 ⚡ sat<br><small class="have" data-have="eggs"></small></span><button type="button" id="sell-eggs">Sell eggs</button></div>
+            <div class="row"><span>1 horse hair → 2 ⚡ sats<br><small class="have" data-have="horseHair"></small></span><button type="button" id="sell-hair">Sell hair</button></div>
+            <div class="row"><span>4 🧶 wool → 1 ⚡ sat<br><small class="have" data-have="wool"></small></span><button type="button" id="sell-wool">Sell wool</button></div>
           </div>
           <div id="rcat-craft-list" hidden>
-            <div class="row"><span>1 🍮 pudding → 2 ⚡ sats</span><button type="button" id="sell-pudding">Sell pudding</button></div>
-            <div class="row"><span>1 👖 pants → 4 ⚡ sats</span><button type="button" id="sell-pants">Sell pants</button></div>
+            <div class="row"><span>1 🍮 pudding → 2 ⚡ sats<br><small class="have" data-have="pudding"></small></span><button type="button" id="sell-pudding">Sell pudding</button></div>
+            <div class="row"><span>1 👖 pants → 4 ⚡ sats<br><small class="have" data-have="pants"></small></span><button type="button" id="sell-pants">Sell pants</button></div>
           </div>
         </div>
         <div id="msec-seeds" hidden>
@@ -595,6 +596,11 @@
         <button type="button" id="barn-hide-zero">Hide 0 balances</button>
         <ul id="barn-list"></ul>
         <button type="button" class="ghost" id="barn-close">Close</button>
+      </div>
+      <div id="mine-panel" aria-hidden="true">
+        <h3>Mine</h3>
+        <p>Nothing to mine yet.</p>
+        <button type="button" class="ghost" id="mine-close">Close</button>
       </div>
       <div id="craft-panel" aria-hidden="true">
         <h3>Craft</h3>
@@ -641,9 +647,10 @@
         <button type="button" id="mode-farm" class="active">Farm</button>
         <button type="button" id="tool-barn">Barn</button>
       </div>
-      <div class="tools">
+      <div class="tools" style="grid-template-columns:1fr 1fr 1fr">
         <button type="button" id="tool-carrot">Plant 🥕</button>
         <button type="button" id="tool-corn">Plant 🌽</button>
+        <button type="button" id="tool-mine">Mine</button>
       </div>
 <div class="hint" id="hint">Tap a plot to plant. Tap the well to fill your can.</div>
     </footer>
@@ -1812,6 +1819,16 @@
         box.textContent = hide ? "Hiding 0 balances" : "Hide 0 balances";
       }
     }
+
+    function openMine(force) {
+      const pan = document.getElementById("mine-panel");
+      const wasOpen = pan && pan.classList.contains("open");
+      closeAllTabs();
+      if (wasOpen && !force) return;
+      if (!pan) return;
+      pan.classList.add("open");
+      pan.setAttribute("aria-hidden", "false");
+    }
     function openBarn(force) {
       const pan = document.getElementById("barn-panel");
       const wasOpen = pan && pan.classList.contains("open");
@@ -1819,6 +1836,7 @@
       if (wasOpen && !force) return;
       if (!pan) return;
       fillBarn();
+      fillMarketInv();
       fillLog();
       refreshAutoLabel();
       pan.classList.add("open");
@@ -1828,7 +1846,7 @@
       const marketWas = document.getElementById("market-panel").classList.contains("open")
         || document.getElementById("craft-panel").classList.contains("open")
         || (document.getElementById("barn-panel") && document.getElementById("barn-panel").classList.contains("open"));
-      ["market-panel", "shed-panel", "log-panel", "craft-panel", "barn-panel", "silo-panel", "worth-panel"].forEach((id) => {
+      ["market-panel", "shed-panel", "log-panel", "craft-panel", "barn-panel", "silo-panel", "worth-panel", "mine-panel"].forEach((id) => {
         const el = document.getElementById(id);
         if (!el) return;
         el.classList.remove("open");
@@ -1894,6 +1912,17 @@
       }).join("");
     }
 
+    function fillMarketInv() {
+      const names = {
+        water: "water", carrots: "carrots", corn: "corn", milk: "milk",
+        eggs: "eggs", horseHair: "horse hair", wool: "wool", pudding: "pudding", pants: "pants"
+      };
+      document.querySelectorAll("#market-panel .have").forEach((el) => {
+        const k = el.getAttribute("data-have");
+        const n = Number(state[k] || 0);
+        el.textContent = "You have " + n + " " + (names[k] || k);
+      });
+    }
     function openMarket(force) {
       const pan = document.getElementById("market-panel");
       const wasOpen = pan && pan.classList.contains("open");
@@ -1902,6 +1931,7 @@
       showMarketTab(state.marketTab || "resources");
       showResCat(state.resCat || "feed");
       showAssetSide(state.assetSide || "animals");
+      fillMarketInv();
       renderMarketHistory();
       pan.classList.add("open");
       pan.setAttribute("aria-hidden", "false");
@@ -2601,6 +2631,10 @@
     document.getElementById("tool-sell").onclick = () => { state.mode = "farm"; state.tool = "sell"; openMarket(); render(); };
     document.getElementById("tool-craft").onclick = () => { state.mode = "farm"; state.tool = "craft"; openCraft(); render(); };
     document.getElementById("tool-barn").onclick = () => { state.mode = "farm"; state.tool = "barn"; openBarn(); render(); };
+    const mineBtn = document.getElementById("tool-mine");
+    if (mineBtn) mineBtn.onclick = () => { state.mode = "farm"; state.tool = "mine"; openMine(); render(); };
+    const mineCl = document.getElementById("mine-close");
+    if (mineCl) mineCl.onclick = closeAllTabs;
     document.getElementById("barn-close").onclick = closeAllTabs;
     const worthEl = document.getElementById("stat-worth");
     if (worthEl) worthEl.onclick = function (ev) { ev.stopPropagation(); openWorth(); };
@@ -2651,7 +2685,7 @@
     wrap.addEventListener("pointerdown", (ev) => {
       const open = document.querySelector("#market-panel.open, #shed-panel.open, #log-panel.open, #craft-panel.open, #barn-panel, #silo-panel.open");
       if (!open) return;
-      if (ev.target.closest("#market-panel, #shed-panel, #log-panel, #craft-panel, #barn-panel, #silo-panel, #worth-panel, #log-tab, #stat-worth, .tile.shed")) return;
+      if (ev.target.closest("#market-panel, #shed-panel, #log-panel, #craft-panel, #barn-panel, #silo-panel, #worth-panel, #mine-panel, #log-tab, #stat-worth, .tile.shed")) return;
       closeAllTabs();
     });
     document.getElementById("log-tab").onclick = () => {
