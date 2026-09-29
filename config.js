@@ -7,7 +7,7 @@ window.FF = {
   cowMs: 25000,
   chickenMs: 15000,
   wellMax: 10,
-  canPerWell: 30,
+  canPerWell: 20,
   siloBase: 50,
   siloMaxUpgrades: 3,
   cowFeed: { corn: 5, water: 3, milk: 3 },
