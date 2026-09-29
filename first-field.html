@@ -558,8 +558,8 @@
           <div id="rcat-animal-list" hidden>
             <div class="row"><span>5 🥛 milk → 1 ⚡ sat<br><small class="have" data-have="milk"></small></span><button type="button" id="sell-milk">Sell milk</button></div>
             <div class="row"><span>8 🥚 eggs → 1 ⚡ sat<br><small class="have" data-have="eggs"></small></span><button type="button" id="sell-eggs">Sell eggs</button></div>
-            <div class="row"><span>1 horse hair → 2 ⚡ sats<br><small class="have" data-have="horseHair"></small></span><button type="button" id="sell-hair">Sell hair</button></div>
-            <div class="row"><span>4 🧶 wool → 1 ⚡ sat<br><small class="have" data-have="wool"></small></span><button type="button" id="sell-wool">Sell wool</button></div>
+            <div class="row"><span><span class="price" id="lbl-hair"></span><br><small class="have" data-have="horseHair"></small></span><button type="button" id="sell-hair">Sell horse hair</button></div>
+            <div class="row"><span><span class="price" id="lbl-wool">4 🧶 wool → 1 ⚡ sat</span><br><small class="have" data-have="wool"></small></span><button type="button" id="sell-wool">Sell wool</button></div>
           </div>
           <div id="rcat-craft-list" hidden>
             <div class="row"><span>1 🍮 pudding → 2 ⚡ sats<br><small class="have" data-have="pudding"></small></span><button type="button" id="sell-pudding">Sell pudding</button></div>
@@ -606,7 +606,7 @@
         <h3>Craft</h3>
         <p>Combine farm goods.</p>
         <div class="row"><span>4 🥛 + 3 🥚 → 1 🍮</span><button type="button" id="craft-pudding">Make pudding</button></div>
-        <div class="row"><span>6 wool + 2 horse hair → 1 pants</span><button type="button" id="craft-pants">Make pants</button></div>
+        <div class="row"><span id="craft-pants-label">6 wool + 3 horse hair → 1 pants</span><button type="button" id="craft-pants">Make pants</button></div>
         <button type="button" class="ghost" id="craft-close">Close</button>
       </div>
       <div id="silo-panel" aria-hidden="true">
@@ -666,9 +666,9 @@
       horseFeed: { carrots: 3, water: 4, hair: 2 },
       sheepFeed: { corn: 3, water: 2, wool: 3 },
       pudding: { milk: 4, eggs: 3, sellSats: 2 },
-      pants: { wool: 6, hair: 2, sellSats: 4 },
+      pants: { wool: 6, hair: 3, sellSats: 4 },
       prices: { well: 15, plot: 10, cow: 7, chicken: 3, horse: 8, sheep: 4, expandBase: 20, silo: 25, siloUpgrade: 20 }, siloBase: 50, siloMaxUpgrades: 3,
-      sell: { milk: { qty: 5, sats: 1 }, water: { qty: 50, sats: 1 }, eggs: { qty: 8, sats: 1 }, hair: { qty: 1, sats: 2 }, wool: { qty: 4, sats: 1 }, carrots: { qty: 10, sats: 1 }, corn: { qty: 40, sats: 1 } },
+      sell: { milk: { qty: 5, sats: 1 }, water: { qty: 50, sats: 1 }, eggs: { qty: 8, sats: 1 }, hair: { qty: 1, sats: 1 }, wool: { qty: 4, sats: 1 }, carrots: { qty: 10, sats: 1 }, corn: { qty: 40, sats: 1 } },
       buy: { water: { sats: 1, qty: 25 }, carrotSeeds: { sats: 1, qty: 5 }, cornSeeds: { sats: 1, qty: 10 } }
     }, window.FF || {});
     const SAVE_KEY = "first-field-v1";
@@ -1502,7 +1502,7 @@
     }
     async function sellHair() {
       const unit = (FF.sell.hair && FF.sell.hair.qty) || 1;
-      const pay = (FF.sell.hair && FF.sell.hair.sats) || 2;
+      const pay = (FF.sell.hair && FF.sell.hair.sats) || 1;
       const have = state.horseHair || 0;
       if (have < unit) { toast("Need horse hair"); return; }
       let n = 1;
@@ -1536,12 +1536,20 @@
     }
 
 
+    function fillCraftLabels() {
+      const el = document.getElementById("craft-pants-label");
+      if (!el || typeof hairMark !== "function") return;
+      const nWool = (FF.pants && FF.pants.wool) || 6;
+      const nHair = (FF.pants && FF.pants.hair) || 3;
+      el.innerHTML = nWool + " wool + " + nHair + " " + hairMark(true) + " horse hair -> 1 👖";
+    }
     function openCraft(force) {
       const pan = document.getElementById("craft-panel");
       const wasOpen = pan && pan.classList.contains("open");
       closeAllTabs();
       if (wasOpen && !force) return;
       if (!pan) return;
+      fillCraftLabels();
       pan.classList.add("open");
       pan.setAttribute("aria-hidden", "false");
     }
@@ -1560,9 +1568,9 @@
     }
 
     async function craftPants() {
-      if (!(await askYes("Craft 1 pants from 6 wool and 2 horse hair?"))) return;
+      if (!(await askYes("Craft 1 pants from 6 wool and 3 horse hair?"))) return;
       if ((state.wool || 0) < FF.pants.wool) { toast("Need 6 wool"); return; }
-      if ((state.horseHair || 0) < FF.pants.hair) { toast("Need 2 horse hair"); return; }
+      if ((state.horseHair || 0) < FF.pants.hair) { toast("Need 3 horse hair"); return; }
       state.wool -= FF.pants.wool;
       state.horseHair -= FF.pants.hair;
       state.pants = (state.pants || 0) + 1;
@@ -1696,7 +1704,7 @@
       add("Goods", "Water  " + (state.water || 0), state.water || 0, packWorth(state.water || 0, FF.sell.water.qty, FF.sell.water.sats));
       add("Goods", "Milk  " + (state.milk || 0), state.milk || 0, packWorth(state.milk || 0, FF.sell.milk.qty, FF.sell.milk.sats));
       add("Goods", "Eggs  " + (state.eggs || 0), state.eggs || 0, packWorth(state.eggs || 0, FF.sell.eggs.qty, FF.sell.eggs.sats));
-      add("Goods", "Horse hair  " + (state.horseHair || 0), state.horseHair || 0, (state.horseHair || 0) * ((FF.sell.hair && FF.sell.hair.sats) || 2));
+      add("Goods", "Horse hair  " + (state.horseHair || 0), state.horseHair || 0, (state.horseHair || 0) * ((FF.sell.hair && FF.sell.hair.sats) || 1));
       add("Goods", "Wool  " + (state.wool || 0), state.wool || 0, packWorth(state.wool || 0, (FF.sell.wool && FF.sell.wool.qty) || 3, (FF.sell.wool && FF.sell.wool.sats) || 1));
       add("Goods", "Carrots  " + (state.carrots || 0), state.carrots || 0, packWorth(state.carrots || 0, FF.sell.carrots.qty, FF.sell.carrots.sats));
       add("Goods", "Corn  " + (state.corn || 0), state.corn || 0, packWorth(state.corn || 0, FF.sell.corn.qty, FF.sell.corn.sats));
@@ -1837,6 +1845,7 @@
       if (!pan) return;
       fillBarn();
       fillMarketInv();
+      if (typeof fillCraftLabels === 'function') fillCraftLabels();
       fillLog();
       refreshAutoLabel();
       pan.classList.add("open");
@@ -1917,6 +1926,11 @@
         water: "water", carrots: "carrots", corn: "corn", milk: "milk",
         eggs: "eggs", horseHair: "horse hair", wool: "wool", pudding: "pudding", pants: "pants"
       };
+      const hairLbl = document.getElementById("lbl-hair");
+      if (hairLbl && typeof hairMark === "function") {
+        const pay = (FF.sell.hair && FF.sell.hair.sats) || 1;
+        hairLbl.innerHTML = "1 " + hairMark(true) + " horse hair → " + pay + " ⚡ sat";
+      }
       document.querySelectorAll("#market-panel .have").forEach((el) => {
         const k = el.getAttribute("data-have");
         const n = Number(state[k] || 0);
