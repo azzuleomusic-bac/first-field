@@ -1,5 +1,5 @@
 # First Field
 
-Offline farm game. Connect this repo to Cloudflare Pages (root directory, no build command, output `.`).
+Live: https://first-field.azzuleomusic.workers.dev
 
-Then say **push it** in chat and Grok updates these files.
+Say **push it** in chat to update this repo. Cloudflare rebuilds that link.
