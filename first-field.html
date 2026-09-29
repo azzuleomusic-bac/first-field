@@ -502,45 +502,7 @@
       <button type="button" id="log-tab">Updates</button>
       <div id="log-panel" aria-hidden="true">
         <h3>First Field log</h3>
-        <ul>
-          <li>Sep 29 — Automate farm: 1 sat, 2 minutes, corn cycle, wells, animals even.</li>
-          <li>Sep 29 — Grain silo: 50 corn cap, +50 ×3 for 20 sats, extra silo 18 sats.</li>
-          <li>Sep 29 — Barn button: inventory. Header only shows sats.</li>
-          <li>Sep 29 — New farms start with 30 sats. Old 10-sat farms get +20 once.</li>
-          <li>Sep 29 — Craft pudding: 4 milk + 3 eggs, sell for 2 sats.</li>
-          <li>Sep 29 — Chickens: 3 sats, feed 2 corn + 1 water, 2 eggs / 15s, 8 eggs → 1 sat.</li>
-          <li>Sep 29 — Crop land 10 sats. Cow 5 sats.</li>
-          <li>Sep 29 — Wells 4s per unit. Corn 20s, carrots 30s, cows 25s.</li>
-          <li>Sep 29 — Well 15 sats. Expand farm +30% for 20, then 40, 80…</li>
-          <li>Sep 29 — Sell asks all or one. Buying an asset asks to confirm.</li>
-          <li>Sep 28 — Close Market selects Plant corn.</li>
-          <li>Sep 28 — Shed timer shows cows actually working, not total cows.</li>
-          <li>Sep 28 — Backup and Load backup removed. Auto-save stays on.</li>
-          <li>Sep 28 — Market stall removed. Use the Market button.</li>
-          <li>Sep 28 — Clean farm packs to a new corner each tap.</li>
-          <li>Sep 28 — Wells fill every 7.5s. Cows give 3 milk. Corn 30s.</li>
-          <li>Sep 28 — Extra crop land 5 sats in Assets. 40 corn → 1 sat.</li>
-          <li>Sep 28 — Tap a thirsty crop to water. Water button removed.</li>
-          <li>Sep 28 — Farm can 20 per well. Each well tank fills to 10.</li>
-          <li>Sep 28 — Corn shows grow stages + timer.</li>
-          <li>Sep 28 — Tap outside Market/Shed/Updates to close the tab.</li>
-          <li>Sep 28 — Feed button removed. Use the shed.</li>
-          <li>Sep 28 — Well tool removed. Tap the well to collect.</li>
-          <li>Sep 28 — Selling asks for confirmation.</li>
-          <li>Sep 28 — Cow purchase in Assets. Resources Buy/Sell toggle.</li>
-          <li>Sep 28 — New farms: 15 corn seeds. Carrot seeds 10 for 1 sat. Harvest 2 carrots / 3 corn.</li>
-          <li>Sep 28 — Reset farm button removed.</li>
-          <li>Sep 28 — Market history per farm. Only one tab open at a time.</li>
-          <li>Sep 28 — Buy extra cow in the shed for 10 sats.</li>
-          <li>Sep 28 — Market: buy 25 water for 1 sat.</li>
-          <li>Sep 28 — One-time 10 starter sats per farm. Rest is earned.</li>
-          <li>Sep 28 — Market tab: 5 milk → 1 sat, 50 water → 1 sat.</li>
-          <li>Sep 28 — Crops need 1 water.</li>
-          <li>Sep 28 — Market stall: 5 milk → 1 sat (visual).</li>
-          <li>Sep 28 — Cow shed: feed 5 corn + 3 water, 30s, milk.</li>
-          <li>Sep 28 — Plots/well/shed cannot stack. Same types snap.</li>
-          <li>Sep 28 — Auto-save on this phone. Home Screen app on first-field.netlify.app</li>
-        </ul>
+        <ul id="log-list"></ul>
       </div>
       <div id="market-panel" aria-hidden="true">
         <h3>Market</h3>
@@ -1456,6 +1418,39 @@
       pan.classList.add("open");
       pan.setAttribute("aria-hidden", "false");
     }
+    const BASE_UPDATES = [
+      "Sep 29 — Updates log is driven by the game list so new lines show after a push.",
+      "Sep 29 — Barn: gold Hide / Hiding 0 balances toggle.",
+      "Sep 29 — Tap Farm worth for Cash / Goods / Assets breakdown.",
+      "Sep 29 — Farm worth on the field, top left.",
+      "Sep 29 — Buying land/well/silo packs next to the same type. Expand only if the farm is full.",
+      "Sep 29 — Auto: cow first, then chicken. 1 sat for 2 minutes.",
+      "Sep 29 — Farm can 20 water per well. 1 sat → 10 corn seeds. Silo 25 sats.",
+      "Sep 29 — Automate farm: corn cycle, wells, animals.",
+      "Sep 29 — Grain silo: 50 corn cap, +50 ×3 for 20 sats, extra silo 25 sats.",
+      "Sep 29 — Craft pudding: 4 milk + 3 eggs, sell for 2 sats.",
+      "Sep 29 — Chickens: 3 sats, feed 2 corn + 1 water, 2 eggs / 15s.",
+      "Sep 29 — Crop land 10 sats. Cow 5 sats. Well 15 sats.",
+      "Sep 29 — Wells 4s per unit. Corn 20s, carrots 30s, cows 25s.",
+      "Sep 28 — Close Market selects Plant corn. Auto-save stays on.",
+      "Sep 28 — Tap a thirsty crop to water. Tap the well to collect."
+    ];
+    function allUpdates() {
+      const extra = (window.FF && Array.isArray(window.FF.updates)) ? window.FF.updates : [];
+      const seen = {};
+      const out = [];
+      extra.concat(BASE_UPDATES).forEach((line) => {
+        if (!line || seen[line]) return;
+        seen[line] = 1;
+        out.push(line);
+      });
+      return out;
+    }
+    function fillLog() {
+      const ul = document.getElementById("log-list");
+      if (!ul) return;
+      ul.innerHTML = allUpdates().map((line) => "<li>" + line + "</li>").join("");
+    }
     function fillBarn() {
       const ul = document.getElementById("barn-list");
       if (!ul) return;
@@ -1488,6 +1483,7 @@
       if (wasOpen && !force) return;
       if (!pan) return;
       fillBarn();
+      fillLog();
       refreshAutoLabel();
       pan.classList.add("open");
       pan.setAttribute("aria-hidden", "false");
@@ -2264,6 +2260,7 @@
       const willOpen = !pan.classList.contains("open");
       closeAllTabs();
       if (willOpen) {
+        fillLog();
         pan.classList.add("open");
         pan.setAttribute("aria-hidden", "false");
       }
