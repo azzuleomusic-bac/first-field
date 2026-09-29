@@ -39,6 +39,7 @@ window.FF = {
     cornSeeds: { sats: 1, qty: 10 }
   },
   updates: [
+    "Sep 29 \u2014 Animals tab: cow (not extra cow).",
     "Sep 29 \u2014 Market Assets: Animals and Structures.",
     "Sep 29 \u2014 Horse shed and chicken coop appear when you buy the first animal.",
     "Sep 29 \u2014 Carrot seeds 5 for 1 sat. Horse 8 sats. 1 hair \u2192 2 sats."
@@ -64,6 +65,12 @@ window.FF = {
       var row = carrot.closest(".row");
       var span = row && row.querySelector("span");
       if (span) span.textContent = "1 \u26A1 sat \u2192 " + window.FF.buy.carrotSeeds.qty + " \uD83C\uDF51 seeds";
+    }
+    var cow = document.getElementById("buy-cow");
+    if (cow) {
+      var row = cow.closest(".row");
+      var span = row && row.querySelector("span");
+      if (span) span.textContent = window.FF.prices.cow + " \u26A1 sats \u2192 cow";
     }
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", relabel);
