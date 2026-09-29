@@ -19,7 +19,7 @@ window.FF = {
     cow: 5,
     chicken: 3,
     expandBase: 20,
-    silo: 18,
+    silo: 25,
     siloUpgrade: 20
   },
   sell: {
@@ -35,3 +35,16 @@ window.FF = {
     cornSeeds: { sats: 1, qty: 20 }
   }
 };
+
+(function () {
+  function relabel() {
+    var btn = document.getElementById("buy-silo");
+    if (!btn) return;
+    var row = btn.closest(".row");
+    var span = row && row.querySelector("span");
+    if (span) span.textContent = (window.FF.prices.silo) + " \u26A1 sats \u2192 grain silo";
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", relabel);
+  else relabel();
+  setTimeout(relabel, 50);
+})();
