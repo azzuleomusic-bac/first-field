@@ -2,7 +2,7 @@ window.FF = {
   starterSats: 30,
   pack30Bonus: 20,
   wellMs: 4000,
-  cornGrowMs: 8000,
+  cornGrowMs: 20000,
   carrotGrowMs: 30000,
   cowMs: 25000,
   chickenMs: 15000,
