@@ -44,7 +44,7 @@ window.FF = {
     cornSeeds: { sats: 1, qty: 10 }
   },
   updates: [
-    "Sep 29 \u2014 1 horse hair \u2192 1 sat. Pants: 6 wool + 3 horse hair."
+    "Sep 29 \u2014 Structures: well and crop land (no extra)."
   ]
 };
 
@@ -62,6 +62,8 @@ window.FF = {
       if (span) span.textContent = text;
     }
     row("buy-silo", window.FF.prices.silo + " \u26A1 sats \u2192 grain silo");
+    row("buy-well", window.FF.prices.well + " \u26A1 sats \u2192 well");
+    row("buy-plot", window.FF.prices.plot + " \u26A1 sats \u2192 crop land");
     row("buy-cow", window.FF.prices.cow + " \u26A1 sats \u2192 cow");
     row("buy-sheep", window.FF.prices.sheep + " \u26A1 sats \u2192 sheep");
     row("buy-horse", window.FF.prices.horse + " \u26A1 sats \u2192 horse");
