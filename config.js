@@ -43,9 +43,7 @@ window.FF = {
     cornSeeds: { sats: 1, qty: 10 }
   },
   updates: [
-    "Sep 29 \u2014 Sheep 4 sats. Cow 7 sats. 4 wool \u2192 1 sat.",
-    "Sep 29 \u2014 Cow feed 6 corn + 4 water. Horse 3 carrots + 4 water.",
-    "Sep 29 \u2014 Animals listed expensive first."
+    "Sep 29 \u2014 Market sell rows show how many you have, including wool."
   ]
 };
 
@@ -54,7 +52,13 @@ window.FF = {
     function row(id, text) {
       var btn = document.getElementById(id);
       if (!btn) return;
-      var span = btn.closest(".row") && btn.closest(".row").querySelector("span");
+      var box = btn.closest(".row");
+      if (!box) return;
+      var price = box.querySelector(".price") || document.getElementById("lbl-" + id.replace("buy-","").replace("sell-",""));
+      if (price) { price.textContent = text; return; }
+      var have = box.querySelector(".have");
+      if (have) return;
+      var span = box.querySelector("span");
       if (span) span.textContent = text;
     }
     row("buy-silo", window.FF.prices.silo + " \u26A1 sats \u2192 grain silo");
