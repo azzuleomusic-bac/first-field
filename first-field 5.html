@@ -480,7 +480,7 @@
           <li>Sep 28 — Wells fill every 7.5s. Cows give 3 milk. Corn 30s.</li>
           <li>Sep 28 — Extra crop land 5 sats in Assets. 40 corn → 1 sat.</li>
           <li>Sep 28 — Tap a thirsty crop to water. Water button removed.</li>
-          <li>Sep 28 — Farm can 30 per well. Each well tank fills to 10.</li>
+          <li>Sep 28 — Farm can 20 per well. Each well tank fills to 10.</li>
           <li>Sep 28 — Corn shows grow stages + timer.</li>
           <li>Sep 28 — Tap outside Market/Shed/Updates to close the tab.</li>
           <li>Sep 28 — Feed button removed. Use the shed.</li>
@@ -528,7 +528,7 @@
         </div>
         <div id="msec-seeds" hidden>
           <div class="row"><span>1 ⚡ sat → 10 🥕 seeds</span><button type="button" id="buy-carrot-seeds">Buy carrot seeds</button></div>
-          <div class="row"><span>1 ⚡ sat → 20 🌽 seeds</span><button type="button" id="buy-corn-seeds">Buy corn seeds</button></div>
+          <div class="row"><span>1 ⚡ sat → 10 🌽 seeds</span><button type="button" id="buy-corn-seeds">Buy corn seeds</button></div>
         </div>
         <div id="msec-assets" hidden>
           <div class="row"><span>25 ⚡ sats → grain silo</span><button type="button" id="buy-silo">Buy silo</button></div>
@@ -606,13 +606,13 @@
   (function () {
     const FF = Object.assign({
       starterSats: 30, pack30Bonus: 20, wellMs: 4000, cornGrowMs: 20000, carrotGrowMs: 30000,
-      cowMs: 25000, chickenMs: 15000, wellMax: 10, canPerWell: 30,
+      cowMs: 25000, chickenMs: 15000, wellMax: 10, canPerWell: 20,
       cowFeed: { corn: 5, water: 3, milk: 3 },
       chickenFeed: { corn: 2, water: 1, eggs: 2 },
       pudding: { milk: 4, eggs: 3, sellSats: 2 },
       prices: { well: 15, plot: 10, cow: 5, chicken: 3, expandBase: 20, silo: 25, siloUpgrade: 20 }, siloBase: 50, siloMaxUpgrades: 3,
       sell: { milk: { qty: 5, sats: 1 }, water: { qty: 50, sats: 1 }, eggs: { qty: 8, sats: 1 }, carrots: { qty: 10, sats: 1 }, corn: { qty: 40, sats: 1 } },
-      buy: { water: { sats: 1, qty: 25 }, carrotSeeds: { sats: 1, qty: 10 }, cornSeeds: { sats: 1, qty: 20 } }
+      buy: { water: { sats: 1, qty: 25 }, carrotSeeds: { sats: 1, qty: 10 }, cornSeeds: { sats: 1, qty: 10 } }
     }, window.FF || {});
     const SAVE_KEY = "first-field-v1";
     const PLAYER_KEY = "first-field-player";
@@ -949,7 +949,10 @@
 
     function sameTypePeers(kind, skipId) {
       if (kind === "well") {
-        return [];
+        return (state.wells || []).filter((p) => p.id !== skipId).map((p) => ({ id: p.id, x: p.x, y: p.y }));
+      }
+      if (kind === "silo") {
+        return (state.silos || []).filter((p) => p.id !== skipId).map((p) => ({ id: p.id, x: p.x, y: p.y }));
       }
       if (kind === "shed") {
         return [{ id: "shed", x: state.shed.x, y: state.shed.y }].filter((p) => p.id !== skipId);
@@ -1566,25 +1569,63 @@
       toast("Farm cleaned");
     }
 
-    function findSpot() {
-      for (let y = 0.14; y <= 0.86; y += 0.16) {
-        for (let x = 0.14; x <= 0.86; x += 0.16) {
-          if (!blocked(x, y, "new-piece")) return { x: x, y: y };
+    function findSpot(kind) {
+      const { sx, sy } = stepSize();
+      const gx = Math.max(sx * 0.92, 0.045);
+      const gy = Math.max(sy * 0.92, 0.045);
+      const peers = kind ? sameTypePeers(kind, "new-piece") : [];
+      function score(x, y) {
+        let best = 9;
+        peers.forEach((p) => {
+          const d = Math.abs(p.x - x) / gx + Math.abs(p.y - y) / gy;
+          if (d < best) best = d;
+        });
+        const edge = Math.min(x, 1 - x, y, 1 - y);
+        return (peers.length ? best : 0) + edge * 0.15;
+      }
+      const cands = [];
+      peers.forEach((p) => {
+        [[gx,0],[-gx,0],[0,gy],[0,-gy],[gx,gy],[-gx,gy],[gx,-gy],[-gx,-gy]].forEach((d) => {
+          const x = clamp(p.x + d[0], 0.05, 0.95);
+          const y = clamp(p.y + d[1], 0.05, 0.95);
+          if (!blocked(x, y, "new-piece")) cands.push({ x: x, y: y, s: score(x, y) });
+        });
+      });
+      if (cands.length) {
+        cands.sort((a, b) => a.s - b.s);
+        return { x: cands[0].x, y: cands[0].y };
+      }
+      let best = null;
+      for (let y = 0.06; y <= 0.94; y += gy) {
+        for (let x = 0.06; x <= 0.94; x += gx) {
+          if (blocked(x, y, "new-piece")) continue;
+          const s = score(x, y);
+          if (!best || s < best.s) best = { x: x, y: y, s: s };
         }
       }
-      for (let y = 0.10; y <= 0.90; y += 0.10) {
-        for (let x = 0.10; x <= 0.90; x += 0.10) {
-          if (!blocked(x, y, "new-piece")) return { x: x, y: y };
-        }
-      }
-      return null;
+      return best ? { x: best.x, y: best.y } : null;
+    }
+    async function needSpace(kind) {
+      const cost = expandCost();
+      if (!(await askYes("Farm is too small for a " + kind + ". Expand 30% for " + cost + " sats, then place it?"))) return null;
+      if (state.sats < cost) { toast("Need " + cost + " sats to expand"); return null; }
+      state.sats -= cost;
+      state.farmExpands = (state.farmExpands || 0) + 1;
+      logMarket("Farm +30% −" + cost + " sats");
+      layout();
+      save();
+      render();
+      const spot = findSpot(kind === "crop land" ? "plot" : kind);
+      if (!spot) toast("Still no tile — expand again");
+      return spot;
     }
 
     async function buyPlot() {
       if (!(await askYes("Buy extra crop land for 10 sats?"))) return;
       if (state.sats < FF.prices.plot) { toast("Need 10 sats"); return; }
-      const spot = findSpot();
-      if (!spot) { toast("No space for land"); return; }
+      let spot = findSpot("plot");
+      if (!spot) spot = await needSpace("crop land");
+      if (!spot) return;
       state.sats -= FF.prices.plot;
       state.plots.push({ id: "p" + Date.now().toString(36), x: spot.x, y: spot.y, crop: null });
       logMarket("Bought crop land −10 sats");
@@ -1598,8 +1639,9 @@
       const cost = FF.prices.silo || 18;
       if (!(await askYes("Buy a grain silo for " + cost + " sats? +50 corn cap"))) return;
       if (state.sats < cost) { toast("Need " + cost + " sats"); return; }
-      const spot = findSpot();
-      if (!spot) { toast("No space for a silo"); return; }
+      let spot = findSpot("silo");
+      if (!spot) spot = await needSpace("silo");
+      if (!spot) return;
       state.sats -= cost;
       if (!state.silos) state.silos = [];
       state.silos.push({ id: "s" + Date.now().toString(36), x: spot.x, y: spot.y, upgrades: 0 });
@@ -1664,23 +1706,9 @@
     async function buyWell() {
       if (!(await askYes("Buy an extra well for 15 sats?"))) return;
       if (state.sats < FF.prices.well) { toast("Need 15 sats"); return; }
-      const { sx, sy } = stepSize();
-      const last = state.wells[state.wells.length - 1];
-      const tries = [
-        { x: last.x + sx, y: last.y },
-        { x: last.x, y: last.y + sy },
-        { x: last.x - sx, y: last.y },
-        { x: last.x, y: last.y - sy },
-        { x: 0.2, y: 0.2 },
-        { x: 0.8, y: 0.8 }
-      ];
-      let spot = null;
-      tries.forEach((s) => {
-        s.x = clamp(s.x, 0.04, 0.96);
-        s.y = clamp(s.y, 0.04, 0.96);
-        if (!spot && !blocked(s.x, s.y, "new-well")) spot = s;
-      });
-      if (!spot) { toast("No space for a well"); return; }
+      let spot = findSpot("well");
+      if (!spot) spot = await needSpace("well");
+      if (!spot) return;
       state.sats -= FF.prices.well;
       state.wells.push({ id: "w" + Date.now().toString(36), x: spot.x, y: spot.y, water: 0, acc: 0 });
       logMarket("Bought a well −15 sats");
@@ -1694,8 +1722,8 @@
       if (state.sats < 1) { toast("Need 1 sat"); return; }
       state.sats -= 1;
       state.cornSeeds += FF.buy.cornSeeds.qty;
-      logMarket("Bought 20 corn seeds −1 sat");
-      toast("Bought 20 corn seeds");
+      logMarket("Bought 10 corn seeds −1 sat");
+      toast("Bought 10 corn seeds");
       save();
       render();
       openMarket(true);
