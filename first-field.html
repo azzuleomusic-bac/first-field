@@ -212,6 +212,19 @@
       0%,100% { filter: brightness(1); }
       50% { filter: brightness(1.35); }
     }
+        .gear-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin: 0 0 10px;
+    }
+    .gear-slot {
+      min-height: 52px;
+      font-size: 12px;
+      line-height: 1.25;
+      background: #24331f;
+    }
+    .gear-slot small { display:block; opacity:0.7; font-weight:500; }
     .mine-bar { height: 10px; background: rgba(0,0,0,0.35); border-radius: 99px; overflow: hidden; margin: 0 0 8px; }
     .mine-bar > i { display:block; height:100%; width:0%; background: linear-gradient(90deg,#c45c3e,#e8c36a); transition: width 0.2s linear; }
     .mine-stage {
@@ -483,6 +496,25 @@
       color: var(--cream);
     }
     #log-panel.open { display: block; }
+        #loot-box {
+      display: none;
+      position: absolute;
+      left: 50%;
+      top: 42%;
+      transform: translate(-50%, -50%);
+      width: min(260px, calc(100% - 24px));
+      z-index: 32;
+      background: #1a2418;
+      border: 2px solid var(--gold);
+      border-radius: 14px;
+      padding: 14px 14px 12px;
+      text-align: center;
+    }
+    #loot-box.open { display: block; }
+    #loot-box h3 { margin: 0 0 8px; color: var(--gold); font-size: 15px; }
+        #loot-art { height: 64px; margin: 0 0 8px; display:flex; align-items:center; justify-content:center; }
+    #loot-art svg { width: 56px; height: 56px; }
+    #loot-box p { margin: 0 0 12px; font-size: 14px; }
     #ask-box {
       display: none;
       position: absolute;
@@ -666,8 +698,8 @@
           </div>
           <div id="asset-structures-list" hidden>
             <div class="row"><span>25 ⚡ sats → grain silo</span><button type="button" id="buy-silo">Buy silo</button></div>
-            <div class="row"><span>15 ⚡ sats → extra well</span><button type="button" id="buy-well">Buy well</button></div>
-            <div class="row"><span>10 ⚡ sats → extra crop land</span><button type="button" id="buy-plot">Buy land</button></div>
+            <div class="row"><span>15 ⚡ sats → well</span><button type="button" id="buy-well">Buy well</button></div>
+            <div class="row"><span>10 ⚡ sats → crop land</span><button type="button" id="buy-plot">Buy land</button></div>
           </div>
         </div>
         <button type="button" class="ghost" id="market-close">Close</button>
@@ -692,6 +724,19 @@
         <div class="mine-bar"><i id="mine-bar"></i></div>
         <p id="mine-status">Tap Start mining.</p>
         <button type="button" id="btn-mine">Start mining</button>
+        <button type="button" id="btn-gear">Inventory</button>
+        <div id="gear-box" hidden>
+          <p>Miner gear</p>
+          <div class="gear-grid">
+            <button type="button" class="gear-slot" data-slot="helmet">Helmet<br><small>empty</small></button>
+            <button type="button" class="gear-slot" data-slot="armor">Armor<br><small>empty</small></button>
+            <button type="button" class="gear-slot" data-slot="weapon">Weapon<br><small>empty</small></button>
+            <button type="button" class="gear-slot" data-slot="pants">Pants<br><small>empty</small></button>
+            <button type="button" class="gear-slot" data-slot="boots">Boots<br><small>empty</small></button>
+            <button type="button" class="gear-slot" data-slot="ring1">Ring 1<br><small>empty</small></button>
+            <button type="button" class="gear-slot" data-slot="ring2">Ring 2<br><small>empty</small></button>
+          </div>
+        </div>
         <button type="button" class="ghost" id="mine-close">Close</button>
       </div>
       <div id="craft-panel" aria-hidden="true">
@@ -713,6 +758,12 @@
         <div class="row"><span>Feed 1 cow — 6🌽 + 4💧</span><button type="button" id="shed-feed">Feed</button></div>
         <div class="row"><span>Collect ready milk</span><button type="button" id="shed-milk">Milk</button></div>
         <button type="button" class="ghost" id="shed-close">Close</button>
+      </div>
+      <div id="loot-box" aria-hidden="true">
+        <h3>Loot</h3>
+        <div id="loot-art"></div>
+        <p id="loot-text">You found rocks.</p>
+        <button type="button" id="loot-take">Take</button>
       </div>
       <div class="toast" id="toast"></div>
       <div id="ask-box" aria-hidden="true">
@@ -752,7 +803,7 @@
   (function () {
     const FF = Object.assign({
       starterSats: 30, pack30Bonus: 20, wellMs: 4000, cornGrowMs: 20000, carrotGrowMs: 30000,
-      cowMs: 25000, chickenMs: 15000, horseMs: 20000, sheepMs: 22000, mineMs: 20000, wellMax: 10, canPerWell: 20,
+      cowMs: 25000, chickenMs: 15000, horseMs: 20000, sheepMs: 22000, mineMs: 10000, wellMax: 10, canPerWell: 20,
       cowFeed: { corn: 6, water: 4, milk: 3 },
       chickenFeed: { corn: 2, water: 1, eggs: 2 },
       horseFeed: { carrots: 3, water: 4, hair: 2 },
@@ -803,6 +854,7 @@
       eggs: 0,
       pudding: 0,
       pants: 0,
+      rocks: 0,
       horseHair: 0,
       horseShed: { horses: [] },
       sheepPen: { sheep: [] },
@@ -873,6 +925,7 @@
         sheepPen: state.sheepPen,
         pudding: state.pudding || 0,
         pants: state.pants || 0,
+        rocks: state.rocks || 0,
         coop: state.coop,
         silos: state.silos,
         sats: state.sats,
@@ -883,6 +936,7 @@
         miningUntil: state.miningUntil || 0,
         miningStarted: state.miningStarted || 0,
         mineReady: !!state.mineReady,
+        pendingLoot: state.pendingLoot || "",
         autoNext: state.autoNext || "cow",
         farmExpands: state.farmExpands || 0,
         marketLog: state.marketLog || [],
@@ -934,6 +988,7 @@
       if (typeof state.eggs !== "number") state.eggs = 0;
       if (typeof state.pudding !== "number") state.pudding = 0;
       if (typeof state.pants !== "number") state.pants = 0;
+      if (typeof state.rocks !== "number") state.rocks = 0;
       if (!Array.isArray(state.shed.cows) || !state.shed.cows.length) {
         state.shed.cows = [{
           id: "c1",
@@ -1039,7 +1094,7 @@
       });
     }
     function fixNums() {
-      ["water","carrots","corn","carrotSeeds","cornSeeds","milk","eggs","pudding","pants","wool","horseHair","sats"].forEach((k) => {
+      ["water","carrots","corn","carrotSeeds","cornSeeds","milk","eggs","pudding","pants","rocks","wool","horseHair","sats"].forEach((k) => {
         const n = Number(state[k]);
         state[k] = Number.isFinite(n) ? n : 0;
       });
@@ -1908,6 +1963,7 @@
         ["🧶 Wool", state.wool || 0, state.wool || 0],
         ["🍮 Pudding", state.pudding || 0, state.pudding || 0],
         ["👖 Pants", state.pants || 0, state.pants || 0],
+        ["🪨 Rocks", state.rocks || 0, state.rocks || 0],
         ["🌱 Carrot seeds", state.carrotSeeds, state.carrotSeeds],
         ["🌱 Corn seeds", state.cornSeeds, state.cornSeeds],
         ["⚡ Sats", state.sats, state.sats]
@@ -1924,6 +1980,38 @@
       }
     }
 
+    const LOOT_TABLE = ["a stone", "copper scrap", "a shard of ore", "nothing this time"];
+    function finishMine() {
+      if (!state.miningUntil || state.miningUntil > now()) return;
+      state.miningUntil = 0;
+      state.miningStarted = 0;
+      const pan = document.getElementById("mine-panel");
+      if (!pan || !pan.classList.contains("open")) state.mineReady = true;
+      const n = Math.floor(Math.random() * 4);
+      state.rocks = (state.rocks || 0) + n;
+      state.pendingLootN = n;
+      state.pendingLoot = n === 0 ? "No rocks this time." : ("You found " + n + " rock" + (n === 1 ? "" : "s") + ".");
+      if (pan && pan.classList.contains("open")) openLoot(state.pendingLoot, n);
+      toast("Mining finished");
+      save();
+      paintMine();
+    }
+    function openLoot(text, n) {
+      const box = document.getElementById("loot-box");
+      const p = document.getElementById("loot-text");
+      const art = document.getElementById("loot-art");
+      if (p) p.textContent = text;
+      if (art) {
+        if (n > 0) art.innerHTML = '<svg viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="32" cy="30" rx="22" ry="14" fill="#6d6a66"/><ellipse cx="24" cy="26" rx="10" ry="8" fill="#8a8680"/><ellipse cx="40" cy="28" rx="12" ry="9" fill="#5a5753"/><path fill="#9a9690" d="M18 24 l8-8 10 4-4 8z"/></svg>' + (n > 1 ? "<small>×" + n + "</small>" : "");
+        else art.innerHTML = "";
+      }
+      if (box) { box.classList.add("open"); box.setAttribute("aria-hidden", "false"); }
+    }
+    function closeLoot() {
+      const box = document.getElementById("loot-box");
+      if (box) { box.classList.remove("open"); box.setAttribute("aria-hidden", "true"); }
+      state.pendingLoot = "";
+    }
     function mineOn() { return (state.miningUntil || 0) > now(); }
     function paintMine() {
       const stage = document.getElementById("mine-stage");
@@ -1948,6 +2036,10 @@
           if (!pan || !pan.classList.contains("open")) state.mineReady = true;
           pct = 100;
           if (st) st.textContent = "Done. Start again when you want.";
+          const n = Math.floor(Math.random() * 4);
+          state.rocks = (state.rocks || 0) + n;
+          if (n === 0) openLoot("No rocks this time.");
+          else openLoot("You found " + n + " rock" + (n === 1 ? "" : "s") + ".");
           toast("Mining finished");
           save();
         } else {
@@ -1978,6 +2070,7 @@
       if (!pan) return;
       state.mineReady = false;
       paintMine();
+      if (state.pendingLoot) openLoot(state.pendingLoot, state.pendingLootN || 0);
       pan.classList.add("open");
       pan.setAttribute("aria-hidden", "false");
     }
@@ -2271,7 +2364,7 @@
     }
 
     async function buyPlot() {
-      if (!(await askYes("Buy extra crop land for 10 sats?"))) return;
+      if (!(await askYes("Buy crop land for 10 sats?"))) return;
       if (state.sats < FF.prices.plot) { toast("Need 10 sats"); return; }
       let spot = findSpot("plot");
       if (!spot) spot = await needSpace("crop land");
@@ -2354,7 +2447,7 @@
     }
 
     async function buyWell() {
-      if (!(await askYes("Buy an extra well for 15 sats?"))) return;
+      if (!(await askYes("Buy a well for 15 sats?"))) return;
       if (state.sats < FF.prices.well) { toast("Need 15 sats"); return; }
       let spot = findSpot("well");
       if (!spot) spot = await needSpace("well");
@@ -2797,6 +2890,23 @@
     if (mineCl) mineCl.onclick = closeAllTabs;
     const startMineBtn = document.getElementById("btn-mine");
     if (startMineBtn) startMineBtn.onclick = startMine;
+    const lootTake = document.getElementById("loot-take");
+    if (lootTake) lootTake.onclick = closeLoot;
+    const gearBtn = document.getElementById("btn-gear");
+    if (gearBtn) {
+      gearBtn.onclick = function () {
+        const box = document.getElementById("gear-box");
+        if (!box) return;
+        box.hidden = !box.hidden;
+        gearBtn.textContent = box.hidden ? "Inventory" : "Hide inventory";
+      };
+    }
+    const slots = document.querySelectorAll(".gear-slot");
+    for (let i = 0; i < slots.length; i++) {
+      slots[i].onclick = function () {
+        toast("No gear in " + this.getAttribute("data-slot") + " yet");
+      };
+    }
     document.getElementById("barn-close").onclick = closeAllTabs;
     const worthEl = document.getElementById("stat-worth");
     if (worthEl) worthEl.onclick = function (ev) { ev.stopPropagation(); openWorth(); };
@@ -2881,6 +2991,7 @@
       tickHorse();
       tickSheep();
       if (autoOn()) autoTick();
+      if (state.miningUntil && state.miningUntil <= now()) finishMine();
       const due = state.plots.some((p) => p.crop && p.crop.stage === "growing")
         || cows().some((c) => c.stage === "making") || chickens().some((c) => c.stage === "making" || c.stage === "eggs") || horses().some((h) => h.stage === "making" || h.stage === "hair") || sheep().some((s) => s.stage === "making" || s.stage === "wool") || mineOn();
       const afterWell = state.wells.reduce((n, w) => n + w.water, 0);
