@@ -203,6 +203,89 @@
       z-index: 3;
     }
     
+
+            #tool-mine.glow {
+      box-shadow: 0 0 0 2px var(--gold), 0 0 14px rgba(232,195,106,0.7);
+      animation: mineGlow 1.1s ease-in-out infinite;
+    }
+    @keyframes mineGlow {
+      0%,100% { filter: brightness(1); }
+      50% { filter: brightness(1.35); }
+    }
+    .mine-bar { height: 10px; background: rgba(0,0,0,0.35); border-radius: 99px; overflow: hidden; margin: 0 0 8px; }
+    .mine-bar > i { display:block; height:100%; width:0%; background: linear-gradient(90deg,#c45c3e,#e8c36a); transition: width 0.2s linear; }
+    .mine-stage {
+      position: relative;
+      height: 110px;
+      margin: 4px 0 10px;
+      background: linear-gradient(#2a3338, #1a1e20);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(232,195,106,0.25);
+    }
+    .mine-stage .rock {
+      position: absolute;
+      right: 14px; bottom: 12px;
+      width: 42px; height: 32px;
+      background: #6d6a66;
+      border-radius: 40% 50% 35% 45%;
+      box-shadow: 10px 6px 0 #4a4744, -8px 8px 0 #5a5753;
+    }
+    .miner {
+      position: absolute;
+      left: 28px; bottom: 10px;
+      width: 36px; height: 54px;
+    }
+    .miner-body {
+      width: 22px; height: 34px;
+      margin: 16px auto 0;
+      background: #c45c3e;
+      border-radius: 6px 6px 4px 4px;
+      position: relative;
+    }
+    .miner-body::before {
+      content: "";
+      position: absolute;
+      left: 3px; top: -12px;
+      width: 16px; height: 16px;
+      background: #e8c3b0;
+      border-radius: 50%;
+    }
+    .pick {
+      position: absolute;
+      left: 20px; top: 8px;
+      width: 28px; height: 4px;
+      background: #cfd4da;
+      transform-origin: 0 50%;
+      border-radius: 2px;
+    }
+    .pick::after {
+      content: "";
+      position: absolute;
+      right: -6px; top: -8px;
+      width: 12px; height: 18px;
+      background: #8a8680;
+      border-radius: 2px 8px 8px 2px;
+    }
+    .mine-stage.on .miner { animation: minerBob 0.38s ease-in-out infinite; }
+    .mine-stage.on .pick { animation: pickSwing 0.38s ease-in-out infinite; }
+    .mine-stage.on .rock { animation: rockHit 0.38s ease-in-out infinite; }
+    @keyframes minerBob {
+      0%,100% { transform: translate(0,0); }
+      45% { transform: translate(18px,-2px); }
+      55% { transform: translate(18px,-2px); }
+    }
+    @keyframes pickSwing {
+      0% { transform: rotate(-70deg); }
+      45% { transform: rotate(20deg); }
+      55% { transform: rotate(20deg); }
+      100% { transform: rotate(-70deg); }
+    }
+    @keyframes rockHit {
+      0%,40% { transform: translate(0,0); }
+      48% { transform: translate(3px,-2px); }
+      60%,100% { transform: translate(0,0); }
+    }
     .hair-icon {
       width: 28px; height: 28px; display: block; margin: 0 auto;
     }
@@ -599,7 +682,16 @@
       </div>
       <div id="mine-panel" aria-hidden="true">
         <h3>Mine</h3>
-        <p>Nothing to mine yet.</p>
+        <div id="mine-stage" class="mine-stage">
+          <div class="miner" id="miner">
+            <div class="miner-body"></div>
+            <div class="pick"></div>
+          </div>
+          <div class="rock"></div>
+        </div>
+        <div class="mine-bar"><i id="mine-bar"></i></div>
+        <p id="mine-status">Tap Start mining.</p>
+        <button type="button" id="btn-mine">Start mining</button>
         <button type="button" class="ghost" id="mine-close">Close</button>
       </div>
       <div id="craft-panel" aria-hidden="true">
@@ -660,7 +752,7 @@
   (function () {
     const FF = Object.assign({
       starterSats: 30, pack30Bonus: 20, wellMs: 4000, cornGrowMs: 20000, carrotGrowMs: 30000,
-      cowMs: 25000, chickenMs: 15000, horseMs: 20000, sheepMs: 22000, wellMax: 10, canPerWell: 20,
+      cowMs: 25000, chickenMs: 15000, horseMs: 20000, sheepMs: 22000, mineMs: 20000, wellMax: 10, canPerWell: 20,
       cowFeed: { corn: 6, water: 4, milk: 3 },
       chickenFeed: { corn: 2, water: 1, eggs: 2 },
       horseFeed: { carrots: 3, water: 4, hair: 2 },
@@ -719,6 +811,7 @@
       starterSats: true,
       hideZero: false,
       autoUntil: 0,
+      miningUntil: 0,
       autoNext: "cow",
       farmExpands: 0,
       marketLog: [{ at: Date.now(), text: "Starter pack +" + FF.starterSats + " sats" }],
@@ -787,6 +880,9 @@
         pack30: !!state.pack30,
         hideZero: !!state.hideZero,
         autoUntil: state.autoUntil || 0,
+        miningUntil: state.miningUntil || 0,
+        miningStarted: state.miningStarted || 0,
+        mineReady: !!state.mineReady,
         autoNext: state.autoNext || "cow",
         farmExpands: state.farmExpands || 0,
         marketLog: state.marketLog || [],
@@ -1828,12 +1924,60 @@
       }
     }
 
+    function mineOn() { return (state.miningUntil || 0) > now(); }
+    function paintMine() {
+      const stage = document.getElementById("mine-stage");
+      const st = document.getElementById("mine-status");
+      const btn = document.getElementById("btn-mine");
+      const bar = document.getElementById("mine-bar");
+      const on = mineOn();
+      if (stage) stage.classList.toggle("on", on);
+      const total = FF.mineMs || 20000;
+      let started = state.miningStarted || (state.miningUntil ? state.miningUntil - total : 0);
+      let pct = 0;
+      if (on) {
+        const left = Math.max(0, state.miningUntil - now());
+        pct = Math.min(100, Math.round((1 - left / total) * 100));
+        if (st) st.textContent = "Mining " + fmtLeft(left);
+        if (btn) { btn.disabled = true; btn.textContent = "Mining " + fmtLeft(left); }
+      } else {
+        if (state.miningUntil && state.miningUntil <= now()) {
+          state.miningUntil = 0;
+          state.miningStarted = 0;
+          const pan = document.getElementById("mine-panel");
+          if (!pan || !pan.classList.contains("open")) state.mineReady = true;
+          pct = 100;
+          if (st) st.textContent = "Done. Start again when you want.";
+          toast("Mining finished");
+          save();
+        } else {
+          pct = 0;
+          if (st && !state.mineReady) st.textContent = "Tap Start mining.";
+          if (st && state.mineReady) st.textContent = "Last run finished.";
+        }
+        if (btn) { btn.disabled = false; btn.textContent = "Start mining"; }
+      }
+      if (bar) bar.style.width = pct + "%";
+      const mineBtn = document.getElementById("tool-mine");
+      if (mineBtn) mineBtn.classList.toggle("glow", !!state.mineReady && !mineOn());
+    }
+    function startMine() {
+      if (mineOn()) return;
+      const total = FF.mineMs || 20000;
+      state.miningStarted = now();
+      state.miningUntil = now() + total;
+      toast("Mining 0:20");
+      save();
+      paintMine();
+    }
     function openMine(force) {
       const pan = document.getElementById("mine-panel");
       const wasOpen = pan && pan.classList.contains("open");
       closeAllTabs();
       if (wasOpen && !force) return;
       if (!pan) return;
+      state.mineReady = false;
+      paintMine();
       pan.classList.add("open");
       pan.setAttribute("aria-hidden", "false");
     }
@@ -1846,6 +1990,7 @@
       fillBarn();
       fillMarketInv();
       if (typeof fillCraftLabels === 'function') fillCraftLabels();
+      paintMine();
       fillLog();
       refreshAutoLabel();
       pan.classList.add("open");
@@ -2399,6 +2544,7 @@
     function render() {
       tickCrops();
       fixNums();
+      paintMine();
       const sw = document.getElementById("stat-water");
       if (sw) sw.textContent = "💧 " + state.water + "/" + waterMax();
       const sc = document.getElementById("stat-corn-top");
@@ -2412,7 +2558,7 @@
       document.getElementById("mode-farm").classList.toggle("active", state.mode === "farm");
       const mv = document.getElementById("mode-move");
       if (mv) mv.classList.toggle("active", state.mode === "move");
-      ["carrot", "corn", "sell", "craft", "barn"].forEach((name) => {
+      ["carrot", "corn", "sell", "craft", "barn", "mine"].forEach((name) => {
         const b = document.getElementById("tool-" + name);
         if (b) b.classList.toggle("active", state.tool === name && state.mode === "farm");
       });
@@ -2649,6 +2795,8 @@
     if (mineBtn) mineBtn.onclick = () => { state.mode = "farm"; state.tool = "mine"; openMine(); render(); };
     const mineCl = document.getElementById("mine-close");
     if (mineCl) mineCl.onclick = closeAllTabs;
+    const startMineBtn = document.getElementById("btn-mine");
+    if (startMineBtn) startMineBtn.onclick = startMine;
     document.getElementById("barn-close").onclick = closeAllTabs;
     const worthEl = document.getElementById("stat-worth");
     if (worthEl) worthEl.onclick = function (ev) { ev.stopPropagation(); openWorth(); };
@@ -2734,7 +2882,7 @@
       tickSheep();
       if (autoOn()) autoTick();
       const due = state.plots.some((p) => p.crop && p.crop.stage === "growing")
-        || cows().some((c) => c.stage === "making") || chickens().some((c) => c.stage === "making" || c.stage === "eggs") || horses().some((h) => h.stage === "making" || h.stage === "hair") || sheep().some((s) => s.stage === "making" || s.stage === "wool");
+        || cows().some((c) => c.stage === "making") || chickens().some((c) => c.stage === "making" || c.stage === "eggs") || horses().some((h) => h.stage === "making" || h.stage === "hair") || sheep().some((s) => s.stage === "making" || s.stage === "wool") || mineOn();
       const afterWell = state.wells.reduce((n, w) => n + w.water, 0);
       if (afterWell !== beforeWell || due || t - lastPaint > 400) {
         lastPaint = t;
