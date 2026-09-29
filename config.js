@@ -32,17 +32,24 @@ window.FF = {
   buy: {
     water: { sats: 1, qty: 25 },
     carrotSeeds: { sats: 1, qty: 10 },
-    cornSeeds: { sats: 1, qty: 20 }
+    cornSeeds: { sats: 1, qty: 10 }
   }
 };
 
 (function () {
   function relabel() {
-    var btn = document.getElementById("buy-silo");
-    if (!btn) return;
-    var row = btn.closest(".row");
-    var span = row && row.querySelector("span");
-    if (span) span.textContent = (window.FF.prices.silo) + " \u26A1 sats \u2192 grain silo";
+    var silo = document.getElementById("buy-silo");
+    if (silo) {
+      var row = silo.closest(".row");
+      var span = row && row.querySelector("span");
+      if (span) span.textContent = window.FF.prices.silo + " \u26A1 sats \u2192 grain silo";
+    }
+    var corn = document.getElementById("buy-corn-seeds");
+    if (corn) {
+      var row = corn.closest(".row");
+      var span = row && row.querySelector("span");
+      if (span) span.textContent = "1 \u26A1 sat \u2192 " + window.FF.buy.cornSeeds.qty + " \uD83C\uDF3D seeds";
+    }
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", relabel);
   else relabel();
