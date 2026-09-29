@@ -1,2 +1,5 @@
-# first-field
-First Field farm game for Cloudflare Pages
+# First Field
+
+Offline farm game. Connect this repo to Cloudflare Pages (root directory, no build command, output `.`).
+
+Then say **push it** in chat and Grok updates these files.
