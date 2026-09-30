@@ -1,6 +1,23 @@
-/* 2026-09-30-visual-restore */
+/* 2026-09-30-phone-fit */
+(function fitSheets() {
+  var css =
+    "footer{max-height:min(42vh,280px);overflow-y:auto;-webkit-overflow-scrolling:touch}" +
+    "#market-panel,#shed-panel,#log-panel,#craft-panel,#barn-panel,#silo-panel,#worth-panel,#mine-panel,#forest-panel{" +
+    "max-height:calc(100svh - var(--safe-top) - var(--safe-bot) - 168px);overflow-y:auto;-webkit-overflow-scrolling:touch}" +
+    "#forest-panel .sheet-card,#gear-pick .gear-pick-card{" +
+    "max-height:calc(100svh - var(--safe-top) - var(--safe-bot) - 24px);overflow-y:auto;-webkit-overflow-scrolling:touch}" +
+    "@media (max-height:620px){footer{max-height:min(34vh,220px)}" +
+    "#market-panel,#shed-panel,#log-panel,#craft-panel,#barn-panel,#silo-panel,#worth-panel,#mine-panel,#forest-panel{" +
+    "max-height:calc(100svh - var(--safe-top) - var(--safe-bot) - 132px)}}";
+  var s = document.createElement("style");
+  s.setAttribute("data-fit", "phone");
+  s.textContent = css;
+  (document.head || document.documentElement).appendChild(s);
+})();
+
 window.FF = {
   updates: [
+    "Sep 30 \u2014 Small phones: Market / Craft / Mine / Forest / Barn scroll inside the window. Farm layout unchanged.",
     "Sep 30 \u2014 Empty plots: dark raked topsoil, not flat brown.",
     "Sep 30 \u2014 Well is wider (less bottle-shaped). Full well stays bright, no pulse.",
     "Sep 30 \u2014 Farm grass is mottled turf with grain.",
