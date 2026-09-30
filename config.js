@@ -44,6 +44,10 @@ window.FF = {
     cornSeeds: { sats: 1, qty: 10 }
   },
   updates: [
+    "Sep 29 \u2014 Mine: 5s test run, fight lv1-3, 10% crits, 0-3 rocks.",
+    "Sep 29 \u2014 Miner gear: Legs / Chest / Head / Feet. Pants +1 def +15% rocks. Shirt +1 def +10% rocks.",
+    "Sep 29 \u2014 Craft Kitchen / Armory. Market Crafts Food / Equipment. Shirt sells for 3 sats.",
+    "Sep 29 \u2014 Shared wool, pants, shirt, horse-hair pictures.",
     "Sep 29 \u2014 Structures: well and crop land (no extra)."
   ]
 };
