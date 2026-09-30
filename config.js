@@ -1,5 +1,5 @@
 (function loadExtra(){
-  ["dive.js","wallet.js","camp.js"].forEach(function(src){
+  ["dive.js","wallet.js","camp.js","gear-path.js"].forEach(function(src){
     if (document.querySelector('script[data-src="'+src+'"]')) return;
     var s=document.createElement("script");
     s.src=src;
@@ -10,9 +10,11 @@
 
 window.FF = {
   updates: [
+    "Sep 30 \u2014 Sats are energy. Dives spend ⚡. Watch an ad or sell goods to refill. Farm stay free.",
+    "Sep 30 \u2014 Mid/late gear: iron blade, steel fang, night edge, steel pick, core pick, iron mail, night cloak, rings.",
     "Sep 30 \u2014 Kitchen ration (2 corn + 1 milk) speeds the next mine or forest run. Hide boots cut tool wear.",
     "Sep 30 \u2014 Mine: Shallow / Deep / Sealed. Forest: Trail / Thicket / Dark wood. Gear opens doors.",
-    "Sep 30 \u2014 Deep ore and dark hide: sell for sats or craft iron pick / hide wrap. Tools wear; repair at Craft.",
+    "Sep 30 \u2014 Deep ore and dark hide: sell for sats or craft. Tools wear; repair at Craft.",
     "Sep 30 \u2014 Empty plots: dark raked topsoil, not flat brown.",
     "Sep 30 \u2014 Well is wider (less bottle-shaped). Full well stays bright, no pulse.",
     "Sep 30 \u2014 Farm grass is mottled turf with grain.",

@@ -1,23 +1,20 @@
-# First Field — play this in the morning
+# First Field — energy and gear
 
 Live: https://first-field.azzuleomusic.workers.dev
-Hard-refresh once.
 
-## Idle path (main)
-Stay on Farm. Plant, water, animals, sell, expand. You never have to open Mine or Forest.
+Sats (⚡) are **energy**. Farm work is free. Mine and Forest spend energy.
+Out of energy: sell farm goods, sell ore/hide, or tap **Watch ad +⚡** (stub for now; real ads later). Real player-to-player sats come later — not in this build.
 
-## Active path (optional)
-Mine and Forest have difficulty doors. Power is gear, not a level.
+## Energy costs
+- Shallow / Trail: 1
+- Deep / Thicket: 3
+- Sealed / Dark wood: 6
 
-Mine: Shallow (open) → Deep (iron pick) → Sealed (iron pick + stone sword)
-Forest: Trail (open) → Thicket (clothes on) → Dark wood (hide wrap + stone sword)
+## Gear is the only climb (early → late)
+Weapons: stone sword → iron blade → steel fang → night edge
+Picks: iron pick → steel pick → core pick
+Armor: clothes → hide wrap → hide boots → iron mail → night cloak
+Rings: copper → bone → sun seal
 
-Shallow/Trail still drop a little deep ore / dark hide so you can start crafting.
-
-## Reinvest tension
-- Sell 3 ore or 3 hide for 4 sats, or keep them for iron pick / hide wrap / boots.
-- Repair worn tools at Craft → Weapons.
-- Kitchen: 2 corn + 1 milk → ration. Next dive is faster.
-- Hide boots: 5 dark hide + 2 lumber. Hard dives wear the tool less often.
-
-No chores. No warrior XP. Farm is still the camp.
+Sealed and Dark wood drop steel shards and night ash for the late recipes.
+No warrior levels. No chores.
