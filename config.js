@@ -44,6 +44,10 @@ window.FF = {
     cornSeeds: { sats: 1, qty: 10 }
   },
   updates: [
+    "Sep 29 \u2014 Forest fight after chop. Gear % applies to lumber too.",
+    "Sep 29 \u2014 Pants / shirt / beanie: same % on rocks and lumber (two stat lines).",
+    "Sep 29 \u2014 Fight and loot on a dark veil. One loot popup, one tap to take.",
+    "Sep 29 \u2014 Chop timer ticks while Forest is open.",
     "Sep 29 \u2014 Forest: chop wood, same Inventory/Stats as Mine, hide farm bar in scenes.",
     "Sep 29 \u2014 Farm / Mine / Forest on one row. Plant next to Barn.",
     "Sep 29 \u2014 Mine: 5s test run, fight lv1-3, 10% crits, 0-3 rocks.",
