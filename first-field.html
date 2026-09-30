@@ -256,6 +256,15 @@
     }
     #gear-pick.open { display: flex !important; }
     #gear-pick[hidden] { display: none !important; }
+    #gear-miner-preview {
+      height: 110px;
+      margin: 0 auto 10px;
+      position: relative;
+      background: #0d120c;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    #gear-miner-preview .miner { left: 50%; transform: translateX(-50%); }
     #gear-pick .gear-pick-card {
       width: min(280px, calc(100% - 32px));
       background: #1a2418;
@@ -1059,6 +1068,14 @@
   </div>
   <div id="gear-pick" hidden>
         <div class="gear-pick-card">
+          <div class="gear-preview mine-stage" id="gear-miner-preview">
+            <div class="miner" id="gear-miner">
+              <div class="miner-head"></div>
+              <div class="miner-torso"><div class="wear wear-shirt"></div></div>
+              <div class="miner-legs-wrap"><div class="wear wear-pants"></div></div>
+              <div class="pick"></div>
+            </div>
+          </div>
           <p id="gear-pick-title">Choose gear</p>
           <div id="gear-pick-list"></div>
           <button type="button" class="ghost" id="gear-pick-close">Back</button>
@@ -2298,6 +2315,7 @@
     }
     const BASE_UPDATES = [
       "Sep 29 — Mine: 5s test run, fight lv1-3, 10% crits, 0-3 rocks.",
+      "Sep 29 — Gear picker: centered popup, miner preview, Equip/Remove. Beanie +10% rocks. Plant picker centered.",
       "Sep 29 — Miner gear: Legs / Chest / Head / Feet. Pants +1 def +15% rocks. Shirt +1 def +10% rocks.",
       "Sep 29 — Craft Kitchen / Armory. Market Crafts Food / Equipment. Shirt sells for 3 sats.",
       "Sep 29 — Shared wool, pants, shirt, horse-hair pictures in barn, craft, market, inventory.",
@@ -2556,6 +2574,9 @@
     function shirtArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#6b8f4a" d="M6 10 L12 6 h8 l6 4-4 4 h-2 v12 H12 V14 H8z"/><circle cx="16" cy="8" r="3" fill="#e8c3b0"/></svg>'; }
     function beanieArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#c44b3a" d="M6 16c0-7 4.5-12 10-12s10 5 10 12v2H6z"/><circle cx="22" cy="8" r="3" fill="#e8e0d4"/></svg>'; }
 
+    function paintGearPreview() {
+      dressMiner();
+    }
     function openGearPick(slot) {
       const pick = document.getElementById("gear-pick");
       const list = document.getElementById("gear-pick-list");
@@ -2572,11 +2593,32 @@
       }).join("");
       list.querySelectorAll("button").forEach(function (btn) {
         btn.onclick = function () {
-          wearItem(btn.getAttribute("data-id"));
-          pick.hidden = true; pick.classList.remove('open');
+          const id = btn.getAttribute("data-id");
+          if (btn.getAttribute("data-off") === "1") {
+            takeOff(id);
+            btn.textContent = "Equip";
+            btn.removeAttribute("data-off");
+            paintGearPreview();
+            return;
+          }
+          wearItem(id);
+          paintGearPreview();
+          btn.textContent = "Remove";
+          btn.setAttribute("data-off", "1");
         };
       });
       pick.hidden = false; pick.classList.add('open');
+      paintGearPreview();
+    }
+    function takeOff(id) {
+      if (id === "pants" && state.gearPants) { state.gearPants = false; state.pants = (state.pants || 0) + 1; toast("Removed pants"); }
+      if (id === "shirt" && state.gearShirt) { state.gearShirt = false; state.shirts = (state.shirts || 0) + 1; toast("Removed shirt"); }
+      if (id === "beanie" && state.gearBeanie) { state.gearBeanie = false; state.beanies = (state.beanies || 0) + 1; toast("Removed beanie"); }
+      fillGearStats();
+      fillGearSlots();
+      fillBarn();
+      paintGearPreview();
+      save();
     }
     function wearItem(id) {
       if (id === "pants") {
@@ -2603,6 +2645,7 @@
       fillGearStats();
       fillGearSlots();
       fillBarn();
+      paintGearPreview();
       save();
     }
     function fillGearSlots() {
@@ -2658,13 +2701,19 @@
       }).join("");
     }
     function dressMiner() {
-      ["miner", "fight-box"].forEach(function (id) {
-        const root = id === "miner" ? document.getElementById("miner") : document.querySelector("#fight-box .fight-miner");
+      ["miner", "gear-miner"].forEach(function (id) {
+        const root = document.getElementById(id);
         if (!root) return;
         root.classList.toggle("has-shirt", !!state.gearShirt);
         root.classList.toggle("has-pants", !!state.gearPants);
         root.classList.toggle("has-beanie", !!state.gearBeanie);
       });
+      const fm = document.querySelector("#fight-box .fight-miner");
+      if (fm) {
+        fm.classList.toggle("has-shirt", !!state.gearShirt);
+        fm.classList.toggle("has-pants", !!state.gearPants);
+        fm.classList.toggle("has-beanie", !!state.gearBeanie);
+      }
     }
     function mineOn() { return (state.miningUntil || 0) > now(); }
     function paintMine() {
