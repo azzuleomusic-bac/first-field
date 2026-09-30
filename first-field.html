@@ -2900,6 +2900,8 @@
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Sep 30 — Sounds: pick cracks rock in the mine, axe thud in the forest, splash when you take well water.",
+      "Sep 30 — Ready sheds glow instead of saying milk ready. Drag shows cell count.",
       "Sep 30 — Sheds: Lvl 1 is 2×2 / 5 animals. Lvl 2 is 5 sats + 10 lumber, 3×3 / 10 animals.",
       "Sep 30 — Harvest pops 🍎 +3 (same float on water, corn, milk, eggs, wool, hair).",
       "Sep 30 — Farm grid: hold to move shows cells. Plot/tree/well 2×2, silo 2×3, barns 3×3. Snap on drop.",
@@ -3511,14 +3513,17 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       chip.stop(t + 0.04);
     }
     function syncPickHits(on) {
-      if (!on) {
+      const pan = document.getElementById("mine-panel");
+      const show = !!(on && pan && pan.classList.contains("open") && !document.hidden);
+      if (!show) {
         if (pickHitTimer) { clearTimeout(pickHitTimer); pickHitTimer = 0; }
         return;
       }
       if (pickHitTimer) return;
       ensurePickAudio();
       function loop() {
-        if (!mineOn()) { pickHitTimer = 0; return; }
+        const still = mineOn() && document.getElementById("mine-panel") && document.getElementById("mine-panel").classList.contains("open") && !document.hidden;
+        if (!still) { pickHitTimer = 0; return; }
         playPickHit();
         pickHitTimer = setTimeout(loop, 420);
       }
@@ -3526,14 +3531,17 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     }
     var chopHitTimer = 0;
     function syncChopHits(on) {
-      if (!on) {
+      const pan = document.getElementById("forest-panel");
+      const show = !!(on && pan && pan.classList.contains("open") && !document.hidden);
+      if (!show) {
         if (chopHitTimer) { clearTimeout(chopHitTimer); chopHitTimer = 0; }
         return;
       }
       if (chopHitTimer) return;
       ensurePickAudio();
       function loop() {
-        if (!forestOn()) { chopHitTimer = 0; return; }
+        const still = forestOn() && document.getElementById("forest-panel") && document.getElementById("forest-panel").classList.contains("open") && !document.hidden;
+        if (!still) { chopHitTimer = 0; return; }
         playChopHit();
         chopHitTimer = setTimeout(loop, 420);
       }
@@ -3680,6 +3688,8 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         el.classList.remove("open");
         el.setAttribute("aria-hidden", "true");
       });
+      syncPickHits(false);
+      syncChopHits(false);
       if (marketWas) {
         state.mode = "farm";
         state.tool = "corn";
@@ -5019,7 +5029,11 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     }
 
     window.addEventListener("resize", () => { layout(); render(); });
-    document.addEventListener("visibilitychange", () => { save(); });
+    document.addEventListener("visibilitychange", () => {
+      save();
+      syncPickHits(mineOn());
+      syncChopHits(forestOn());
+    });
     window.addEventListener("pagehide", save);
     window.addEventListener("beforeunload", save);
     setInterval(save, 5000);
