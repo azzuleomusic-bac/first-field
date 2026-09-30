@@ -245,7 +245,23 @@
       width: 22px; height: 22px; display: inline-block; vertical-align: middle;
     }
     #craft-panel .hair-icon.sm, #barn-panel .hair-icon.sm { width: 22px; height: 22px; }
+    #forest-panel.sheet {
+      position: fixed; inset: 0; z-index: 46;
+      background: rgba(0,0,0,.45);
+      display: none; align-items: center; justify-content: center;
+      padding: 16px;
+    }
+    #forest-panel.sheet.open, #forest-panel.sheet:not([hidden]) { display: flex; }
+    #forest-panel .sheet-card {
+      width: min(360px, 92vw);
+      background: #1a2418;
+      border: 1px solid #c9a227;
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+    }
     #gear-pick {
+      z-index: 60;
       display: none;
       position: fixed;
       inset: 0;
@@ -405,6 +421,13 @@
     .mine-stage.on .miner { animation: minerBob 0.38s ease-in-out infinite; }
     .mine-stage.on .pick { animation: pickSwing 0.38s ease-in-out infinite; }
     .mine-stage.on .rock { animation: rockHit 0.38s ease-in-out infinite; }
+    .forest-stage .tree {
+      width: 36px; height: 52px; border-radius: 8px 8px 4px 4px;
+      background: linear-gradient(#2f6a32 0 62%, #6b4423 62%);
+      right: 18px; bottom: 10px;
+    }
+    .forest-stage.on .tree { animation: rockHit 0.38s ease-in-out infinite; }
+    #tool-forest.glow { box-shadow: 0 0 0 2px #c9a227; }
     @keyframes minerBob {
       0%,100% { transform: translate(0,0); }
       45% { transform: translate(18px,-2px); }
@@ -573,12 +596,25 @@
       flex-wrap: nowrap;
       -webkit-overflow-scrolling: touch;
     }
+    
+    #mine-panel, #forest-panel { z-index: 40; }
+    .scene-actions {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: rgba(14,22,12,0.96);
+      padding: 4px 0 8px;
+    }
+    #gear-box[hidden], #stats-box[hidden] { display: none !important; }
+    #app.scene footer {
+      display: none;
+    }
     footer {
       max-height: 42vh;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
     }
-    #market-panel, #shed-panel, #log-panel, #craft-panel, #barn-panel, #silo-panel, #worth-panel, #mine-panel {
+    #market-panel, #shed-panel, #log-panel, #craft-panel, #barn-panel, #silo-panel, #worth-panel, #mine-panel, #forest-panel {
       max-height: min(58vh, 420px);
       overflow-y: auto;
     }
@@ -772,7 +808,7 @@
       line-height: 1.45;
     }
     #log-panel li { margin-bottom: 6px; }
-    #market-panel, #craft-panel, #barn-panel, #silo-panel, #worth-panel, #mine-panel {
+    #market-panel, #craft-panel, #barn-panel, #silo-panel, #worth-panel, #mine-panel, #forest-panel {
       display: none;
       position: absolute;
       left: 50%;
@@ -786,9 +822,27 @@
       padding: 12px;
       color: var(--cream);
     }
-    #market-panel.open, #craft-panel.open, #barn-panel.open, #silo-panel.open, #worth-panel.open, #mine-panel.open { display: block; }
-    #market-panel h3, #craft-panel h3, #barn-panel h3, #worth-panel h3, #mine-panel h3 { margin: 0 0 8px; font-size: 14px; color: var(--gold); }
-    #market-panel p, #craft-panel p, #barn-panel p, #worth-panel p, #mine-panel p { margin: 0 0 10px; font-size: 12px; opacity: 0.8; }
+    #market-panel.open, #craft-panel.open, #barn-panel.open, #silo-panel.open, #worth-panel.open, #mine-panel.open, #forest-panel.open { display: block; }
+    #mine-panel, #forest-panel {
+      position: fixed;
+      left: 50%;
+      top: 12%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      max-height: none;
+      height: auto;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #mine-panel #mine-close, #forest-panel #btn-forest-close {
+      display: block;
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    #market-panel h3, #craft-panel h3, #barn-panel h3, #worth-panel h3, #mine-panel h3, #forest-panel h3 { margin: 0 0 8px; font-size: 14px; color: var(--gold); }
+    #market-panel p, #craft-panel p, #barn-panel p, #worth-panel p, #mine-panel p, #forest-panel p { margin: 0 0 10px; font-size: 12px; opacity: 0.8; }
         #market-panel .have { display:block; font-size:11px; opacity:0.75; margin-top:2px; font-weight:600; color:var(--gold); }
     #market-panel .row, #craft-panel .row, #barn-panel .row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; font-size: 13px; }
 
@@ -956,9 +1010,11 @@
         </div>
         <div class="mine-bar"><i id="mine-bar"></i></div>
         <p id="mine-status">Tap Start mining.</p>
+        <div class="scene-actions">
         <button type="button" id="btn-mine">Start mining</button>
-        <button type="button" id="btn-gear">Inventory</button>
-        <button type="button" id="btn-stats">Stats</button>
+        <button type="button" id="btn-gear" class="btn-inv">Inventory</button>
+        <button type="button" id="btn-stats" class="btn-st">Stats</button>
+        </div>
         <div id="stats-box" hidden>
           <p>Miner stats</p>
           <ul id="miner-stats"></ul>
@@ -979,6 +1035,26 @@
         </div>
         <button type="button" class="ghost" id="mine-close">Close</button>
       </div>
+        <div id="forest-panel" aria-hidden="true">
+    <h3>Forest</h3>
+    <div id="forest-stage" class="mine-stage forest-stage">
+      <div class="miner" id="forest-miner">
+        <div class="miner-head"></div>
+        <div class="miner-torso"><div class="wear wear-shirt"></div></div>
+        <div class="miner-legs-wrap"><div class="wear wear-pants"></div></div>
+        <div class="pick axe"></div>
+      </div>
+      <div class="rock tree"></div>
+    </div>
+    <div class="mine-bar"><i id="forest-bar"></i></div>
+    <p id="forest-status">Tap Chop wood.</p>
+    <div class="scene-actions">
+    <button type="button" id="btn-forest">Chop wood</button>
+    <button type="button" class="btn-inv" id="btn-gear-forest">Inventory</button>
+    <button type="button" class="btn-st" id="btn-stats-forest">Stats</button>
+    </div>
+    <button type="button" class="ghost" id="btn-forest-close">Close</button>
+  </div>"
       <div id="craft-panel" aria-hidden="true">
         <h3>Craft</h3>
         <p>Combine farm goods.</p>
@@ -1056,12 +1132,13 @@
         <button type="button" id="tool-sell">Market</button>
       </div>
       <div class="modes">
-        <button type="button" id="mode-farm" class="active">Farm</button>
+        <button type="button" id="tool-plant">Plant</button>
         <button type="button" id="tool-barn">Barn</button>
       </div>
-      <div class="tools" style="grid-template-columns:1fr 1fr">
-        <button type="button" id="tool-plant">Plant</button>
+      <div class="tools" style="grid-template-columns:1fr 1fr 1fr">
+        <button type="button" id="mode-farm" class="active">Farm</button>
         <button type="button" id="tool-mine">Mine</button>
+        <button type="button" id="tool-forest">Forest</button>
       </div>
       <div class="hint" id="hint">Tap a plot to plant. Tap the well to fill your can.</div>
     </footer>
@@ -1304,6 +1381,7 @@
         state.clothesPack2 = true;
       }
       if (typeof state.rocks !== "number") state.rocks = 0;
+      if (typeof state.lumber !== "number") state.lumber = 0;
       if (!Array.isArray(state.shed.cows) || !state.shed.cows.length) {
         state.shed.cows = [{
           id: "c1",
@@ -2374,6 +2452,7 @@
         [shirtArt() + " Shirt", state.shirts || 0, state.shirts || 0],
         [beanieArt() + " Beanie", state.beanies || 0, state.beanies || 0],
         ["🪨 Rocks", state.rocks || 0, state.rocks || 0],
+        ["🪵 Lumber", state.lumber || 0, state.lumber || 0],
         ["🌱 Carrot seeds", state.carrotSeeds, state.carrotSeeds],
         ["🌱 Corn seeds", state.cornSeeds, state.cornSeeds],
         ["⚡ Sats", state.sats, state.sats]
@@ -2549,7 +2628,9 @@
       const art = document.getElementById("loot-art");
       if (p) p.textContent = text;
       if (art) {
-        if (n > 0) art.innerHTML = '<svg viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="32" cy="30" rx="22" ry="14" fill="#6d6a66"/><ellipse cx="24" cy="26" rx="10" ry="8" fill="#8a8680"/><ellipse cx="40" cy="28" rx="12" ry="9" fill="#5a5753"/><path fill="#9a9690" d="M18 24 l8-8 10 4-4 8z"/></svg>' + (n > 1 ? "<small>×" + n + "</small>" : "");
+        const wood = (text || "").toLowerCase().indexOf("lumber") !== -1;
+        if (n > 0 && wood) art.innerHTML = '<svg viewBox="0 0 64 48" aria-hidden="true"><rect x="8" y="22" width="48" height="12" rx="4" fill="#8b5a2b"/><rect x="12" y="16" width="40" height="10" rx="4" fill="#a36a32"/><rect x="16" y="28" width="36" height="10" rx="4" fill="#6e4220"/></svg>' + (n > 1 ? "<small>×" + n + "</small>" : "");
+        else if (n > 0) art.innerHTML = '<svg viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="32" cy="30" rx="22" ry="14" fill="#6d6a66"/><ellipse cx="24" cy="26" rx="10" ry="8" fill="#8a8680"/><ellipse cx="40" cy="28" rx="12" ry="9" fill="#5a5753"/><path fill="#9a9690" d="M18 24 l8-8 10 4-4 8z"/></svg>' + (n > 1 ? "<small>×" + n + "</small>" : "");
         else art.innerHTML = "";
       }
       if (box) { box.classList.add("open"); box.setAttribute("aria-hidden", "false");
@@ -2701,7 +2782,7 @@
       }).join("");
     }
     function dressMiner() {
-      ["miner", "gear-miner"].forEach(function (id) {
+      ["miner", "gear-miner", "forest-miner"].forEach(function (id) {
         const root = document.getElementById(id);
         if (!root) return;
         root.classList.toggle("has-shirt", !!state.gearShirt);
@@ -2766,6 +2847,66 @@
       save();
       paintMine();
     }
+
+    function forestOn() { return (state.forestUntil || 0) > now(); }
+    function paintForest() {
+      const stage = document.getElementById("forest-stage");
+      const st = document.getElementById("forest-status");
+      const btn = document.getElementById("btn-forest");
+      const bar = document.getElementById("forest-bar");
+      const on = forestOn();
+      if (stage) stage.classList.toggle("on", on);
+      dressMiner();
+      const total = FF.forestMs || 5000;
+      let pct = 0;
+      if (on) {
+        const left = Math.max(0, state.forestUntil - now());
+        pct = Math.min(100, Math.round((1 - left / total) * 100));
+        if (st) st.textContent = "Chopping " + fmtLeft(left);
+        if (btn) { btn.disabled = true; btn.textContent = "Chopping " + fmtLeft(left); }
+      } else {
+        pct = 0;
+        if (st) st.textContent = state.forestReady ? "Last chop finished." : "Tap Chop wood.";
+        if (btn) { btn.disabled = false; btn.textContent = "Chop wood"; }
+      }
+      if (bar) bar.style.width = pct + "%";
+      const fb = document.getElementById("tool-forest");
+      if (fb) fb.classList.toggle("glow", !!state.forestReady && !forestOn());
+    }
+    function finishForest() {
+      if (!state.forestUntil || state.forestUntil > now()) return;
+      state.forestUntil = 0;
+      state.forestStarted = 0;
+      const pan = document.getElementById("forest-panel");
+      if (!pan || !pan.classList.contains("open")) state.forestReady = true;
+      const n = Math.floor(Math.random() * 4);
+      state.lumber = (state.lumber || 0) + n;
+      const msg = n === 0 ? "No lumber this time." : ("You chopped " + n + " lumber.");
+      if (pan && pan.classList.contains("open")) openLoot(msg, n);
+      toast("Chopping finished");
+      save();
+      paintForest();
+      fillBarn();
+    }
+    function startForest() {
+      if (forestOn()) return;
+      const total = FF.forestMs || 5000;
+      state.forestStarted = now();
+      state.forestUntil = now() + total;
+      state.forestReady = false;
+      toast("Chopping " + fmtLeft(total));
+      save();
+      paintForest();
+    }
+    
+    function parkInv(host) {
+      const g = document.getElementById("gear-box");
+      const s = document.getElementById("stats-box");
+      if (!host) return;
+      const close = host.querySelector("#mine-close, #btn-forest-close");
+      if (s) host.insertBefore(s, close || null);
+      if (g) host.insertBefore(g, close || null);
+    }
     function openMine(force) {
       const pan = document.getElementById("mine-panel");
       const wasOpen = pan && pan.classList.contains("open");
@@ -2773,11 +2914,13 @@
       if (wasOpen && !force) return;
       if (!pan) return;
       state.mineReady = false;
+      parkInv(pan);
       paintMine();
       fillMinerStats();
       if (state.pendingLoot || state.pendingFight) startFight();
       pan.classList.add("open");
       pan.setAttribute("aria-hidden", "false");
+      document.getElementById("app") && document.getElementById("app").classList.add("scene");
     }
     function openBarn(force) {
       const pan = document.getElementById("barn-panel");
@@ -2798,7 +2941,9 @@
       const marketWas = document.getElementById("market-panel").classList.contains("open")
         || document.getElementById("craft-panel").classList.contains("open")
         || (document.getElementById("barn-panel") && document.getElementById("barn-panel").classList.contains("open"));
-      ["market-panel", "shed-panel", "log-panel", "craft-panel", "barn-panel", "silo-panel", "worth-panel", "mine-panel"].forEach((id) => {
+      const wrap = document.getElementById("app");
+      if (wrap) wrap.classList.remove("scene");
+      ["market-panel", "shed-panel", "log-panel", "craft-panel", "barn-panel", "silo-panel", "worth-panel", "mine-panel", "forest-panel"].forEach((id) => {
         const el = document.getElementById(id);
         if (!el) return;
         el.classList.remove("open");
@@ -3643,6 +3788,26 @@
     document.getElementById("tool-barn").onclick = () => { state.mode = "farm"; state.tool = "barn"; openBarn(); render(); };
     const mineBtn = document.getElementById("tool-mine");
     if (mineBtn) mineBtn.onclick = () => { state.mode = "farm"; state.tool = "mine"; openMine(); render(); };
+    const forestBtn = document.getElementById("tool-forest");
+    function openForest(force) {
+      const pan = document.getElementById("forest-panel");
+      const wasOpen = pan && pan.classList.contains("open");
+      closeAllTabs();
+      if (wasOpen && !force) return;
+      if (!pan) return;
+      state.forestReady = false;
+      parkInv(pan);
+      paintForest();
+      dressMiner();
+      pan.classList.add("open");
+      pan.setAttribute("aria-hidden", "false");
+      document.getElementById("app") && document.getElementById("app").classList.add("scene");
+    }
+    if (forestBtn) forestBtn.onclick = function () { state.mode = "farm"; state.tool = "forest"; openForest(); render(); };
+    const chopBtn = document.getElementById("btn-forest");
+    if (chopBtn) chopBtn.onclick = startForest;
+    const fc = document.getElementById("btn-forest-close");
+    if (fc) fc.onclick = function () { closeAllTabs(); };
     const mineCl = document.getElementById("mine-close");
     if (mineCl) mineCl.onclick = closeAllTabs;
     const startMineBtn = document.getElementById("btn-mine");
@@ -3658,8 +3823,17 @@
     if (gpc) gpc.onclick = function () { const b = document.getElementById("gear-pick"); if (b) { b.hidden = true; b.classList.remove('open'); } };
     const lootTake = document.getElementById("loot-take");
     if (lootTake) lootTake.onclick = closeLoot;
-    const gearBtn = document.getElementById("btn-gear");
-    if (gearBtn) {
+    function syncInvButtons() {
+      const g = document.getElementById("gear-box");
+      const s = document.getElementById("stats-box");
+      document.querySelectorAll(".btn-inv").forEach(function (b) {
+        b.textContent = (g && !g.hidden) ? "Hide inventory" : "Inventory";
+      });
+      document.querySelectorAll(".btn-st").forEach(function (b) {
+        b.textContent = (s && !s.hidden) ? "Hide stats" : "Stats";
+      });
+    }
+    document.querySelectorAll(".btn-inv").forEach(function (gearBtn) {
       gearBtn.onclick = function () {
         const box = document.getElementById("gear-box");
         const stats = document.getElementById("stats-box");
@@ -3667,24 +3841,20 @@
         box.hidden = !box.hidden;
         if (!box.hidden) { fillGearStats(); fillGearSlots(); }
         if (stats) stats.hidden = true;
-        const sb = document.getElementById("btn-stats");
-        if (sb) sb.textContent = "Stats";
-        gearBtn.textContent = box.hidden ? "Inventory" : "Hide inventory";
+        syncInvButtons();
       };
-    }
-    const statsBtn = document.getElementById("btn-stats");
-    if (statsBtn) {
+    });
+    document.querySelectorAll(".btn-st").forEach(function (statsBtn) {
       statsBtn.onclick = function () {
         const box = document.getElementById("stats-box");
         const gear = document.getElementById("gear-box");
         if (!box) return;
         box.hidden = !box.hidden;
         if (gear) gear.hidden = true;
-        if (gearBtn) gearBtn.textContent = "Inventory";
         fillMinerStats();
-        statsBtn.textContent = box.hidden ? "Stats" : "Hide stats";
+        syncInvButtons();
       };
-    }
+    });
     const slots = document.querySelectorAll(".gear-slot");
     for (let i = 0; i < slots.length; i++) {
       slots[i].onclick = function () {
@@ -3785,7 +3955,7 @@
     wrap.addEventListener("pointerdown", (ev) => {
       const open = document.querySelector("#market-panel.open, #shed-panel.open, #log-panel.open, #craft-panel.open, #barn-panel, #silo-panel.open");
       if (!open) return;
-      if (ev.target.closest("#market-panel, #shed-panel, #log-panel, #craft-panel, #barn-panel, #silo-panel, #worth-panel, #mine-panel, #log-tab, #stat-worth, .tile.shed")) return;
+      if (ev.target.closest("#market-panel, #shed-panel, #log-panel, #craft-panel, #barn-panel, #silo-panel, #worth-panel, #mine-panel, #forest-panel, #log-tab, #stat-worth, .tile.shed")) return;
       closeAllTabs();
     });
     document.getElementById("log-tab").onclick = () => {
@@ -3820,8 +3990,9 @@
       tickSheep();
       if (autoOn()) autoTick();
       if (state.miningUntil && state.miningUntil <= now()) finishMine();
+      if (state.forestUntil && state.forestUntil <= now()) finishForest();
       const due = state.plots.some((p) => p.crop && p.crop.stage === "growing")
-        || cows().some((c) => c.stage === "making") || chickens().some((c) => c.stage === "making" || c.stage === "eggs") || horses().some((h) => h.stage === "making" || h.stage === "hair") || sheep().some((s) => s.stage === "making" || s.stage === "wool") || mineOn();
+        || cows().some((c) => c.stage === "making") || chickens().some((c) => c.stage === "making" || c.stage === "eggs") || horses().some((h) => h.stage === "making" || h.stage === "hair") || sheep().some((s) => s.stage === "making" || s.stage === "wool") || mineOn() || forestOn();
       const afterWell = state.wells.reduce((n, w) => n + w.water, 0);
       if (afterWell !== beforeWell || due || t - lastPaint > 400) {
         lastPaint = t;
