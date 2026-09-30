@@ -1,5 +1,5 @@
 (function loadExtra(){
-  ["dive.js","wallet.js"].forEach(function(src){
+  ["dive.js","wallet.js","camp.js"].forEach(function(src){
     if (document.querySelector('script[data-src="'+src+'"]')) return;
     var s=document.createElement("script");
     s.src=src;
@@ -10,6 +10,7 @@
 
 window.FF = {
   updates: [
+    "Sep 30 \u2014 Kitchen ration (2 corn + 1 milk) speeds the next mine or forest run. Hide boots cut tool wear.",
     "Sep 30 \u2014 Mine: Shallow / Deep / Sealed. Forest: Trail / Thicket / Dark wood. Gear opens doors.",
     "Sep 30 \u2014 Deep ore and dark hide: sell for sats or craft iron pick / hide wrap. Tools wear; repair at Craft.",
     "Sep 30 \u2014 Empty plots: dark raked topsoil, not flat brown.",
