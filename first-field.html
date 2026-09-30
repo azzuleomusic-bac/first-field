@@ -323,6 +323,38 @@
       background: #3d4a73;
       box-shadow: inset 8px 0 0 #2f3a5c;
     }
+
+    .miner.has-beanie .miner-head,
+    .fight-miner.has-beanie .miner-head {
+      overflow: visible;
+    }
+    .miner.has-beanie .miner-head::before,
+    .fight-miner.has-beanie .miner-head::before {
+      content: "";
+      position: absolute;
+      left: -3px; top: -7px;
+      width: 26px; height: 14px;
+      background: #c44b3a;
+      border-radius: 12px 12px 3px 3px;
+      box-shadow: inset 0 -3px 0 #9e382c;
+      z-index: 6;
+    }
+    .miner.has-beanie .miner-head::after,
+    .fight-miner.has-beanie .miner-head::after {
+      content: "";
+      position: absolute;
+      left: 16px; top: -11px;
+      width: 8px; height: 8px;
+      background: #e8e0d4;
+      border-radius: 50%;
+      z-index: 7;
+    }
+    .fight-miner.has-beanie .miner-head::before {
+      left: -2px; top: -6px; width: 22px; height: 12px;
+    }
+    .fight-miner.has-beanie .miner-head::after {
+      left: 14px; top: -9px; width: 7px; height: 7px;
+    }
     .wear { pointer-events: none; }
     .wear svg { width: 100%; height: 100%; display: block; }
     .fight-miner { width: 28px; height: 70px; margin: 8px auto 0; position: relative; background: transparent !important; }
@@ -434,6 +466,35 @@
       margin-bottom: 8px;
     }
     .modes.three { grid-template-columns: 1fr 1fr 1fr; }
+    #plant-pick {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      background: rgba(0,0,0,0.45);
+      align-items: center;
+      justify-content: center;
+    }
+    #plant-pick.open { display: flex; }
+    #plant-pick .plant-card {
+      width: min(280px, calc(100% - 32px));
+      background: #1a2418;
+      border: 2px solid var(--gold);
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+    }
+    #plant-pick h3 { margin: 0 0 12px; color: var(--gold); font-size: 16px; }
+    .plant-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .plant-choices button {
+      min-height: 96px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .plant-choices .seed-art { font-size: 36px; line-height: 1; }
     .tools {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -823,6 +884,7 @@
             <div id="csec-gear" hidden>
               <div class="row"><span><span class="price" id="lbl-pants"></span><br><small class="have" data-have="pants"></small></span><button type="button" id="sell-pants">Sell pants</button></div>
               <div class="row"><span><span class="price" id="lbl-shirt"></span><br><small class="have" data-have="shirts"></small></span><button type="button" id="sell-shirt">Sell shirt</button></div>
+              <div class="row"><span><span class="price" id="lbl-beanie">1 beanie → 3 ⚡ sats</span><br><small class="have" data-have="beanies"></small></span><button type="button" id="sell-beanie">Sell beanie</button></div>
             </div>
           </div>
         </div>
@@ -884,6 +946,7 @@
             <button type="button" class="gear-slot" data-slot="helmet">Head<br><span class="gear-art"></span><small>empty</small></button>
             <button type="button" class="gear-slot" data-slot="armor">Chest<br><span class="gear-art"></span><small>empty</small></button>
             <button type="button" class="gear-slot" data-slot="weapon">Weapon<br><span class="gear-art"></span><small>empty</small></button>
+            <button type="button" class="gear-slot" data-slot="hands">Hands<br><span class="gear-art"></span><small>empty</small></button>
             <button type="button" class="gear-slot" data-slot="pants">Legs<br><span class="gear-art"></span><small>empty</small></button>
             <button type="button" class="gear-slot" data-slot="boots">Feet<br><span class="gear-art"></span><small>empty</small></button>
             <button type="button" class="gear-slot" data-slot="ring1">Ring 1<br><span class="gear-art"></span><small>empty</small></button>
@@ -910,6 +973,7 @@
         <div id="csec-armory" hidden>
           <div class="row"><span id="craft-pants-label">6 wool + 3 horse hair → 1 pants</span><button type="button" id="craft-pants">Make pants</button></div>
           <div class="row"><span id="craft-shirt-label">8 wool → 1 shirt</span><button type="button" id="craft-shirt">Make shirt</button></div>
+          <div class="row"><span id="craft-beanie-label">7 wool → 1 beanie</span><button type="button" id="craft-beanie">Make beanie</button></div>
         </div>
         <button type="button" class="ghost" id="craft-close">Close</button>
       </div>
@@ -976,10 +1040,18 @@
         <button type="button" id="mode-farm" class="active">Farm</button>
         <button type="button" id="tool-barn">Barn</button>
       </div>
-      <div class="tools" style="grid-template-columns:1fr 1fr 1fr">
-        <button type="button" id="tool-carrot">Plant 🥕</button>
-        <button type="button" id="tool-corn">Plant 🌽</button>
+      <div class="tools" style="grid-template-columns:1fr 1fr">
+        <button type="button" id="tool-plant">Plant</button>
         <button type="button" id="tool-mine">Mine</button>
+      </div>
+      <div id="plant-pick" hidden>
+        <div class="plant-card">
+          <h3>Choose seed</h3>
+          <div class="plant-choices">
+            <button type="button" id="pick-corn"><span class="seed-art">🌽</span><small>Corn</small></button>
+            <button type="button" id="pick-carrot"><span class="seed-art">🥕</span><small>Carrot</small></button>
+          </div>
+        </div>
       </div>
 <div class="hint" id="hint">Tap a plot to plant. Tap the well to fill your can.</div>
     </footer>
@@ -1044,6 +1116,9 @@
       shirts: 0,
       gearShirt: false,
       gearPants: false,
+      beanies: 0,
+      gearBeanie: false,
+      beaniePack: false,
       rocks: 0,
       horseHair: 0,
       horseShed: { horses: [] },
@@ -1118,6 +1193,9 @@
         gearPants: !!state.gearPants,
         shirts: state.shirts || 0,
         gearShirt: !!state.gearShirt,
+        beanies: state.beanies || 0,
+        gearBeanie: !!state.gearBeanie,
+        beaniePack: !!state.beaniePack,
         gotDemoClothes: !!state.gotDemoClothes,
         clothesPack2: !!state.clothesPack2,
         rocks: state.rocks || 0,
@@ -1183,6 +1261,7 @@
       if (typeof state.eggs !== "number") state.eggs = 0;
       if (typeof state.pudding !== "number") state.pudding = 0;
       if (typeof state.pants !== "number") state.pants = 0;
+      if (typeof state.beanies !== "number") state.beanies = 0;
       if (typeof state.shirts !== "number") state.shirts = 0;
       if (!state.clothesPack2) {
         state.pants = (state.pants || 0) + 2;
@@ -1240,6 +1319,10 @@
       if (have < 1) {
         state.pants = 2;
         state.shirts = 2;
+      }
+      if (!state.beaniePack) {
+        state.beanies = (state.beanies || 0) + 1;
+        state.beaniePack = true;
       }
     }
     function load() {
@@ -1302,7 +1385,7 @@
       });
     }
     function fixNums() {
-      ["water","carrots","corn","carrotSeeds","cornSeeds","milk","eggs","pudding","pants","shirts","rocks","wool","horseHair","sats"].forEach((k) => {
+      ["water","carrots","corn","carrotSeeds","cornSeeds","milk","eggs","pudding","pants","shirts","beanies","rocks","wool","horseHair","sats"].forEach((k) => {
         const n = Number(state[k]);
         state[k] = Number.isFinite(n) ? n : 0;
       });
@@ -1917,6 +2000,10 @@
       if (sh && typeof shirtArt === "function") {
         sh.innerHTML = "8 " + woolArt() + " wool -> 1 " + shirtArt() + " shirt";
       }
+      const bn = document.getElementById("craft-beanie-label");
+      if (bn && typeof beanieArt === "function") {
+        bn.innerHTML = "7 " + woolArt() + " wool -> 1 " + beanieArt() + " beanie";
+      }
     }
     function openCraft(force) {
       const pan = document.getElementById("craft-panel");
@@ -1953,6 +2040,33 @@
       save();
       render();
       openCraft(true);
+    }
+    async function craftBeanie() {
+      if (!(await askYes("Craft 1 beanie from 7 wool?"))) return;
+      if ((state.wool || 0) < 7) { toast("Need 7 wool"); return; }
+      state.wool -= 7;
+      state.beanies = (state.beanies || 0) + 1;
+      logMarket("Crafted beanie");
+      toast("Beanie ready");
+      save();
+      render();
+      openCraft(true);
+    }
+    async function sellBeanie() {
+      const have = state.beanies || 0;
+      if (have < 1) { toast("No beanie"); return; }
+      let n = 1;
+      if (have > 1) {
+        if (await askYes("Sell ALL beanies? " + have + " for " + (have * 3) + " sats")) n = have;
+        else if (!(await askYes("Sell 1 beanie for 3 sats?"))) return;
+      } else if (!(await askYes("Sell 1 beanie for 3 sats?"))) return;
+      state.beanies -= n;
+      state.sats += n * 3;
+      logMarket("Sold " + n + " beanie +" + (n * 3) + " sat");
+      toast("Sold " + n + " beanie for " + (n * 3) + " sats");
+      save();
+      render();
+      openMarket(true);
     }
     async function craftPants() {
       if (!(await askYes("Craft 1 pants from 6 wool and 3 horse hair?"))) return;
@@ -2113,6 +2227,7 @@
       add("Goods", "Corn  " + (state.corn || 0), state.corn || 0, packWorth(state.corn || 0, FF.sell.corn.qty, FF.sell.corn.sats));
       add("Goods", "Pudding  " + (state.pudding || 0), state.pudding || 0, (state.pudding || 0) * (FF.pudding.sellSats || 2));
       add("Goods", "Pants  " + (state.pants || 0), state.pants || 0, (state.pants || 0) * (FF.pants.sellSats || 4));
+      add("Goods", "Beanies  " + (state.beanies || 0), state.beanies || 0, (state.beanies || 0) * 3);
       add("Goods", "Carrot seeds  " + (state.carrotSeeds || 0), state.carrotSeeds || 0, packWorth(state.carrotSeeds || 0, FF.buy.carrotSeeds.qty, FF.buy.carrotSeeds.sats));
       add("Goods", "Corn seeds  " + (state.cornSeeds || 0), state.cornSeeds || 0, packWorth(state.cornSeeds || 0, FF.buy.cornSeeds.qty, FF.buy.cornSeeds.sats));
       add("Assets", "Wells  " + (state.wells || []).length, (state.wells || []).length, (state.wells || []).length * (FF.prices.well || 15));
@@ -2185,6 +2300,7 @@
       "Sep 29 — Grain silo: 50 corn cap, +50 ×3 for 20 sats, extra silo 25 sats.",
       "Sep 29 — Craft pudding: 4 milk + 3 eggs, sell for 2 sats.",
       "Sep 29 — Chickens: 3 sats, feed 2 corn + 1 water, 2 eggs / 15s.",
+      "Sep 29 — Beanie: 7 wool. Wear on Head. Demo starts with 1 in the barn.",
       "Sep 29 — Crop land 10 sats. Cow 5 sats. Well 15 sats.",
       "Sep 29 — Wells 4s per unit. Corn 20s, carrots 30s, cows 25s.",
       "Sep 28 — Close Market selects Plant corn. Auto-save stays on.",
@@ -2220,6 +2336,7 @@
         ["🍮 Pudding", state.pudding || 0, state.pudding || 0],
         [pantsArt() + " Pants", state.pants || 0, state.pants || 0],
         [shirtArt() + " Shirt", state.shirts || 0, state.shirts || 0],
+        [beanieArt() + " Beanie", state.beanies || 0, state.beanies || 0],
         ["🪨 Rocks", state.rocks || 0, state.rocks || 0],
         ["🌱 Carrot seeds", state.carrotSeeds, state.carrotSeeds],
         ["🌱 Corn seeds", state.cornSeeds, state.cornSeeds],
@@ -2411,13 +2528,14 @@
       return { min: 8, max: 12 };
     }
     function minerDef() {
-      return (state.gearPants ? 1 : 0) + (state.gearShirt ? 1 : 0);
+      return (state.gearPants ? 1 : 0) + (state.gearShirt ? 1 : 0) + (state.gearBeanie ? 1 : 0);
     }
         function woolArt() {
       return '<svg class="gear-art" viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="17" rx="10" ry="9" fill="#e8e0d4"/><ellipse cx="12" cy="14" rx="5" ry="4.5" fill="#f4efe6"/><ellipse cx="20" cy="15" rx="4.5" ry="4" fill="#d9d0c4"/><ellipse cx="16" cy="20" rx="5" ry="4" fill="#cfc6ba"/></svg>';
     }
     function pantsArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#3d4a73" d="M8 6 h16 v8 l-3 16 h-4 l-1-14-1 14 h-4 L8 14z"/><path fill="#2a334f" d="M15 6 h2 v8 h-2z"/></svg>'; }
     function shirtArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#6b8f4a" d="M6 10 L12 6 h8 l6 4-4 4 h-2 v12 H12 V14 H8z"/><circle cx="16" cy="8" r="3" fill="#e8c3b0"/></svg>'; }
+    function beanieArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#c44b3a" d="M6 16c0-7 4.5-12 10-12s10 5 10 12v2H6z"/><circle cx="22" cy="8" r="3" fill="#e8e0d4"/></svg>'; }
 
     function openGearPick(slot) {
       const pick = document.getElementById("gear-pick");
@@ -2427,8 +2545,9 @@
       const items = [];
       if (slot === "pants" && (state.pants || 0) > 0) items.push({ id: "pants", name: "Pants  +" + (state.pants) + "  +1 def +15% rocks", art: pantsArt() });
       if (slot === "armor" && (state.shirts || 0) > 0) items.push({ id: "shirt", name: "Shirt  +" + (state.shirts) + "  +1 def +10% rocks", art: shirtArt() });
-      if (!items.length) { toast(slot === "pants" ? "Craft pants first" : slot === "armor" ? "Craft a shirt first" : "No gear for this slot"); return; }
-      if (title) title.textContent = "Choose for " + (slot === "pants" ? "Legs" : slot === "armor" ? "Chest" : slot);
+      if (slot === "helmet" && (state.beanies || 0) > 0) items.push({ id: "beanie", name: "Beanie  +" + (state.beanies) + "  +1 def", art: beanieArt() });
+      if (!items.length) { toast(slot === "pants" ? "Craft pants first" : slot === "armor" ? "Craft a shirt first" : slot === "helmet" ? "Craft a beanie first" : "No gear for this slot"); return; }
+      if (title) title.textContent = "Choose for " + (slot === "pants" ? "Legs" : slot === "armor" ? "Chest" : slot === "helmet" ? "Head" : slot);
       list.innerHTML = items.map(function (it) {
         return '<div class="row"><span>' + it.art + " " + it.name + '</span><button type="button" data-id="' + it.id + '">Equip</button></div>';
       }).join("");
@@ -2455,6 +2574,13 @@
         state.gearShirt = true;
         toast("Equipped chest");
       }
+      if (id === "beanie") {
+        if ((state.beanies || 0) < 1) return;
+        if (state.gearBeanie) return;
+        state.beanies -= 1;
+        state.gearBeanie = true;
+        toast("Equipped beanie");
+      }
       fillGearStats();
       fillGearSlots();
       fillBarn();
@@ -2472,6 +2598,14 @@
         if (slot === "armor") {
           if (sm) sm.textContent = state.gearShirt ? "+1 def +10% rocks" : "empty";
           if (art) art.innerHTML = state.gearShirt ? shirtArt() : "";
+        }
+        if (slot === "helmet") {
+          if (sm) sm.textContent = state.gearBeanie ? "+1 def" : "empty";
+          if (art) art.innerHTML = state.gearBeanie ? beanieArt() : "";
+        }
+        if (slot === "hands") {
+          if (sm) sm.textContent = "empty";
+          if (art) art.innerHTML = "";
         }
       });
     }
@@ -2510,6 +2644,7 @@
         if (!root) return;
         root.classList.toggle("has-shirt", !!state.gearShirt);
         root.classList.toggle("has-pants", !!state.gearPants);
+        root.classList.toggle("has-beanie", !!state.gearBeanie);
       });
     }
     function mineOn() { return (state.miningUntil || 0) > now(); }
@@ -2686,6 +2821,8 @@
       if (pl && typeof pantsArt === "function") pl.innerHTML = "1 " + pantsArt() + " pants → 4 ⚡ sats";
       const sl = document.getElementById("lbl-shirt");
       if (sl && typeof shirtArt === "function") sl.innerHTML = "1 " + shirtArt() + " shirt → 3 ⚡ sats";
+      const bl = document.getElementById("lbl-beanie");
+      if (bl && typeof beanieArt === "function") bl.innerHTML = "1 " + beanieArt() + " beanie → 3 ⚡ sats";
       const wl = document.getElementById("lbl-wool");
       if (wl && typeof woolArt === "function") wl.innerHTML = "4 " + woolArt() + " wool → 1 ⚡ sat";
       document.querySelectorAll("#market-panel .have").forEach((el) => {
@@ -3172,15 +3309,21 @@
       if (mf) mf.classList.toggle("active", state.mode === "farm");
       const mv = document.getElementById("mode-move");
       if (mv) mv.classList.toggle("active", state.mode === "move");
-      ["carrot", "corn", "sell", "craft", "barn", "mine"].forEach((name) => {
+      ["carrot", "corn", "plant", "sell", "craft", "barn", "mine"].forEach((name) => {
         const b = document.getElementById("tool-" + name);
-        if (b) b.classList.toggle("active", state.tool === name && state.mode === "farm");
+        if (!b) return;
+        const on = name === "plant"
+          ? (state.mode === "farm" && (state.tool === "corn" || state.tool === "carrot"))
+          : (state.tool === name && state.mode === "farm");
+        b.classList.toggle("active", on);
       });
+      const pb = document.getElementById("tool-plant");
+      if (pb) pb.textContent = state.tool === "carrot" ? "Plant 🥕" : state.tool === "corn" ? "Plant 🌽" : "Plant";
 
       const hints = {
         farm: {
-          carrot: "Tap an empty plot to plant carrot.",
-          corn: "Tap an empty plot to plant corn.",
+          carrot: "Planting carrot. Tap Plant to switch seed.",
+          corn: "Planting corn. Tap Plant to switch seed.",
           sell: "Market: Resources, Seeds, Assets.",
           craft: "Craft in this tab only.",
           barn: "Barn holds water, crops, milk, eggs, pudding, seeds."
@@ -3386,8 +3529,6 @@
     on("mode-farm", () => { state.mode = "farm"; render(); });
     const mvBtn = document.getElementById("mode-move");
     if (mvBtn) mvBtn.onclick = () => { state.mode = "move"; render(); };
-    document.getElementById("tool-carrot").onclick = () => { state.mode = "farm"; state.tool = "carrot"; render(); };
-    document.getElementById("tool-corn").onclick = () => { state.mode = "farm"; state.tool = "corn"; render(); };
     document.getElementById("shed-feed").onclick = feedCow;
     document.getElementById("shed-milk").onclick = collectMilkAll;
     document.getElementById("buy-cow").onclick = buyCow;
@@ -3402,6 +3543,33 @@
     if (sellHairBtn) sellHairBtn.onclick = sellHair;
     document.getElementById("sell-eggs").onclick = sellEggs;
     document.getElementById("shed-close").onclick = closeShed;
+    document.getElementById("plant-pick").onclick = function (ev) {
+      if (ev.target.id === "plant-pick") {
+        ev.currentTarget.classList.remove("open");
+        ev.currentTarget.hidden = true;
+      }
+    };
+    document.getElementById("tool-plant").onclick = function () {
+      const pick = document.getElementById("plant-pick");
+      if (pick && pick.classList.contains("open")) {
+        pick.classList.remove("open");
+        pick.hidden = true;
+        return;
+      }
+      if (pick) { pick.hidden = false; pick.classList.add("open"); }
+    };
+    document.getElementById("pick-corn").onclick = function () {
+      state.mode = "farm"; state.tool = "corn";
+      const pick = document.getElementById("plant-pick");
+      if (pick) { pick.classList.remove("open"); pick.hidden = true; }
+      render();
+    };
+    document.getElementById("pick-carrot").onclick = function () {
+      state.mode = "farm"; state.tool = "carrot";
+      const pick = document.getElementById("plant-pick");
+      if (pick) { pick.classList.remove("open"); pick.hidden = true; }
+      render();
+    };
     document.getElementById("tool-sell").onclick = () => { state.mode = "farm"; state.tool = "sell"; openMarket(); render(); };
     document.getElementById("tool-craft").onclick = () => { state.mode = "farm"; state.tool = "craft"; openCraft(); render(); };
     document.getElementById("tool-barn").onclick = () => { state.mode = "farm"; state.tool = "barn"; openBarn(); render(); };
@@ -3464,6 +3632,15 @@
           } else openGearPick("pants");
           return;
         }
+        if (slot === "helmet") {
+          if (state.gearBeanie) {
+            state.gearBeanie = false;
+            state.beanies = (state.beanies || 0) + 1;
+            toast("Unequipped beanie");
+            fillGearStats(); fillGearSlots(); fillBarn(); save();
+          } else openGearPick("helmet");
+          return;
+        }
         toast("No gear in " + slot + " yet");
       };
     }
@@ -3480,6 +3657,10 @@
     };
     document.getElementById("craft-pudding").onclick = craftPudding;
     document.getElementById("craft-pants").onclick = craftPants;
+    const cb = document.getElementById("craft-beanie");
+    if (cb) cb.onclick = craftBeanie;
+    const sb = document.getElementById("sell-beanie");
+    if (sb) sb.onclick = sellBeanie;
     const cs = document.getElementById("craft-shirt");
     if (cs) cs.onclick = craftShirt;
     const ck = document.getElementById("ctab-kitchen");
