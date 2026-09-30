@@ -1,9 +1,10 @@
+/* 2026-09-30-visual-restore */
 window.FF = {
   updates: [
-    "Sep 30 — Empty plots: dark raked topsoil, not flat brown.",
-    "Sep 30 — Well is wider (less bottle-shaped). Full well stays bright, no pulse.",
-    "Sep 30 — Farm grass is mottled turf with grain.",
-    "Sep 30 — Test: wells fill at 2 seconds per water."
+    "Sep 30 \u2014 Empty plots: dark raked topsoil, not flat brown.",
+    "Sep 30 \u2014 Well is wider (less bottle-shaped). Full well stays bright, no pulse.",
+    "Sep 30 \u2014 Farm grass is mottled turf with grain.",
+    "Sep 30 \u2014 Test: wells fill at 2 seconds per water."
   ],
   starterSats: 30,
   pack30Bonus: 20,
