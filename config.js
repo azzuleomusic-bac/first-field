@@ -1,5 +1,6 @@
 window.FF = {
   updates: [
+    "Sep 30 — Tap the sats pill for the in-game wallet + trade log.",
     "Sep 30 — Empty plots: dark raked topsoil, not flat brown.",
     "Sep 30 — Well is wider (less bottle-shaped). Full well stays bright, no pulse.",
     "Sep 30 — Farm grass is mottled turf with grain.",
