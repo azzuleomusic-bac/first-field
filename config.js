@@ -1,6 +1,7 @@
-/* 2026-09-30-sounds-sheds */
+/* 2026-09-30-sounds-visible */
 window.FF = window.FF || {};
 window.FF.updates = [
+  "Sep 30 \u2014 Mine and forest hits only play while that panel is open on screen.",
   "Sep 30 \u2014 Sounds: pick cracks rock in the mine, axe thud in the forest, splash when you take well water.",
   "Sep 30 \u2014 Ready sheds glow instead of saying milk ready. Drag shows cell count.",
   "Sep 30 \u2014 Sheds: Lvl 1 is 2\u00d72 / 5 animals. Lvl 2 is 5 sats + 10 lumber, 3\u00d73 / 10 animals.",
