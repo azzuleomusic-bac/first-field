@@ -10,28 +10,3 @@ window.FF.updates = [
   "Sep 30 \u2014 Farm grass is mottled turf with grain.",
   "Sep 30 \u2014 Test: wells fill at 2 seconds per water."
 ];
-window.FF.starterSats = 30;
-window.FF.pack30Bonus = 20;
-window.FF.wellMs = 2000;
-window.FF.cornGrowMs = 20000;
-window.FF.carrotGrowMs = 30000;
-window.FF.cowMs = 25000;
-window.FF.chickenMs = 15000;
-window.FF.wellMax = 10;
-window.FF.canPerWell = 30;
-window.FF.cowFeed = { corn: 5, water: 3, milk: 3 };
-window.FF.chickenFeed = { corn: 2, water: 1, eggs: 2 };
-window.FF.pudding = { milk: 4, eggs: 3, sellSats: 2 };
-window.FF.prices = { well: 15, plot: 10, cow: 5, chicken: 3, expandBase: 20 };
-window.FF.sell = {
-  milk: { qty: 5, sats: 1 },
-  water: { qty: 50, sats: 1 },
-  eggs: { qty: 8, sats: 1 },
-  carrots: { qty: 10, sats: 1 },
-  corn: { qty: 40, sats: 1 }
-};
-window.FF.buy = {
-  water: { sats: 1, qty: 25 },
-  carrotSeeds: { sats: 1, qty: 10 },
-  cornSeeds: { sats: 1, qty: 20 }
-};
