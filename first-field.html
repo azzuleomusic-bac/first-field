@@ -268,6 +268,30 @@
       height: calc(var(--tile) * 1.35);
       overflow: visible;
     }
+    .tile.dragging {
+      z-index: 20;
+      opacity: 1;
+      filter: none;
+      background: rgba(20, 36, 16, 0.45);
+      box-shadow: inset 0 0 0 3px #e8c36a, 0 0 0 1px rgba(232,195,106,.5);
+      border-radius: 8px;
+    }
+    .tile.dragging::before {
+      content: attr(data-boxes);
+      position: absolute;
+      left: 4px;
+      top: 4px;
+      z-index: 5;
+      font-size: 10px;
+      font-weight: 800;
+      color: #e8c36a;
+      text-shadow: 0 1px 2px #000;
+      pointer-events: none;
+    }
+    #farm-grid i.hot {
+      background: rgba(232,195,106,0.22);
+      border-color: #e8c36a;
+    }
     .tile.tree .tree-art { width: 100%; height: 82%; pointer-events: none; }
     .tile.tree .label { font-size: 9px; }
     .tile.tree .label { position:absolute; left:0; right:0; bottom:0; text-align:center; white-space:nowrap; }
@@ -748,7 +772,7 @@
       color: var(--gold);
       font-variant-numeric: tabular-nums;
     }
-    .tile.dragging { z-index: 20; opacity: 0.92; filter: brightness(1.08); }
+    .tile.dragging { z-index: 20; }
     #farm-grid {
       display: none;
       position: absolute;
@@ -1088,7 +1112,7 @@
       text-align: center;
     }
     #ask-box.open { display: block; }
-    #ask-box p { margin: 0 0 14px; font-size: 15px; line-height: 1.35; }
+    #ask-box p { margin: 0 0 14px; font-size: 15px; line-height: 1.35; white-space: pre-line; }
     #ask-box .row {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -1409,6 +1433,7 @@
       <div id="shed-panel" class="side-panel" aria-hidden="true">
         <h3>Cow shed</h3>
         <p id="shed-status">1 cow</p>
+        <div class="row"><span id="shed-up-label">Lvl 1 · 5 cows max · Lvl 2 is 5⚡ + 10🪵</span><button type="button" id="shed-up">Upgrade</button></div>
         <div class="row"><span>Feed 1 cow — 6🌽 + 4💧</span><button type="button" id="shed-feed">Feed</button></div>
         <div class="row"><span>Collect ready milk</span><button type="button" id="shed-milk">Milk</button></div>
         <button type="button" class="ghost" id="shed-close">Close</button>
@@ -1714,7 +1739,10 @@
       if (!state.sheepPen) state.sheepPen = { sheep: [] };
       if (!Array.isArray(state.sheepPen.sheep)) state.sheepPen.sheep = [];
       if (typeof state.wool !== "number") state.wool = 0;
-      if (!Array.isArray(state.coop.chickens)) state.coop.chickens = [];
+      if (!state.shed.level) state.shed.level = 1;
+      if (!state.coop.level) state.coop.level = 1;
+      if (!state.horseShed.level) state.horseShed.level = 1;
+      if (!state.sheepPen.level) state.sheepPen.level = 1;
       if (typeof state.eggs !== "number") state.eggs = 0;
       if (typeof state.pudding !== "number") state.pudding = 0;
       if (typeof state.pants !== "number") state.pants = 0;
@@ -1871,14 +1899,26 @@
       if (p && typeof p.upgrades === "number") return 1.12 + Math.min(3, p.upgrades || 0) * 0.06;
       return 1;
     }
-    function placeEl(el, nx, ny, scale, kind) {
+    function placeEl(el, nx, ny, scale, kind, item) {
       const g = gridMeta();
-      const fp = footprint(kind || "plot");
-      const snap = snapCell(nx, ny, kind);
+      const piece = item || (kind === "silo" ? findSiloByPos(nx, ny) : null);
+      const fp = footprint(kind || "plot", piece);
+      const snap = snapCell(nx, ny, kind, piece);
       el.style.width = (fp.w * g.cell) + "px";
       el.style.height = (fp.h * g.cell) + "px";
       el.style.left = (g.pad + snap.c * g.cell) + "px";
       el.style.top = (g.pad + snap.r * g.cell) + "px";
+      el.setAttribute("data-boxes", fp.w + "×" + fp.h);
+      markGridFoot(snap.c, snap.r, fp.w, fp.h);
+    }
+    function findSiloByPos(nx, ny) {
+      const list = state.silos || [];
+      let best = null, d0 = 9;
+      list.forEach((s) => {
+        const d = Math.abs(s.x - nx) + Math.abs(s.y - ny);
+        if (d < d0) { d0 = d; best = s; }
+      });
+      return best;
     }
 
     function toPx(nx, ny) {
@@ -1910,11 +1950,11 @@
 
     function allPieces() {
       return state.wells.map((w) => ({ id: w.id, kind: "well", x: w.x, y: w.y, scale: 1.18 }))
-        .concat((state.silos || []).map((s) => ({ id: s.id, kind: "silo", x: s.x, y: s.y, scale: pieceScale(s) })))
-        .concat([{ id: "shed", kind: "shed", x: state.shed.x, y: state.shed.y, scale: 1.22 }])
-        .concat(chickens().length && state.coop && typeof state.coop.x === "number" ? [{ id: "coop", kind: "coop", x: state.coop.x, y: state.coop.y, scale: 1.15 }] : [])
-        .concat(horses().length && state.horseShed && typeof state.horseShed.x === "number" ? [{ id: "horse", kind: "horse", x: state.horseShed.x, y: state.horseShed.y, scale: 1.15 }] : [])
-        .concat(sheep().length && state.sheepPen && typeof state.sheepPen.x === "number" ? [{ id: "sheep", kind: "sheep", x: state.sheepPen.x, y: state.sheepPen.y, scale: 1.15 }] : [])
+        .concat((state.silos || []).map((s) => ({ id: s.id, kind: "silo", x: s.x, y: s.y, scale: pieceScale(s), upgrades: s.upgrades })))
+        .concat([{ id: "shed", kind: "shed", x: state.shed.x, y: state.shed.y, scale: 1.22, level: state.shed.level }])
+        .concat(chickens().length && state.coop && typeof state.coop.x === "number" ? [{ id: "coop", kind: "coop", x: state.coop.x, y: state.coop.y, scale: 1.15, level: state.coop.level }] : [])
+        .concat(horses().length && state.horseShed && typeof state.horseShed.x === "number" ? [{ id: "horse", kind: "horse", x: state.horseShed.x, y: state.horseShed.y, scale: 1.15, level: state.horseShed.level }] : [])
+        .concat(sheep().length && state.sheepPen && typeof state.sheepPen.x === "number" ? [{ id: "sheep", kind: "sheep", x: state.sheepPen.x, y: state.sheepPen.y, scale: 1.15, level: state.sheepPen.level }] : [])
         .concat((state.trees || []).map((tr) => ({ id: tr.id, kind: "tree", x: tr.x, y: tr.y, scale: 1.12 })))
         .concat(state.plots.map((pl) => ({ id: pl.id, kind: "plot", x: pl.x, y: pl.y, scale: 1 })));
     }
@@ -1966,16 +2006,16 @@
       return state.plots.filter((p) => p.id !== skipId).map((p) => ({ id: p.id, x: p.x, y: p.y }));
     }
 
-    function blocked(nx, ny, skipId, selfScale, selfKind) {
+    function blocked(nx, ny, skipId, selfScale, selfKind, selfItem) {
       const g = gridMeta();
-      const fp = footprint(selfKind || "plot");
+      const fp = footprint(selfKind || "plot", selfItem);
       let c0 = Math.round(nx * g.cols - fp.w / 2);
       let r0 = Math.round(ny * g.rows - fp.h / 2);
       c0 = Math.max(0, Math.min(g.cols - fp.w, c0));
       r0 = Math.max(0, Math.min(g.rows - fp.h, r0));
       return allPieces().some((p) => {
         if (p.id === skipId) return false;
-        const of = footprint(p.kind);
+        const of = footprint(p.kind, p);
         let c1 = Math.round(p.x * g.cols - of.w / 2);
         let r1 = Math.round(p.y * g.rows - of.h / 2);
         c1 = Math.max(0, Math.min(g.cols - of.w, c1));
@@ -2115,7 +2155,11 @@
       const making = cows().filter((c) => c.stage === "making").length;
       const ready = cows().filter((c) => c.stage === "milk").length;
       const st = document.getElementById("shed-status");
-      if (st) st.textContent = cows().length + " cow(s) — hungry " + hungry + ", working " + making + ", milk " + ready;
+      if (st) st.textContent = cows().length + "/" + shedCap(state.shed) + " cows · shed lvl " + shedLvl(state.shed);
+      const up = document.getElementById("shed-up");
+      const ul = document.getElementById("shed-up-label");
+      if (up) up.disabled = shedLvl(state.shed) >= 2;
+      if (ul) ul.textContent = shedLvl(state.shed) >= 2 ? "Level 2 · 10 cows · 3×3" : "Lvl 1 · 5 cows · 2×2 → Lvl 2 is 5⚡ + 10🪵";
       pan.classList.add("open");
       pan.setAttribute("aria-hidden", "false");
     }
@@ -2244,7 +2288,12 @@
         let spot = findSpot("coop");
         if (!spot) spot = await needSpace("chicken coop");
         if (!spot) return;
-        state.coop = { x: spot.x, y: spot.y, chickens: [] };
+        state.coop = { x: spot.x, y: spot.y, chickens: [], level: 1 };
+      }
+      if (chickens().length >= shedCap(state.coop)) {
+        toast("Coop full (" + shedCap(state.coop) + "). Upgrade for 5 sats + 10 lumber");
+        await upgradeAnimalShed("coop");
+        return;
       }
       state.sats -= FF.prices.chicken;
       if (!state.coop) state.coop = { chickens: [] };
@@ -2396,7 +2445,12 @@
         let spot = findSpot("sheep");
         if (!spot) spot = await needSpace("sheep shed");
         if (!spot) return;
-        state.sheepPen = { x: spot.x, y: spot.y, sheep: [] };
+        state.sheepPen = { x: spot.x, y: spot.y, sheep: [], level: 1 };
+      }
+      if (sheep().length >= shedCap(state.sheepPen)) {
+        toast("Sheep shed full (" + shedCap(state.sheepPen) + "). Upgrade for 5 sats + 10 lumber");
+        await upgradeAnimalShed("sheep");
+        return;
       }
       state.sats -= FF.prices.sheep || 4;
       if (!state.sheepPen) state.sheepPen = { sheep: [] };
@@ -2430,7 +2484,12 @@
         let spot = findSpot("horse");
         if (!spot) spot = await needSpace("horse shed");
         if (!spot) return;
-        state.horseShed = { x: spot.x, y: spot.y, horses: [] };
+        state.horseShed = { x: spot.x, y: spot.y, horses: [], level: 1 };
+      }
+      if (horses().length >= shedCap(state.horseShed)) {
+        toast("Horse shed full (" + shedCap(state.horseShed) + "). Upgrade for 5 sats + 10 lumber");
+        await upgradeAnimalShed("horse");
+        return;
       }
       state.sats -= FF.prices.horse || 8;
       if (!state.horseShed) state.horseShed = { x: 0.14, y: 0.50, horses: [] };
@@ -2464,6 +2523,11 @@
     async function buyCow() {
       if (!(await askYes("Buy a cow for 7 sats?"))) return;
       if (state.sats < FF.prices.cow) { toast("Need 7 sats"); return; }
+      if (cows().length >= shedCap(state.shed)) {
+        toast("Cow shed full (" + shedCap(state.shed) + "). Upgrade for 5 sats + 10 lumber");
+        await upgradeAnimalShed("shed");
+        return;
+      }
       state.sats -= FF.prices.cow;
       state.shed.cows.push({
         id: "c" + Date.now().toString(36),
@@ -2825,7 +2889,7 @@
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
-      "Sep 30 — Apple tree: 5 sats in Assets → Farming. 5 water, 20s, 3 apples. Auto waters and harvests.",
+      "Sep 30 — Sheds: Lvl 1 is 2×2 / 5 animals. Lvl 2 is 5 sats + 10 lumber, 3×3 / 10 animals.",
       "Sep 30 — Harvest pops 🍎 +3 (same float on water, corn, milk, eggs, wool, hair).",
       "Sep 30 — Farm grid: hold to move shows cells. Plot/tree/well 2×2, silo 2×3, barns 3×3. Snap on drop.",
       "Sep 30 — Clean farm packs on the grid. No room on buy offers clean first, then expand.",
@@ -3657,9 +3721,46 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       });
     }
 
-    function footprint(kind) {
-      if (kind === "silo") return { w: 2, h: 3 };
-      if (kind === "shed" || kind === "coop" || kind === "horse" || kind === "sheep") return { w: 3, h: 3 };
+    function animalBuilding(kind) {
+      if (kind === "shed") return state.shed;
+      if (kind === "coop") return state.coop;
+      if (kind === "horse") return state.horseShed;
+      if (kind === "sheep") return state.sheepPen;
+      return null;
+    }
+    function shedLvl(b) {
+      return Math.max(1, (b && b.level) || 1);
+    }
+    function shedCap(b) {
+      return shedLvl(b) >= 2 ? 10 : 5;
+    }
+    async function upgradeAnimalShed(kind) {
+      const b = animalBuilding(kind);
+      if (!b) { toast("No shed yet"); return false; }
+      if (shedLvl(b) >= 2) { toast("Shed already level 2"); return false; }
+      if ((state.sats || 0) < 5) { toast("Need 5 sats"); return false; }
+      if ((state.lumber || 0) < 10) { toast("Need 10 lumber"); return false; }
+      const name = kind === "coop" ? "chicken coop" : kind === "horse" ? "horse shed" : kind === "sheep" ? "sheep shed" : "cow shed";
+      const who = kind === "coop" ? "chickens" : kind === "horse" ? "horses" : kind === "sheep" ? "sheep" : "cows";
+      if (!(await askYes("Upgrade " + name + " to level 2?\n5 sats + 10 lumber.\nSize 2×2 → 3×3.\nMax " + who + ": 5 → 10."))) return false;
+      state.sats -= 5;
+      state.lumber -= 10;
+      b.level = 2;
+      logMarket("Upgraded " + name + " −5 sats −10 lumber");
+      toast(name + " is now 3×3 · 10 animals");
+      save();
+      render();
+      return true;
+    }
+    function footprint(kind, item) {
+      if (kind === "silo") {
+        const u = Math.min(3, (item && item.upgrades) || 0);
+        return { w: 2 + (u >= 2 ? 1 : 0), h: 3 + u };
+      }
+      if (kind === "shed" || kind === "coop" || kind === "horse" || kind === "sheep") {
+        const b = item || animalBuilding(kind);
+        return shedLvl(b) >= 2 ? { w: 3, h: 3 } : { w: 2, h: 2 };
+      }
       return { w: 2, h: 2 };
     }
     function gridMeta() {
@@ -3673,9 +3774,9 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       ));
       return { cols: cols, rows: rows, cell: cell, pad: pad };
     }
-    function snapCell(nx, ny, kind) {
+    function snapCell(nx, ny, kind, item) {
       const g = gridMeta();
-      const fp = footprint(kind || "plot");
+      const fp = footprint(kind || "plot", item);
       let c = Math.round(nx * g.cols - fp.w / 2);
       let r = Math.round(ny * g.rows - fp.h / 2);
       c = Math.max(0, Math.min(g.cols - fp.w, c));
@@ -3700,12 +3801,24 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       for (let r = 0; r < g.rows; r++) {
         for (let c = 0; c < g.cols; c++) {
           const i = document.createElement("i");
+          i.dataset.c = String(c);
+          i.dataset.r = String(r);
           i.style.left = (g.pad + c * g.cell) + "px";
           i.style.top = (g.pad + r * g.cell) + "px";
           i.style.width = g.cell + "px";
           i.style.height = g.cell + "px";
           box.appendChild(i);
         }
+      }
+    }
+    function markGridFoot(c0, r0, w, h) {
+      const box = document.getElementById("farm-grid");
+      if (!box || !box.classList.contains("on")) return;
+      const cells = box.querySelectorAll("i");
+      for (let i = 0; i < cells.length; i++) {
+        const c = Number(cells[i].dataset.c);
+        const r = Number(cells[i].dataset.r);
+        cells[i].classList.toggle("hot", c >= c0 && c < c0 + w && r >= r0 && r < r0 + h);
       }
     }
     function tidyFarm() {
@@ -3728,7 +3841,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       }
       function place(item, kind) {
         if (!item) return;
-        const fp = footprint(kind);
+        const fp = footprint(kind, item);
         for (let r = 0; r < g.rows; r++) {
           for (let c = 0; c < g.cols; c++) {
             if (!free(c, r, fp.w, fp.h)) continue;
@@ -4255,7 +4368,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         const cap = siloCap(s);
         const fill = cornMax() ? Math.min(100, Math.round((state.corn / cornMax()) * 100)) : 0;
         el.innerHTML = '<div class="silo-art"><div class="silo-grain" style="height:' + fill + '%"></div></div><div class="label">' + state.corn + '/' + cornMax() + '</div>';
-        placeEl(el, s.x, s.y, 1, "silo");
+        placeEl(el, s.x, s.y, 1, "silo", s);
         bindTile(el, "silo", s);
         grid.appendChild(el);
       });
@@ -4317,6 +4430,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         el.classList.remove("holding");
         el.classList.add("dragging");
         showFarmGrid(true);
+        placeEl(el, pos.x, pos.y, 1, kind, plot);
         toast("Move");
       }
       function tapAction() {
@@ -4360,13 +4474,13 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         const x = ev.clientX - rect.left;
         const y = ev.clientY - rect.top;
         const n = fromPx(x, y);
-        const snap = snapCell(n.x, n.y, drag.kind);
+        const snap = snapCell(n.x, n.y, drag.kind, drag.plot);
         drag.lastX = snap.x;
         drag.lastY = snap.y;
         const pos = posOf(drag.kind, drag.plot);
         pos.x = snap.x;
         pos.y = snap.y;
-        placeEl(el, snap.x, snap.y, 1, drag.kind);
+        placeEl(el, snap.x, snap.y, 1, drag.kind, drag.plot);
       });
       el.addEventListener("pointerup", () => {
         clearHold();
@@ -4379,9 +4493,9 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         pendingTap = false;
         if (drag && drag.el === el) {
           const pos = posOf(drag.kind, drag.plot);
-          const snap = snapCell(pos.x, pos.y, drag.kind);
+          const snap = snapCell(pos.x, pos.y, drag.kind, drag.plot);
           let nx = snap.x, ny = snap.y;
-          if (blocked(nx, ny, drag.id, 1, drag.kind)) {
+          if (blocked(nx, ny, drag.id, 1, drag.kind, drag.plot)) {
             nx = drag.homeX;
             ny = drag.homeY;
             toast("Need free space");
@@ -4419,6 +4533,8 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     const mvBtn = document.getElementById("mode-move");
     if (mvBtn) mvBtn.onclick = () => { state.mode = "move"; render(); };
     document.getElementById("shed-feed").onclick = feedCow;
+    const shedUp = document.getElementById("shed-up");
+    if (shedUp) shedUp.onclick = function () { upgradeAnimalShed("shed"); };
     document.getElementById("shed-milk").onclick = collectMilkAll;
     document.getElementById("buy-cow").onclick = buyCow;
     document.getElementById("buy-chicken").onclick = buyChicken;
