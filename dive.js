@@ -63,11 +63,11 @@
       b.classList.toggle("on", b.getAttribute("data-forest-zone") === d.forestZone);
     });
     var mp = document.getElementById("dive-pick-dur");
-    if (mp) mp.textContent = "Pick " + d.pickDur + "/20" + (d.ironPick ? " · iron" : "");
+    if (mp) mp.textContent = "Pick " + d.pickDur + "/20" + (d.ironPick ? " \u00b7 iron" : "");
     var fa = document.getElementById("dive-axe-dur");
-    if (fa) fa.textContent = "Axe " + d.axeDur + "/20" + (d.hideWrap ? " · hide wrap" : "");
+    if (fa) fa.textContent = "Axe " + d.axeDur + "/20" + (d.hideWrap ? " \u00b7 hide wrap" : "");
     var ore = document.getElementById("dive-ore-count");
-    if (ore) ore.textContent = "Deep ore " + d.deepOre + " · Dark hide " + d.darkHide;
+    if (ore) ore.textContent = "Deep ore " + d.deepOre + " \u00b7 Dark hide " + d.darkHide;
   }
   function inject() {
     if (document.getElementById("mine-zones")) return;
@@ -89,17 +89,17 @@
     var weapons = document.getElementById("csec-weapons");
     if (weapons && !document.getElementById("craft-iron-pick")) {
       var extra = document.createElement("div");
-      extra.innerHTML = '<div class="row"><span>8 deep ore + 4 lumber → iron pick (opens Deep)</span><button type="button" id="craft-iron-pick">Make iron pick</button></div><div class="row"><span>6 dark hide + 4 wool → hide wrap (opens Dark wood)</span><button type="button" id="craft-hide-wrap">Make hide wrap</button></div><div class="row"><span>Repair pick — 3 rocks + 1 lumber</span><button type="button" id="craft-fix-pick">Repair pick</button></div><div class="row"><span>Repair axe — 3 lumber</span><button type="button" id="craft-fix-axe">Repair axe</button></div><p class="dive-meta" id="dive-ore-count"></p>';
+      extra.innerHTML = '<div class="row"><span>8 deep ore + 4 lumber \u2192 iron pick (opens Deep)</span><button type="button" id="craft-iron-pick">Make iron pick</button></div><div class="row"><span>6 dark hide + 4 wool \u2192 hide wrap (opens Dark wood)</span><button type="button" id="craft-hide-wrap">Make hide wrap</button></div><div class="row"><span>Repair pick \u2014 3 rocks + 1 lumber</span><button type="button" id="craft-fix-pick">Repair pick</button></div><div class="row"><span>Repair axe \u2014 3 lumber</span><button type="button" id="craft-fix-axe">Repair axe</button></div><p class="dive-meta" id="dive-ore-count"></p>';
       weapons.appendChild(extra);
     }
     var market = document.getElementById("market-panel");
     if (market && !document.getElementById("sell-deep-ore")) {
       var sell = document.createElement("div");
       sell.className = "row";
-      sell.innerHTML = '<span>Sell 3 deep ore — 4 sats</span><button type="button" id="sell-deep-ore">Sell ore</button>';
+      sell.innerHTML = '<span>Sell 3 deep ore \u2014 4 sats</span><button type="button" id="sell-deep-ore">Sell ore</button>';
       var sell2 = document.createElement("div");
       sell2.className = "row";
-      sell2.innerHTML = '<span>Sell 3 dark hide — 4 sats</span><button type="button" id="sell-dark-hide">Sell hide</button>';
+      sell2.innerHTML = '<span>Sell 3 dark hide \u2014 4 sats</span><button type="button" id="sell-dark-hide">Sell hide</button>';
       var close = market.querySelector("#market-close");
       if (close) { market.insertBefore(sell, close); market.insertBefore(sell2, close); }
       else { market.appendChild(sell); market.appendChild(sell2); }
@@ -155,13 +155,13 @@
       new MutationObserver(function () {
         var t = loot.textContent || "";
         if (/deep ore|dark hide/i.test(t)) return;
-        if (/rock|mine/i.test(t) && (d.mineZone === "deep" || d.mineZone === "sealed")) {
-          var n = d.mineZone === "sealed" ? 3 : 2;
+        if (/rock|mine/i.test(t)) {
+          var n = d.mineZone === "sealed" ? 3 : d.mineZone === "deep" ? 2 : 1;
           d.deepOre += n; saveDive(d); paintZones(d);
           loot.textContent = t + " + " + n + " deep ore";
         }
-        if (/lumber|chop/i.test(t) && (d.forestZone === "thicket" || d.forestZone === "dark")) {
-          var n2 = d.forestZone === "dark" ? 3 : 2;
+        if (/lumber|chop/i.test(t)) {
+          var n2 = d.forestZone === "dark" ? 3 : d.forestZone === "thicket" ? 2 : 1;
           d.darkHide += n2; saveDive(d); paintZones(d);
           loot.textContent = t + " + " + n2 + " dark hide";
         }
