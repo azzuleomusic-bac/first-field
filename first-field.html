@@ -137,51 +137,78 @@
       background: transparent;
       border: 0;
       box-shadow: none;
-      width: calc(var(--tile) * 1.08);
-      height: calc(var(--tile) * 1.08);
+      width: calc(var(--tile) * 0.92);
+      height: calc(var(--tile) * 1.22);
       z-index: 3;
       overflow: visible;
     }
-    .well-rim {
+    .well-art {
       position: absolute;
-      left: 6%; right: 6%; top: 10%; bottom: 16%;
-      border-radius: 50%;
-      background:
-        repeating-conic-gradient(from 12deg, #8d8a82 0 14deg, #6a6860 14deg 22deg, #b0aba0 22deg 30deg, #5c5a54 30deg 38deg),
-        #7a7870;
-      box-shadow:
-        0 5px 0 #3a3832,
-        inset 0 0 0 5px #9a968c,
-        inset 0 0 0 8px #4a4842,
-        inset 0 0 18px rgba(0,0,0,0.45);
-      z-index: 1;
+      inset: 4% 10% 16% 10%;
+      pointer-events: none;
     }
-    .well-hole {
+    .well-body {
       position: absolute;
-      left: 24%; right: 24%; top: 24%; bottom: 24%;
-      border-radius: 50%;
-      background: radial-gradient(circle at 50% 35%, #2a3540 0%, #0e141a 70%);
-      box-shadow: inset 0 0 0 3px #3e3c38, inset 0 6px 10px rgba(0,0,0,0.55);
+      left: 8%; right: 8%; top: 18%; bottom: 8%;
+      border-radius: 10px 10px 8px 8px;
+      background:
+        linear-gradient(90deg, rgba(0,0,0,0.35) 0%, transparent 18%, transparent 82%, rgba(0,0,0,0.4) 100%),
+        repeating-linear-gradient(180deg, #8a8680 0 10px, #6e6a64 10px 12px, #9a958c 12px 22px);
+      box-shadow:
+        5px 8px 0 #2e2c28,
+        inset 0 0 0 3px #4a4844,
+        inset 8px 0 10px rgba(0,0,0,0.25);
+      overflow: hidden;
+    }
+    .well-cut {
+      position: absolute;
+      left: 16%; right: 16%; top: 8%; bottom: 10%;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #1a2228 0%, #0c1014 100%);
+      box-shadow: inset 0 0 0 2px #3a3834, inset 0 8px 12px rgba(0,0,0,0.45);
       overflow: hidden;
     }
     .well-fill {
       position: absolute;
       left: 0; right: 0; bottom: 0;
       height: 0%;
-      background: radial-gradient(circle at 50% 20%, #c5eef8 0%, #3a9ec4 50%, #16384c 100%);
+      background:
+        linear-gradient(180deg, rgba(180,230,255,0.55) 0%, #3aa0c8 18%, #1c5e80 100%);
+      box-shadow: inset 0 3px 0 rgba(255,255,255,0.35);
       transition: height 0.8s linear;
-      z-index: 0;
     }
-    .well-moss {
+    .well-lip {
       position: absolute;
-      left: 18%; bottom: 20%;
-      width: 16%; height: 10%;
-      background: #3d5a32;
-      border-radius: 40%;
-      opacity: 0.55;
+      left: 0; right: 0; top: 8%;
+      height: 16%;
+      border-radius: 40% 40% 8px 8px;
+      background: linear-gradient(180deg, #c4bfb4 0%, #7a766e 55%, #4e4c48 100%);
+      box-shadow: 0 3px 0 #2e2c28, inset 0 2px 0 rgba(255,255,255,0.25);
       z-index: 2;
-      pointer-events: none;
     }
+    .well-post {
+      position: absolute;
+      width: 7%;
+      top: 0; bottom: 62%;
+      background: linear-gradient(90deg, #5a3a22, #c4a07a, #5a3a22);
+      z-index: 3;
+      border-radius: 2px;
+    }
+    .well-post.l { left: 18%; }
+    .well-post.r { right: 18%; }
+    .well-beam {
+      position: absolute;
+      left: 16%; right: 16%; top: 0;
+      height: 8%;
+      background: linear-gradient(180deg, #d4b896, #6a4428);
+      border-radius: 3px;
+      z-index: 4;
+    }
+    @keyframes wellPulse {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.45); }
+    }
+    .tile.well.full .well-fill { animation: wellPulse 3.6s ease-in-out infinite; }
     .tile.well .emoji { display: none; }
     .tile.well .label { position: relative; z-index: 4; margin-top: auto; padding-bottom: 0; font-size: 9px; }
     .tile.shed {
@@ -1348,7 +1375,7 @@
   <script>
   (function () {
     const FF = Object.assign({
-      starterSats: 30, pack30Bonus: 20, wellMs: 4000, cornGrowMs: 20000, carrotGrowMs: 30000,
+      starterSats: 30, pack30Bonus: 20, wellMs: 2000, cornGrowMs: 20000, carrotGrowMs: 30000,
       cowMs: 25000, chickenMs: 15000, horseMs: 20000, sheepMs: 22000, mineMs: 5000, wellMax: 10, canPerWell: 20,
       cowFeed: { corn: 6, water: 4, milk: 3 },
       chickenFeed: { corn: 2, water: 1, eggs: 2 },
@@ -3897,12 +3924,11 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
 
       (state.wells || []).forEach((w) => {
         const well = document.createElement("div");
-        well.className = "tile well";
+        well.className = "tile well" + (w.water >= WELL_MAX ? " full" : "");
         placeEl(well, w.x, w.y);
         const pct = Math.round((w.water / WELL_MAX) * 100);
         well.innerHTML =
-          '<div class="well-rim"><div class="well-hole"><div class="well-fill" style="height:' + pct + '%"></div></div></div>' +
-          '<div class="well-moss"></div>' +
+          '<div class="well-art"><div class="well-post l"></div><div class="well-post r"></div><div class="well-beam"></div><div class="well-lip"></div><div class="well-body"><div class="well-cut"><div class="well-fill" style="height:' + pct + '%"></div></div></div></div>' +
           '<div class="label">' + w.water + "/" + WELL_MAX + "</div>";
         bindTile(well, "well", w);
         grid.appendChild(well);
