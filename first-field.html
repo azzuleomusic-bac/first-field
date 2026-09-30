@@ -230,7 +230,27 @@
     }
             .gear-art { display:block; min-height: 36px; line-height: 1; }
     .gear-art svg { width: 36px; height: 36px; display: block; margin: 4px auto; }
-    #gear-pick-list .row { margin-bottom: 6px; }
+    #gear-pick-list .row { margin-bottom: 6px; font-size: 12px; }
+        #market-panel svg, #craft-panel svg, #gear-pick-list svg, #barn-panel svg, #gear-box svg {
+      width: 22px; height: 22px; display: inline-block; vertical-align: middle;
+    }
+    #craft-panel .hair-icon.sm, #barn-panel .hair-icon.sm { width: 22px; height: 22px; }
+    #gear-pick {
+      display: none;
+      position: absolute;
+      left: 50%;
+      top: 42%;
+      transform: translate(-50%, -50%);
+      width: min(168px, calc(100% - 72px));
+      z-index: 34;
+      background: #1a2418;
+      border: 2px solid var(--gold);
+      border-radius: 14px;
+      padding: 6px;
+      text-align: center;
+    }
+    #gear-pick.open { display: block; }
+    #gear-pick[hidden] { display: none !important; }
     .gear-slot small { display:block; opacity:0.7; font-weight:500; }
     .mine-bar { height: 10px; background: rgba(0,0,0,0.35); border-radius: 99px; overflow: hidden; margin: 0 0 8px; }
     .mine-bar > i { display:block; height:100%; width:0%; background: linear-gradient(90deg,#c45c3e,#e8c36a); transition: width 0.2s linear; }
@@ -309,7 +329,7 @@
     .hair-icon {
       width: 28px; height: 28px; display: block; margin: 0 auto;
     }
-    .hair-icon.sm { width: 16px; height: 16px; display: inline-block; vertical-align: -3px; margin-right: 4px; }
+    .hair-icon.sm { width: 22px; height: 22px; display: inline-block; vertical-align: middle; margin-right: 4px; }
     .tile .emoji { font-size: 28px; line-height: 1; filter: drop-shadow(0 2px 0 rgba(0,0,0,0.25)); }
     .crop-grow {
       width: 70%;
@@ -728,8 +748,17 @@
             <div class="row"><span><span class="price" id="lbl-wool">4 🧶 wool → 1 ⚡ sat</span><br><small class="have" data-have="wool"></small></span><button type="button" id="sell-wool">Sell wool</button></div>
           </div>
           <div id="rcat-craft-list" hidden>
-            <div class="row"><span>1 🍮 pudding → 2 ⚡ sats<br><small class="have" data-have="pudding"></small></span><button type="button" id="sell-pudding">Sell pudding</button></div>
-            <div class="row"><span>1 👖 pants → 4 ⚡ sats<br><small class="have" data-have="pants"></small></span><button type="button" id="sell-pants">Sell pants</button></div>
+            <div class="modes" id="craft-sell-tabs" style="margin-bottom:8px">
+              <button type="button" id="cstab-food" class="active">Food</button>
+              <button type="button" id="cstab-gear">Equipment</button>
+            </div>
+            <div id="csec-food">
+              <div class="row"><span>1 🍮 pudding → 2 ⚡ sats<br><small class="have" data-have="pudding"></small></span><button type="button" id="sell-pudding">Sell pudding</button></div>
+            </div>
+            <div id="csec-gear" hidden>
+              <div class="row"><span><span class="price" id="lbl-pants"></span><br><small class="have" data-have="pants"></small></span><button type="button" id="sell-pants">Sell pants</button></div>
+              <div class="row"><span><span class="price" id="lbl-shirt"></span><br><small class="have" data-have="shirts"></small></span><button type="button" id="sell-shirt">Sell shirt</button></div>
+            </div>
           </div>
         </div>
         <div id="msec-seeds" hidden>
@@ -804,9 +833,17 @@
       <div id="craft-panel" aria-hidden="true">
         <h3>Craft</h3>
         <p>Combine farm goods.</p>
-        <div class="row"><span>4 🥛 + 3 🥚 → 1 🍮</span><button type="button" id="craft-pudding">Make pudding</button></div>
-        <div class="row"><span id="craft-pants-label">6 wool + 3 horse hair → 1 pants</span><button type="button" id="craft-pants">Make pants</button></div>
-        <div class="row"><span>8 🧶 wool → 1 👕 shirt</span><button type="button" id="craft-shirt">Make shirt</button></div>
+        <div class="modes" id="craft-tabs" style="margin-bottom:8px">
+          <button type="button" id="ctab-kitchen" class="active">Kitchen</button>
+          <button type="button" id="ctab-armory">Armory</button>
+        </div>
+        <div id="csec-kitchen">
+          <div class="row"><span>4 🥛 + 3 🥚 → 1 🍮</span><button type="button" id="craft-pudding">Make pudding</button></div>
+        </div>
+        <div id="csec-armory" hidden>
+          <div class="row"><span id="craft-pants-label">6 wool + 3 horse hair → 1 pants</span><button type="button" id="craft-pants">Make pants</button></div>
+          <div class="row"><span id="craft-shirt-label">8 wool → 1 shirt</span><button type="button" id="craft-shirt">Make shirt</button></div>
+        </div>
         <button type="button" class="ghost" id="craft-close">Close</button>
       </div>
       <div id="silo-panel" aria-hidden="true">
@@ -1013,6 +1050,8 @@
         gearPants: !!state.gearPants,
         shirts: state.shirts || 0,
         gearShirt: !!state.gearShirt,
+        gotDemoClothes: !!state.gotDemoClothes,
+        clothesPack2: !!state.clothesPack2,
         rocks: state.rocks || 0,
         coop: state.coop,
         silos: state.silos,
@@ -1077,6 +1116,11 @@
       if (typeof state.pudding !== "number") state.pudding = 0;
       if (typeof state.pants !== "number") state.pants = 0;
       if (typeof state.shirts !== "number") state.shirts = 0;
+      if (!state.clothesPack2) {
+        state.pants = (state.pants || 0) + 2;
+        state.shirts = (state.shirts || 0) + 2;
+        state.clothesPack2 = true;
+      }
       if (typeof state.rocks !== "number") state.rocks = 0;
       if (!Array.isArray(state.shed.cows) || !state.shed.cows.length) {
         state.shed.cows = [{
@@ -1123,14 +1167,21 @@
       el.textContent = extra ? "loaded " + t : "auto-saved " + t;
     }
 
+    function ensureDemoClothes() {
+      const have = (state.pants || 0) + (state.shirts || 0) + (state.gearPants ? 1 : 0) + (state.gearShirt ? 1 : 0);
+      if (have < 1) {
+        state.pants = 2;
+        state.shirts = 2;
+      }
+    }
     function load() {
       try {
         const raw = localStorage.getItem(SAVE_KEY);
-        if (!raw) return;
-        applySave(JSON.parse(raw), false);
+        if (raw) applySave(JSON.parse(raw), false);
       } catch (e) {
         localStorage.removeItem(SAVE_KEY);
       }
+      ensureDemoClothes();
     }
 
     function queueCloud(copy) {
@@ -1776,12 +1827,28 @@
     }
 
 
+    function showCraftTab(tab) {
+      state.craftTab = tab === "armory" ? "armory" : "kitchen";
+      const k = document.getElementById("ctab-kitchen");
+      const a = document.getElementById("ctab-armory");
+      const sk = document.getElementById("csec-kitchen");
+      const sa = document.getElementById("csec-armory");
+      if (k) k.classList.toggle("active", state.craftTab === "kitchen");
+      if (a) a.classList.toggle("active", state.craftTab === "armory");
+      if (sk) sk.hidden = state.craftTab !== "kitchen";
+      if (sa) sa.hidden = state.craftTab !== "armory";
+    }
     function fillCraftLabels() {
       const el = document.getElementById("craft-pants-label");
-      if (!el || typeof hairMark !== "function") return;
-      const nWool = (FF.pants && FF.pants.wool) || 6;
-      const nHair = (FF.pants && FF.pants.hair) || 3;
-      el.innerHTML = nWool + " wool + " + nHair + " " + hairMark(true) + " horse hair -> 1 👖";
+      if (el && typeof hairMark === "function" && typeof pantsArt === "function") {
+        const nWool = (FF.pants && FF.pants.wool) || 6;
+        const nHair = (FF.pants && FF.pants.hair) || 3;
+        el.innerHTML = nWool + " " + woolArt() + " wool + " + nHair + " " + hairMark(true) + " horse hair -> 1 " + pantsArt();
+      }
+      const sh = document.getElementById("craft-shirt-label");
+      if (sh && typeof shirtArt === "function") {
+        sh.innerHTML = "8 " + woolArt() + " wool -> 1 " + shirtArt() + " shirt";
+      }
     }
     function openCraft(force) {
       const pan = document.getElementById("craft-panel");
@@ -1790,6 +1857,7 @@
       if (wasOpen && !force) return;
       if (!pan) return;
       fillCraftLabels();
+      showCraftTab(state.craftTab || "kitchen");
       pan.classList.add("open");
       pan.setAttribute("aria-hidden", "false");
     }
@@ -1830,6 +1898,22 @@
       save();
       render();
       openCraft(true);
+    }
+    async function sellShirt() {
+      const have = state.shirts || 0;
+      if (have < 1) { toast("No shirt"); return; }
+      let n = 1;
+      if (have > 1) {
+        if (await askYes("Sell ALL shirts? " + have + " for " + (have * 3) + " sats")) n = have;
+        else if (!(await askYes("Sell 1 shirt for 3 sats?"))) return;
+      } else if (!(await askYes("Sell 1 shirt for 3 sats?"))) return;
+      state.shirts -= n;
+      state.sats += n * 3;
+      logMarket("Sold " + n + " shirt +" + (n * 3) + " sat");
+      toast("Sold " + n + " shirt for " + (n * 3) + " sats");
+      save();
+      render();
+      openMarket(true);
     }
     async function sellPants() {
       const have = state.pants || 0;
@@ -2060,10 +2144,10 @@
         ["🥛 Milk", state.milk, state.milk],
         ["🥚 Eggs", state.eggs || 0, state.eggs || 0],
         [hairMark(true) + " Horse hair", state.horseHair || 0, state.horseHair || 0],
-        ["🧶 Wool", state.wool || 0, state.wool || 0],
+        [woolArt() + " Wool", state.wool || 0, state.wool || 0],
         ["🍮 Pudding", state.pudding || 0, state.pudding || 0],
-        ["👖 Pants", state.pants || 0, state.pants || 0],
-        ["👕 Shirt", state.shirts || 0, state.shirts || 0],
+        [pantsArt() + " Pants", state.pants || 0, state.pants || 0],
+        [shirtArt() + " Shirt", state.shirts || 0, state.shirts || 0],
         ["🪨 Rocks", state.rocks || 0, state.rocks || 0],
         ["🌱 Carrot seeds", state.carrotSeeds, state.carrotSeeds],
         ["🌱 Corn seeds", state.cornSeeds, state.cornSeeds],
@@ -2219,7 +2303,10 @@
     function minerDef() {
       return (state.gearPants ? 1 : 0) + (state.gearShirt ? 1 : 0);
     }
-        function pantsArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#3d4a73" d="M8 6 h16 v8 l-3 16 h-4 l-1-14-1 14 h-4 L8 14z"/><path fill="#2a334f" d="M15 6 h2 v8 h-2z"/></svg>'; }
+        function woolArt() {
+      return '<svg class="gear-art" viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="17" rx="10" ry="9" fill="#e8e0d4"/><ellipse cx="12" cy="14" rx="5" ry="4.5" fill="#f4efe6"/><ellipse cx="20" cy="15" rx="4.5" ry="4" fill="#d9d0c4"/><ellipse cx="16" cy="20" rx="5" ry="4" fill="#cfc6ba"/></svg>';
+    }
+    function pantsArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#3d4a73" d="M8 6 h16 v8 l-3 16 h-4 l-1-14-1 14 h-4 L8 14z"/><path fill="#2a334f" d="M15 6 h2 v8 h-2z"/></svg>'; }
     function shirtArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#6b8f4a" d="M6 10 L12 6 h8 l6 4-4 4 h-2 v12 H12 V14 H8z"/><circle cx="16" cy="8" r="3" fill="#e8c3b0"/></svg>'; }
 
     function openGearPick(slot) {
@@ -2238,10 +2325,10 @@
       list.querySelectorAll("button").forEach(function (btn) {
         btn.onclick = function () {
           wearItem(btn.getAttribute("data-id"));
-          pick.hidden = true;
+          pick.hidden = true; pick.classList.remove('open');
         };
       });
-      pick.hidden = false;
+      pick.hidden = false; pick.classList.add('open');
     }
     function wearItem(id) {
       if (id === "pants") {
@@ -2267,24 +2354,6 @@
       document.querySelectorAll(".gear-slot").forEach(function (el) {
         const slot = el.getAttribute("data-slot");
         const sm = el.querySelector("small");
-        if (slot === "armor") {
-          if (state.gearShirt) {
-            state.gearShirt = false;
-            state.shirts = (state.shirts || 0) + 1;
-            toast("Unequipped shirt");
-          } else if ((state.shirts || 0) < 1) {
-            toast("Craft a shirt first");
-          } else {
-            state.shirts -= 1;
-            state.gearShirt = true;
-            toast("Equipped shirt +1 def, +10% rocks");
-          }
-          fillGearStats();
-          fillGearSlots();
-          fillBarn();
-          save();
-          return;
-        }
         const art = el.querySelector(".gear-art");
         if (slot === "pants") {
           if (sm) sm.textContent = state.gearPants ? "+1 def +15% rocks" : "empty";
@@ -2300,9 +2369,11 @@
       const ul = document.getElementById("gear-stats");
       if (!ul) return;
       const a = minerAtk();
+      const rockB = Math.round(((state.gearPants ? 1.15 : 1) * (state.gearShirt ? 1.10 : 1) - 1) * 100);
       ul.innerHTML = "<li><span>Health</span><span>50</span></li>" +
         "<li><span>Damage</span><span>" + a.min + " to " + a.max + "</span></li>" +
-        "<li><span>Defense</span><span>" + minerDef() + "</span></li>";
+        "<li><span>Defense</span><span>" + minerDef() + "</span></li>" +
+        "<li><span>Rock bonus</span><span>" + (rockB ? ("+" + rockB + "%") : "0%") + "</span></li>";
     }
     function fillMinerStats() {
       const ul = document.getElementById("miner-stats");
@@ -2312,6 +2383,7 @@
         ["Crit chance", "10%"],
         ["Damage", minerAtk().min + " to " + minerAtk().max],
         ["Defense", String(minerDef())],
+        ["Rock bonus", (function(){ const b = Math.round(((state.gearPants ? 1.15 : 1) * (state.gearShirt ? 1.10 : 1) - 1) * 100); return b ? ("+" + b + "%") : "0%"; })()],
         ["Crit damage", "+50%"],
         ["Mine time", Math.round((FF.mineMs || 5000) / 1000) + "s"],
         ["Rocks", String(state.rocks || 0)],
@@ -2423,6 +2495,17 @@
       if (state.marketLog.length > 50) state.marketLog.length = 50;
     }
 
+    function showCraftSell(tab) {
+      state.craftSell = tab === "gear" ? "gear" : "food";
+      const f = document.getElementById("cstab-food");
+      const g = document.getElementById("cstab-gear");
+      const sf = document.getElementById("csec-food");
+      const sg = document.getElementById("csec-gear");
+      if (f) f.classList.toggle("active", state.craftSell === "food");
+      if (g) g.classList.toggle("active", state.craftSell === "gear");
+      if (sf) sf.hidden = state.craftSell !== "food";
+      if (sg) sg.hidden = state.craftSell !== "gear";
+    }
     function showResCat(cat) {
       state.resCat = cat === "animal" || cat === "craft" ? cat : "feed";
       ["feed", "animal", "craft"].forEach((name) => {
@@ -2473,13 +2556,19 @@
     function fillMarketInv() {
       const names = {
         water: "water", carrots: "carrots", corn: "corn", milk: "milk",
-        eggs: "eggs", horseHair: "horse hair", wool: "wool", pudding: "pudding", pants: "pants"
+        eggs: "eggs", horseHair: "horse hair", wool: "wool", pudding: "pudding", pants: "pants", shirts: "shirts"
       };
       const hairLbl = document.getElementById("lbl-hair");
       if (hairLbl && typeof hairMark === "function") {
         const pay = (FF.sell.hair && FF.sell.hair.sats) || 1;
         hairLbl.innerHTML = "1 " + hairMark(true) + " horse hair → " + pay + " ⚡ sat";
       }
+      const pl = document.getElementById("lbl-pants");
+      if (pl && typeof pantsArt === "function") pl.innerHTML = "1 " + pantsArt() + " pants → 4 ⚡ sats";
+      const sl = document.getElementById("lbl-shirt");
+      if (sl && typeof shirtArt === "function") sl.innerHTML = "1 " + shirtArt() + " shirt → 3 ⚡ sats";
+      const wl = document.getElementById("lbl-wool");
+      if (wl && typeof woolArt === "function") wl.innerHTML = "4 " + woolArt() + " wool → 1 ⚡ sat";
       document.querySelectorAll("#market-panel .have").forEach((el) => {
         const k = el.getAttribute("data-have");
         const n = Number(state[k] || 0);
@@ -2493,6 +2582,7 @@
       if (wasOpen && !force) return;
       showMarketTab(state.marketTab || "resources");
       showResCat(state.resCat || "feed");
+      showCraftSell(state.craftSell || "food");
       showAssetSide(state.assetSide || "animals");
       fillMarketInv();
       renderMarketHistory();
@@ -3202,7 +3292,7 @@
     const startMineBtn = document.getElementById("btn-mine");
     if (startMineBtn) startMineBtn.onclick = startMine;
     const gpc = document.getElementById("gear-pick-close");
-    if (gpc) gpc.onclick = function () { const b = document.getElementById("gear-pick"); if (b) b.hidden = true; };
+    if (gpc) gpc.onclick = function () { const b = document.getElementById("gear-pick"); if (b) { b.hidden = true; b.classList.remove('open'); } };
     const lootTake = document.getElementById("loot-take");
     if (lootTake) lootTake.onclick = closeLoot;
     const gearBtn = document.getElementById("btn-gear");
@@ -3272,7 +3362,17 @@
     document.getElementById("craft-pants").onclick = craftPants;
     const cs = document.getElementById("craft-shirt");
     if (cs) cs.onclick = craftShirt;
+    const ck = document.getElementById("ctab-kitchen");
+    const ca = document.getElementById("ctab-armory");
+    if (ck) ck.onclick = () => showCraftTab("kitchen");
+    if (ca) ca.onclick = () => showCraftTab("armory");
+    const csf = document.getElementById("cstab-food");
+    const csg = document.getElementById("cstab-gear");
+    if (csf) csf.onclick = () => showCraftSell("food");
+    if (csg) csg.onclick = () => showCraftSell("gear");
     document.getElementById("sell-pants").onclick = sellPants;
+    const ss = document.getElementById("sell-shirt");
+    if (ss) ss.onclick = sellShirt;
     document.getElementById("sell-pudding").onclick = sellPudding;
     document.getElementById("craft-close").onclick = closeAllTabs;
     document.getElementById("sell-milk").onclick = sellMilk;
