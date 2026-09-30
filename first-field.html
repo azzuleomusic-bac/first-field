@@ -2675,7 +2675,7 @@
       const ul = document.getElementById("gear-stats");
       if (!ul) return;
       const a = minerAtk();
-      const rockB = Math.round(((state.gearPants ? 15 : 0) + (state.gearShirt ? 10 : 0)));
+      const rockB = Math.round(((state.gearPants ? 15 : 0) + (state.gearShirt ? 10 : 0) + (state.gearBeanie ? 10 : 0)));
       ul.innerHTML = "<li><span>Health</span><span>50</span></li>" +
         "<li><span>Damage</span><span>" + a.min + " to " + a.max + "</span></li>" +
         "<li><span>Defense</span><span>" + minerDef() + "</span></li>" +
@@ -2689,7 +2689,7 @@
         ["Crit chance", "10%"],
         ["Damage", minerAtk().min + " to " + minerAtk().max],
         ["Defense", String(minerDef())],
-        ["Rock bonus", (function(){ const b = (state.gearPants ? 15 : 0) + (state.gearShirt ? 10 : 0); return b ? ("+" + b + "%") : "0%"; })()],
+        ["Rock bonus", (function(){ const b = (state.gearPants ? 15 : 0) + (state.gearShirt ? 10 : 0) + (state.gearBeanie ? 10 : 0); return b ? ("+" + b + "%") : "0%"; })()],
         ["Crit damage", "+50%"],
         ["Mine time", Math.round((FF.mineMs || 5000) / 1000) + "s"],
         ["Rocks", String(state.rocks || 0)],
