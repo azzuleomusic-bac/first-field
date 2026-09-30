@@ -228,6 +228,7 @@
       line-height: 1.25;
       background: #24331f;
     }
+        .gear-art { display:block; font-size: 22px; min-height: 24px; line-height: 1; }
     .gear-slot small { display:block; opacity:0.7; font-weight:500; }
     .mine-bar { height: 10px; background: rgba(0,0,0,0.35); border-radius: 99px; overflow: hidden; margin: 0 0 8px; }
     .mine-bar > i { display:block; height:100%; width:0%; background: linear-gradient(90deg,#c45c3e,#e8c36a); transition: width 0.2s linear; }
@@ -782,13 +783,13 @@
           <p>Miner gear</p>
           <ul id="gear-stats"></ul>
           <div class="gear-grid">
-            <button type="button" class="gear-slot" data-slot="helmet">Helmet<br><small>empty</small></button>
-            <button type="button" class="gear-slot" data-slot="armor">Armor<br><small>empty</small></button>
-            <button type="button" class="gear-slot" data-slot="weapon">Weapon<br><small>empty</small></button>
-            <button type="button" class="gear-slot" data-slot="pants">Pants<br><small>empty</small></button>
-            <button type="button" class="gear-slot" data-slot="boots">Boots<br><small>empty</small></button>
-            <button type="button" class="gear-slot" data-slot="ring1">Ring 1<br><small>empty</small></button>
-            <button type="button" class="gear-slot" data-slot="ring2">Ring 2<br><small>empty</small></button>
+            <button type="button" class="gear-slot" data-slot="helmet">Head<br><span class="gear-art"></span><small>empty</small></button>
+            <button type="button" class="gear-slot" data-slot="armor">Chest<br><span class="gear-art"></span><small>empty</small></button>
+            <button type="button" class="gear-slot" data-slot="weapon">Weapon<br><span class="gear-art"></span><small>empty</small></button>
+            <button type="button" class="gear-slot" data-slot="pants">Legs<br><span class="gear-art"></span><small>empty</small></button>
+            <button type="button" class="gear-slot" data-slot="boots">Feet<br><span class="gear-art"></span><small>empty</small></button>
+            <button type="button" class="gear-slot" data-slot="ring1">Ring 1<br><span class="gear-art"></span><small>empty</small></button>
+            <button type="button" class="gear-slot" data-slot="ring2">Ring 2<br><span class="gear-art"></span><small>empty</small></button>
           </div>
         </div>
         <button type="button" class="ghost" id="mine-close">Close</button>
@@ -2233,11 +2234,14 @@
           save();
           return;
         }
+        const art = el.querySelector(".gear-art");
         if (slot === "pants") {
-          if (sm) sm.textContent = state.gearPants ? "pants +1 def +15% rocks" : "empty";
+          if (sm) sm.textContent = state.gearPants ? "+1 def +15% rocks" : "empty";
+          if (art) art.textContent = state.gearPants ? "👖" : "";
         }
         if (slot === "armor") {
-          if (sm) sm.textContent = state.gearShirt ? "shirt +1 def +10% rocks" : "empty";
+          if (sm) sm.textContent = state.gearShirt ? "+1 def +10% rocks" : "empty";
+          if (art) art.textContent = state.gearShirt ? "👕" : "";
         }
       });
     }
@@ -3201,13 +3205,13 @@
           if (state.gearPants) {
             state.gearPants = false;
             state.pants = (state.pants || 0) + 1;
-            toast("Unequipped pants");
+            toast("Unequipped legs");
           } else if ((state.pants || 0) < 1) {
             toast("Craft pants first");
           } else {
             state.pants -= 1;
             state.gearPants = true;
-            toast("Equipped pants +1 def, +15% rocks");
+            toast("Equipped legs +1 def, +15% rocks");
           }
           fillGearStats();
           fillGearSlots();
