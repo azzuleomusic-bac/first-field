@@ -230,27 +230,41 @@
     }
             .gear-art { display:block; min-height: 36px; line-height: 1; }
     .gear-art svg { width: 36px; height: 36px; display: block; margin: 4px auto; }
-    #gear-pick-list .row { margin-bottom: 6px; font-size: 12px; }
+    #gear-pick-list .row {
+      margin-bottom: 8px;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    #gear-pick-list .row span { display: block; line-height: 1.35; }
+    #gear-pick-list .row small { display: block; opacity: 0.8; margin-top: 4px; }
+    #gear-pick-list .row button { width: 100%; min-height: 40px; }
         #market-panel svg, #craft-panel svg, #gear-pick-list svg, #barn-panel svg, #gear-box svg {
       width: 22px; height: 22px; display: inline-block; vertical-align: middle;
     }
     #craft-panel .hair-icon.sm, #barn-panel .hair-icon.sm { width: 22px; height: 22px; }
     #gear-pick {
       display: none;
-      position: absolute;
-      left: 50%;
-      top: 62%;
-      transform: translate(-50%, -50%);
-      width: min(168px, calc(100% - 72px));
-      z-index: 34;
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      background: rgba(0,0,0,0.45);
+      align-items: center;
+      justify-content: center;
+    }
+    #gear-pick.open { display: flex !important; }
+    #gear-pick[hidden] { display: none !important; }
+    #gear-pick .gear-pick-card {
+      width: min(280px, calc(100% - 32px));
       background: #1a2418;
       border: 2px solid var(--gold);
       border-radius: 14px;
-      padding: 6px;
+      padding: 14px;
       text-align: center;
     }
-    #gear-pick.open { display: block; }
-    #gear-pick[hidden] { display: none !important; }
+    #gear-pick-title { margin: 0 0 10px; color: var(--gold); font-weight: 700; }
     .gear-slot small { display:block; opacity:0.7; font-weight:500; }
     .mine-bar { height: 10px; background: rgba(0,0,0,0.35); border-radius: 99px; overflow: hidden; margin: 0 0 8px; }
     .mine-bar > i { display:block; height:100%; width:0%; background: linear-gradient(90deg,#c45c3e,#e8c36a); transition: width 0.2s linear; }
@@ -475,7 +489,8 @@
       align-items: center;
       justify-content: center;
     }
-    #plant-pick.open { display: flex; }
+    #plant-pick.open { display: flex !important; }
+    #plant-pick[hidden] { display: none !important; }
     #plant-pick .plant-card {
       width: min(280px, calc(100% - 32px));
       background: #1a2418;
@@ -953,11 +968,6 @@
             <button type="button" class="gear-slot" data-slot="ring2">Ring 2<br><span class="gear-art"></span><small>empty</small></button>
           </div>
         </div>
-        <div id="gear-pick" hidden>
-          <p id="gear-pick-title">Choose gear</p>
-          <div id="gear-pick-list"></div>
-          <button type="button" class="ghost" id="gear-pick-close">Back</button>
-        </div>
         <button type="button" class="ghost" id="mine-close">Close</button>
       </div>
       <div id="craft-panel" aria-hidden="true">
@@ -1044,6 +1054,16 @@
         <button type="button" id="tool-plant">Plant</button>
         <button type="button" id="tool-mine">Mine</button>
       </div>
+      <div class="hint" id="hint">Tap a plot to plant. Tap the well to fill your can.</div>
+    </footer>
+  </div>
+  <div id="gear-pick" hidden>
+        <div class="gear-pick-card">
+          <p id="gear-pick-title">Choose gear</p>
+          <div id="gear-pick-list"></div>
+          <button type="button" class="ghost" id="gear-pick-close">Back</button>
+        </div>
+      </div>
       <div id="plant-pick" hidden>
         <div class="plant-card">
           <h3>Choose seed</h3>
@@ -1053,9 +1073,7 @@
           </div>
         </div>
       </div>
-<div class="hint" id="hint">Tap a plot to plant. Tap the well to fill your can.</div>
-    </footer>
-  </div>
+
   <script src="config.js"></script>
   <script>
   (function () {
@@ -2470,6 +2488,7 @@
             let bonus = 0;
             if (state.gearPants) bonus += 0.15;
             if (state.gearShirt) bonus += 0.10;
+            if (state.gearBeanie) bonus += 0.10;
             if (bonus > 0 && n) {
               const raw = n * (1 + bonus);
               n = Math.floor(raw);
@@ -2543,13 +2562,13 @@
       const title = document.getElementById("gear-pick-title");
       if (!pick || !list) return;
       const items = [];
-      if (slot === "pants" && (state.pants || 0) > 0) items.push({ id: "pants", name: "Pants  +" + (state.pants) + "  +1 def +15% rocks", art: pantsArt() });
-      if (slot === "armor" && (state.shirts || 0) > 0) items.push({ id: "shirt", name: "Shirt  +" + (state.shirts) + "  +1 def +10% rocks", art: shirtArt() });
-      if (slot === "helmet" && (state.beanies || 0) > 0) items.push({ id: "beanie", name: "Beanie  +" + (state.beanies) + "  +1 def", art: beanieArt() });
+      if (slot === "pants" && (state.pants || 0) > 0) items.push({ id: "pants", name: "Pants", sub: "+1 def · +15% rocks", art: pantsArt() });
+      if (slot === "armor" && (state.shirts || 0) > 0) items.push({ id: "shirt", name: "Shirt", sub: "+1 def · +10% rocks", art: shirtArt() });
+      if (slot === "helmet" && (state.beanies || 0) > 0) items.push({ id: "beanie", name: "Beanie", sub: "+1 def · +10% rocks", art: beanieArt() });
       if (!items.length) { toast(slot === "pants" ? "Craft pants first" : slot === "armor" ? "Craft a shirt first" : slot === "helmet" ? "Craft a beanie first" : "No gear for this slot"); return; }
       if (title) title.textContent = "Choose for " + (slot === "pants" ? "Legs" : slot === "armor" ? "Chest" : slot === "helmet" ? "Head" : slot);
       list.innerHTML = items.map(function (it) {
-        return '<div class="row"><span>' + it.art + " " + it.name + '</span><button type="button" data-id="' + it.id + '">Equip</button></div>';
+        return '<div class="row"><span>' + it.art + '<br><b>' + it.name + '</b><small>' + (it.sub || '') + '</small></span><button type="button" data-id="' + it.id + '">Equip</button></div>';
       }).join("");
       list.querySelectorAll("button").forEach(function (btn) {
         btn.onclick = function () {
@@ -2600,7 +2619,7 @@
           if (art) art.innerHTML = state.gearShirt ? shirtArt() : "";
         }
         if (slot === "helmet") {
-          if (sm) sm.textContent = state.gearBeanie ? "+1 def" : "empty";
+          if (sm) sm.textContent = state.gearBeanie ? "+1 def · +10% rocks" : "empty";
           if (art) art.innerHTML = state.gearBeanie ? beanieArt() : "";
         }
         if (slot === "hands") {
@@ -3579,6 +3598,13 @@
     if (mineCl) mineCl.onclick = closeAllTabs;
     const startMineBtn = document.getElementById("btn-mine");
     if (startMineBtn) startMineBtn.onclick = startMine;
+    const gp = document.getElementById("gear-pick");
+    if (gp) gp.onclick = function (ev) {
+      if (ev.target.id === "gear-pick") {
+        ev.currentTarget.hidden = true;
+        ev.currentTarget.classList.remove("open");
+      }
+    };
     const gpc = document.getElementById("gear-pick-close");
     if (gpc) gpc.onclick = function () { const b = document.getElementById("gear-pick"); if (b) { b.hidden = true; b.classList.remove('open'); } };
     const lootTake = document.getElementById("loot-take");
