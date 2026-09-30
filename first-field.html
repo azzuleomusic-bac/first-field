@@ -2096,6 +2096,10 @@
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Sep 29 — Mine: 5s test run, fight lv1-3, 10% crits, 0-3 rocks.",
+      "Sep 29 — Miner gear: Legs / Chest / Head / Feet. Pants +1 def +15% rocks. Shirt +1 def +10% rocks.",
+      "Sep 29 — Craft Kitchen / Armory. Market Crafts Food / Equipment. Shirt sells for 3 sats.",
+      "Sep 29 — Shared wool, pants, shirt, horse-hair pictures in barn, craft, market, inventory.",
       "Sep 29 — Horse shed appears when you buy a horse (8 sats). 3 carrots + 2 water, 2 hairs, 2 sats each.",
       "Sep 29 — Sheep: 6 sats, shed on first buy, 3 corn + 2 water, 3 wool / 22s, 4 wool → 1 sat.",
       "Sep 29 — Horses feed 3 carrots + 3 water. Cows stay 5 corn + 3 water.",
@@ -2242,11 +2246,11 @@
           if (box) box.classList.remove("on");
           if (win) { state.mineWins = (state.mineWins || 0) + 1;
             let n = Math.floor(Math.random() * 4);
-            let multi = 1;
-            if (state.gearPants) multi *= 1.15;
-            if (state.gearShirt) multi *= 1.10;
-            if (multi > 1 && n) {
-              const raw = n * multi;
+            let bonus = 0;
+            if (state.gearPants) bonus += 0.15;
+            if (state.gearShirt) bonus += 0.10;
+            if (bonus > 0 && n) {
+              const raw = n * (1 + bonus);
               n = Math.floor(raw);
               if (Math.random() < raw - n) n += 1;
             }
@@ -2369,7 +2373,7 @@
       const ul = document.getElementById("gear-stats");
       if (!ul) return;
       const a = minerAtk();
-      const rockB = Math.round(((state.gearPants ? 1.15 : 1) * (state.gearShirt ? 1.10 : 1) - 1) * 100);
+      const rockB = Math.round(((state.gearPants ? 15 : 0) + (state.gearShirt ? 10 : 0)));
       ul.innerHTML = "<li><span>Health</span><span>50</span></li>" +
         "<li><span>Damage</span><span>" + a.min + " to " + a.max + "</span></li>" +
         "<li><span>Defense</span><span>" + minerDef() + "</span></li>" +
@@ -2383,7 +2387,7 @@
         ["Crit chance", "10%"],
         ["Damage", minerAtk().min + " to " + minerAtk().max],
         ["Defense", String(minerDef())],
-        ["Rock bonus", (function(){ const b = Math.round(((state.gearPants ? 1.15 : 1) * (state.gearShirt ? 1.10 : 1) - 1) * 100); return b ? ("+" + b + "%") : "0%"; })()],
+        ["Rock bonus", (function(){ const b = (state.gearPants ? 15 : 0) + (state.gearShirt ? 10 : 0); return b ? ("+" + b + "%") : "0%"; })()],
         ["Crit damage", "+50%"],
         ["Mine time", Math.round((FF.mineMs || 5000) / 1000) + "s"],
         ["Rocks", String(state.rocks || 0)],
