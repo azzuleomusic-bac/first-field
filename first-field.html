@@ -798,6 +798,7 @@
         <p>Combine farm goods.</p>
         <div class="row"><span>4 🥛 + 3 🥚 → 1 🍮</span><button type="button" id="craft-pudding">Make pudding</button></div>
         <div class="row"><span id="craft-pants-label">6 wool + 3 horse hair → 1 pants</span><button type="button" id="craft-pants">Make pants</button></div>
+        <div class="row"><span>8 🧶 wool → 1 👕 shirt</span><button type="button" id="craft-shirt">Make shirt</button></div>
         <button type="button" class="ghost" id="craft-close">Close</button>
       </div>
       <div id="silo-panel" aria-hidden="true">
@@ -882,6 +883,7 @@
       sheepFeed: { corn: 3, water: 2, wool: 3 },
       pudding: { milk: 4, eggs: 3, sellSats: 2 },
       pants: { wool: 6, hair: 3, sellSats: 4 },
+      shirt: { wool: 8 },
       prices: { well: 15, plot: 10, cow: 7, chicken: 3, horse: 8, sheep: 4, expandBase: 20, silo: 25, siloUpgrade: 20 }, siloBase: 50, siloMaxUpgrades: 3,
       sell: { milk: { qty: 5, sats: 1 }, water: { qty: 50, sats: 1 }, eggs: { qty: 8, sats: 1 }, hair: { qty: 1, sats: 1 }, wool: { qty: 4, sats: 1 }, carrots: { qty: 10, sats: 1 }, corn: { qty: 40, sats: 1 } },
       buy: { water: { sats: 1, qty: 25 }, carrotSeeds: { sats: 1, qty: 5 }, cornSeeds: { sats: 1, qty: 10 } }
@@ -926,6 +928,9 @@
       eggs: 0,
       pudding: 0,
       pants: 0,
+      shirts: 0,
+      gearShirt: false,
+      gearPants: false,
       rocks: 0,
       horseHair: 0,
       horseShed: { horses: [] },
@@ -997,6 +1002,9 @@
         sheepPen: state.sheepPen,
         pudding: state.pudding || 0,
         pants: state.pants || 0,
+        gearPants: !!state.gearPants,
+        shirts: state.shirts || 0,
+        gearShirt: !!state.gearShirt,
         rocks: state.rocks || 0,
         coop: state.coop,
         silos: state.silos,
@@ -1060,6 +1068,7 @@
       if (typeof state.eggs !== "number") state.eggs = 0;
       if (typeof state.pudding !== "number") state.pudding = 0;
       if (typeof state.pants !== "number") state.pants = 0;
+      if (typeof state.shirts !== "number") state.shirts = 0;
       if (typeof state.rocks !== "number") state.rocks = 0;
       if (!Array.isArray(state.shed.cows) || !state.shed.cows.length) {
         state.shed.cows = [{
@@ -1166,7 +1175,7 @@
       });
     }
     function fixNums() {
-      ["water","carrots","corn","carrotSeeds","cornSeeds","milk","eggs","pudding","pants","rocks","wool","horseHair","sats"].forEach((k) => {
+      ["water","carrots","corn","carrotSeeds","cornSeeds","milk","eggs","pudding","pants","shirts","rocks","wool","horseHair","sats"].forEach((k) => {
         const n = Number(state[k]);
         state[k] = Number.isFinite(n) ? n : 0;
       });
@@ -1790,6 +1799,17 @@
       openCraft(true);
     }
 
+    async function craftShirt() {
+      if (!(await askYes("Craft 1 shirt from 8 wool?"))) return;
+      if ((state.wool || 0) < 8) { toast("Need 8 wool"); return; }
+      state.wool -= 8;
+      state.shirts = (state.shirts || 0) + 1;
+      logMarket("Crafted shirt");
+      toast("Shirt ready");
+      save();
+      render();
+      openCraft(true);
+    }
     async function craftPants() {
       if (!(await askYes("Craft 1 pants from 6 wool and 3 horse hair?"))) return;
       if ((state.wool || 0) < FF.pants.wool) { toast("Need 6 wool"); return; }
@@ -2035,6 +2055,7 @@
         ["🧶 Wool", state.wool || 0, state.wool || 0],
         ["🍮 Pudding", state.pudding || 0, state.pudding || 0],
         ["👖 Pants", state.pants || 0, state.pants || 0],
+        ["👕 Shirt", state.shirts || 0, state.shirts || 0],
         ["🪨 Rocks", state.rocks || 0, state.rocks || 0],
         ["🌱 Carrot seeds", state.carrotSeeds, state.carrotSeeds],
         ["🌱 Corn seeds", state.cornSeeds, state.cornSeeds],
@@ -2128,7 +2149,15 @@
           if (st) st.textContent = win ? "Creature down." : "Miner is down.";
           if (box) box.classList.remove("on");
           if (win) { state.mineWins = (state.mineWins || 0) + 1;
-            const n = Math.floor(Math.random() * 4);
+            let n = Math.floor(Math.random() * 4);
+            let multi = 1;
+            if (state.gearPants) multi *= 1.15;
+            if (state.gearShirt) multi *= 1.10;
+            if (multi > 1 && n) {
+              const raw = n * multi;
+              n = Math.floor(raw);
+              if (Math.random() < raw - n) n += 1;
+            }
             state.rocks = (state.rocks || 0) + n;
             state.pendingLootN = n;
             state.pendingLoot = n === 0 ? "No rocks this time." : ("You found " + n + " rock" + (n === 1 ? "" : "s") + ".");
@@ -2180,7 +2209,37 @@
       return { min: 8, max: 12 };
     }
     function minerDef() {
-      return 0;
+      return (state.gearPants ? 1 : 0) + (state.gearShirt ? 1 : 0);
+    }
+        function fillGearSlots() {
+      document.querySelectorAll(".gear-slot").forEach(function (el) {
+        const slot = el.getAttribute("data-slot");
+        const sm = el.querySelector("small");
+        if (slot === "armor") {
+          if (state.gearShirt) {
+            state.gearShirt = false;
+            state.shirts = (state.shirts || 0) + 1;
+            toast("Unequipped shirt");
+          } else if ((state.shirts || 0) < 1) {
+            toast("Craft a shirt first");
+          } else {
+            state.shirts -= 1;
+            state.gearShirt = true;
+            toast("Equipped shirt +1 def, +10% rocks");
+          }
+          fillGearStats();
+          fillGearSlots();
+          fillBarn();
+          save();
+          return;
+        }
+        if (slot === "pants") {
+          if (sm) sm.textContent = state.gearPants ? "pants +1 def +15% rocks" : "empty";
+        }
+        if (slot === "armor") {
+          if (sm) sm.textContent = state.gearShirt ? "shirt +1 def +10% rocks" : "empty";
+        }
+      });
     }
     function fillGearStats() {
       const ul = document.getElementById("gear-stats");
@@ -2391,13 +2450,13 @@
 
     async function askSellBundles(have, unit, label) {
       const maxB = Math.floor(have / unit);
-      if (maxB < 1) { toast("Need " + unit + " " + label); return 0; }
+      if (maxB < 1) { toast("Need " + unit + " " + label); return (state.gearPants ? 1 : 0) + (state.gearShirt ? 1 : 0); }
       if (maxB === 1) {
         return (await askYes("Sell " + unit + " " + label + " for 1 sat?")) ? 1 : 0;
       }
       if (await askYes("Sell ALL? " + (maxB * unit) + " " + label + " for " + maxB + " sats")) return maxB;
       if (await askYes("Sell just one? " + unit + " " + label + " for 1 sat")) return 1;
-      return 0;
+      return (state.gearPants ? 1 : 0) + (state.gearShirt ? 1 : 0);
     }
 
     async function sellMilk() {
@@ -3096,7 +3155,7 @@
         const stats = document.getElementById("stats-box");
         if (!box) return;
         box.hidden = !box.hidden;
-        if (!box.hidden) fillGearStats();
+        if (!box.hidden) { fillGearStats(); fillGearSlots(); }
         if (stats) stats.hidden = true;
         const sb = document.getElementById("btn-stats");
         if (sb) sb.textContent = "Stats";
@@ -3119,7 +3178,44 @@
     const slots = document.querySelectorAll(".gear-slot");
     for (let i = 0; i < slots.length; i++) {
       slots[i].onclick = function () {
-        toast("No gear in " + this.getAttribute("data-slot") + " yet");
+        const slot = this.getAttribute("data-slot");
+        if (slot === "armor") {
+          if (state.gearShirt) {
+            state.gearShirt = false;
+            state.shirts = (state.shirts || 0) + 1;
+            toast("Unequipped shirt");
+          } else if ((state.shirts || 0) < 1) {
+            toast("Craft a shirt first");
+          } else {
+            state.shirts -= 1;
+            state.gearShirt = true;
+            toast("Equipped shirt +1 def, +10% rocks");
+          }
+          fillGearStats();
+          fillGearSlots();
+          fillBarn();
+          save();
+          return;
+        }
+        if (slot === "pants") {
+          if (state.gearPants) {
+            state.gearPants = false;
+            state.pants = (state.pants || 0) + 1;
+            toast("Unequipped pants");
+          } else if ((state.pants || 0) < 1) {
+            toast("Craft pants first");
+          } else {
+            state.pants -= 1;
+            state.gearPants = true;
+            toast("Equipped pants +1 def, +15% rocks");
+          }
+          fillGearStats();
+          fillGearSlots();
+          fillBarn();
+          save();
+          return;
+        }
+        toast("No gear in " + slot + " yet");
       };
     }
     document.getElementById("barn-close").onclick = closeAllTabs;
@@ -3135,6 +3231,8 @@
     };
     document.getElementById("craft-pudding").onclick = craftPudding;
     document.getElementById("craft-pants").onclick = craftPants;
+    const cs = document.getElementById("craft-shirt");
+    if (cs) cs.onclick = craftShirt;
     document.getElementById("sell-pants").onclick = sellPants;
     document.getElementById("sell-pudding").onclick = sellPudding;
     document.getElementById("craft-close").onclick = closeAllTabs;
