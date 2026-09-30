@@ -686,19 +686,25 @@
     #log-panel.open { display: block; }
             #fight-box {
       display: none;
-      position: absolute;
-      left: 50%;
-      top: 40%;
-      transform: translate(-50%, -50%);
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      background: rgba(0,0,0,0.88);
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      text-align: center;
+    }
+    #fight-box.open { display: flex; overflow: visible; pointer-events: auto; }
+    #fight-box { pointer-events: none; }
+    #fight-box.open { pointer-events: auto; }
+    #fight-box .fight-card {
       width: min(300px, calc(100% - 20px));
-      z-index: 33;
       background: #1a2418;
       border: 2px solid var(--gold);
       border-radius: 14px;
       padding: 12px;
-      text-align: center;
     }
-    #fight-box.open { display: block; overflow: visible; }
     #fight-box h3 { margin: 0 0 8px; color: var(--gold); }
     .fight-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; align-items: end; position: relative; overflow: visible; }
     #fist-shot {
@@ -755,19 +761,23 @@
     #fight-box .fight-miner.hit, #fight-box .fight-mob.hit { animation: rockHit 0.28s ease-out 1; }
     #loot-box {
       display: none;
-      position: absolute;
-      left: 50%;
-      top: 42%;
-      transform: translate(-50%, -50%);
+      position: fixed;
+      inset: 0;
+      z-index: 91;
+      background: rgba(0,0,0,0.88);
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      text-align: center;
+    }
+    #loot-box.open { display: flex; }
+    #loot-box .loot-card {
       width: min(260px, calc(100% - 24px));
-      z-index: 32;
       background: #1a2418;
       border: 2px solid var(--gold);
       border-radius: 14px;
       padding: 14px 14px 12px;
-      text-align: center;
     }
-    #loot-box.open { display: block; }
     #loot-box h3 { margin: 0 0 8px; color: var(--gold); font-size: 15px; }
         #loot-art { height: 64px; margin: 0 0 8px; display:flex; align-items:center; justify-content:center; }
     #loot-art svg { width: 56px; height: 56px; }
@@ -1086,6 +1096,7 @@
         <button type="button" class="ghost" id="shed-close">Close</button>
       </div>
       <div id="fight-box" aria-hidden="true">
+        <div class="fight-card">
         <h3>Fight</h3>
         <div class="fight-row">
           
@@ -1103,12 +1114,15 @@
           </div>
         </div>
         <p id="fight-status" style="display:none"></p>
+        </div>
       </div>
       <div id="loot-box" aria-hidden="true">
+        <div class="loot-card">
         <h3>Loot</h3>
         <div id="loot-art"></div>
         <p id="loot-text">You found rocks.</p>
         <button type="button" id="loot-take">Take</button>
+        </div>
       </div>
       <div class="toast" id="toast"></div>
       <div id="ask-box" aria-hidden="true">
@@ -2498,7 +2512,7 @@
       const lvl = state.mobLevel || 1;
       const box = document.getElementById("fight-box");
       const title = box && box.querySelector("h3");
-      if (title) title.textContent = "Fight — lv " + lvl;
+      if (title) title.textContent = ((state.fightKind === "forest") ? "Forest fight" : "Mine fight") + " — lv " + lvl;
       if (box) { box.classList.add("open"); box.setAttribute("aria-hidden", "false");
         dressMiner();
       }
@@ -2521,7 +2535,7 @@
       if (hm) hm.style.width = "100%";
       if (hc) hc.style.width = "100%";
       paintHp();
-      if (st) st.textContent = "Level " + lvl + " creature!";
+      if (st) st.textContent = state.fightKind === "forest" ? ("Level " + lvl + " forest beast!") : ("Level " + lvl + " creature!");
       if (hitLine) hitLine.textContent = "";
       let minerTurn = true;
       fightTimer = setInterval(function () {
@@ -2580,7 +2594,10 @@
           const win = m > 0 && c <= 0;
           if (st) st.textContent = win ? "Creature down." : "Miner is down.";
           if (box) box.classList.remove("on");
-          if (win) { state.mineWins = (state.mineWins || 0) + 1;
+          if (win) {
+            const forest = state.fightKind === "forest";
+            if (forest) state.forestWins = (state.forestWins || 0) + 1;
+            else state.mineWins = (state.mineWins || 0) + 1;
             let n = Math.floor(Math.random() * 4);
             let bonus = 0;
             if (state.gearPants) bonus += 0.15;
@@ -2591,11 +2608,18 @@
               n = Math.floor(raw);
               if (Math.random() < raw - n) n += 1;
             }
-            state.rocks = (state.rocks || 0) + n;
-            state.pendingLootN = n;
-            state.pendingLoot = n === 0 ? "No rocks this time." : ("You found " + n + " rock" + (n === 1 ? "" : "s") + ".");
+            if (forest) {
+              state.lumber = (state.lumber || 0) + n;
+              state.pendingLootN = n;
+              state.pendingLoot = n === 0 ? "No lumber this time." : ("You chopped " + n + " lumber.");
+            } else {
+              state.rocks = (state.rocks || 0) + n;
+              state.pendingLootN = n;
+              state.pendingLoot = n === 0 ? "No rocks this time." : ("You found " + n + " rock" + (n === 1 ? "" : "s") + ".");
+            }
           } else {
-            state.mineLosses = (state.mineLosses || 0) + 1;
+            if (state.fightKind === "forest") state.forestLosses = (state.forestLosses || 0) + 1;
+            else state.mineLosses = (state.mineLosses || 0) + 1;
             state.pendingLootN = 0;
             state.pendingLoot = "You lost. No loot.";
           }
@@ -2614,6 +2638,7 @@
       const pan = document.getElementById("mine-panel");
       if (!pan || !pan.classList.contains("open")) state.mineReady = true;
       state.pendingFight = true;
+      state.fightKind = "mine";
       state.mobLevel = 1 + Math.floor(Math.random() * 3);
       state.pendingLoot = "";
       state.pendingLootN = 0;
@@ -2624,6 +2649,7 @@
     }
     function openLoot(text, n) {
       const box = document.getElementById("loot-box");
+      if (box && box.classList.contains("open")) return;
       const p = document.getElementById("loot-text");
       const art = document.getElementById("loot-art");
       if (p) p.textContent = text;
@@ -2640,7 +2666,11 @@
     function closeLoot() {
       const box = document.getElementById("loot-box");
       if (box) { box.classList.remove("open"); box.setAttribute("aria-hidden", "true"); }
+      const fight = document.getElementById("fight-box");
+      if (fight) { fight.classList.remove("open"); fight.setAttribute("aria-hidden", "true"); }
       state.pendingLoot = "";
+      state.pendingLootN = 0;
+      state.pendingFight = false;
     }
     function minerAtk() {
       return { min: 8, max: 12 };
@@ -2664,9 +2694,9 @@
       const title = document.getElementById("gear-pick-title");
       if (!pick || !list) return;
       const items = [];
-      if (slot === "pants" && (state.pants || 0) > 0) items.push({ id: "pants", name: "Pants", sub: "+1 def · +15% rocks", art: pantsArt() });
-      if (slot === "armor" && (state.shirts || 0) > 0) items.push({ id: "shirt", name: "Shirt", sub: "+1 def · +10% rocks", art: shirtArt() });
-      if (slot === "helmet" && (state.beanies || 0) > 0) items.push({ id: "beanie", name: "Beanie", sub: "+1 def · +10% rocks", art: beanieArt() });
+      if (slot === "pants" && (state.pants || 0) > 0) items.push({ id: "pants", name: "Pants", sub: "+1 def · +15% rocks/lumber", art: pantsArt() });
+      if (slot === "armor" && (state.shirts || 0) > 0) items.push({ id: "shirt", name: "Shirt", sub: "+1 def · +10% rocks/lumber", art: shirtArt() });
+      if (slot === "helmet" && (state.beanies || 0) > 0) items.push({ id: "beanie", name: "Beanie", sub: "+1 def · +10% rocks/lumber", art: beanieArt() });
       if (!items.length) { toast(slot === "pants" ? "Craft pants first" : slot === "armor" ? "Craft a shirt first" : slot === "helmet" ? "Craft a beanie first" : "No gear for this slot"); return; }
       if (title) title.textContent = "Choose for " + (slot === "pants" ? "Legs" : slot === "armor" ? "Chest" : slot === "helmet" ? "Head" : slot);
       list.innerHTML = items.map(function (it) {
@@ -2735,15 +2765,15 @@
         const sm = el.querySelector("small");
         const art = el.querySelector(".gear-art");
         if (slot === "pants") {
-          if (sm) sm.textContent = state.gearPants ? "+1 def +15% rocks" : "empty";
+          if (sm) sm.textContent = state.gearPants ? "+1 def +15% rocks/lumber" : "empty";
           if (art) art.innerHTML = state.gearPants ? pantsArt() : "";
         }
         if (slot === "armor") {
-          if (sm) sm.textContent = state.gearShirt ? "+1 def +10% rocks" : "empty";
+          if (sm) sm.textContent = state.gearShirt ? "+1 def +10% rocks/lumber" : "empty";
           if (art) art.innerHTML = state.gearShirt ? shirtArt() : "";
         }
         if (slot === "helmet") {
-          if (sm) sm.textContent = state.gearBeanie ? "+1 def · +10% rocks" : "empty";
+          if (sm) sm.textContent = state.gearBeanie ? "+1 def +10% rocks/lumber" : "empty";
           if (art) art.innerHTML = state.gearBeanie ? beanieArt() : "";
         }
         if (slot === "hands") {
@@ -2760,7 +2790,8 @@
       ul.innerHTML = "<li><span>Health</span><span>50</span></li>" +
         "<li><span>Damage</span><span>" + a.min + " to " + a.max + "</span></li>" +
         "<li><span>Defense</span><span>" + minerDef() + "</span></li>" +
-        "<li><span>Rock bonus</span><span>" + (rockB ? ("+" + rockB + "%") : "0%") + "</span></li>";
+        "<li><span>Rock bonus</span><span>" + (rockB ? ("+" + rockB + "%") : "0%") + "</span></li>" +
+        "<li><span>Lumber bonus</span><span>" + (rockB ? ("+" + rockB + "%") : "0%") + "</span></li>";
     }
     function fillMinerStats() {
       const ul = document.getElementById("miner-stats");
@@ -2771,6 +2802,7 @@
         ["Damage", minerAtk().min + " to " + minerAtk().max],
         ["Defense", String(minerDef())],
         ["Rock bonus", (function(){ const b = (state.gearPants ? 15 : 0) + (state.gearShirt ? 10 : 0) + (state.gearBeanie ? 10 : 0); return b ? ("+" + b + "%") : "0%"; })()],
+        ["Lumber bonus", (function(){ const b = (state.gearPants ? 15 : 0) + (state.gearShirt ? 10 : 0) + (state.gearBeanie ? 10 : 0); return b ? ("+" + b + "%") : "0%"; })()],
         ["Crit damage", "+50%"],
         ["Mine time", Math.round((FF.mineMs || 5000) / 1000) + "s"],
         ["Rocks", String(state.rocks || 0)],
@@ -2814,24 +2846,9 @@
         if (st) st.textContent = "Mining " + fmtLeft(left);
         if (btn) { btn.disabled = true; btn.textContent = "Mining " + fmtLeft(left); }
       } else {
-        if (state.miningUntil && state.miningUntil <= now()) {
-          state.miningUntil = 0;
-          state.miningStarted = 0;
-          const pan = document.getElementById("mine-panel");
-          if (!pan || !pan.classList.contains("open")) state.mineReady = true;
-          pct = 100;
-          if (st) st.textContent = "Done. Start again when you want.";
-          const n = Math.floor(Math.random() * 4);
-          state.rocks = (state.rocks || 0) + n;
-          if (n === 0) openLoot("No rocks this time.");
-          else openLoot("You found " + n + " rock" + (n === 1 ? "" : "s") + ".");
-          toast("Mining finished");
-          save();
-        } else {
-          pct = 0;
-          if (st && !state.mineReady) st.textContent = "Tap Start mining.";
-          if (st && state.mineReady) st.textContent = "Last run finished.";
-        }
+        pct = 0;
+        if (st && !state.mineReady) st.textContent = "Tap Start mining.";
+        if (st && state.mineReady) st.textContent = "Last run finished.";
         if (btn) { btn.disabled = false; btn.textContent = "Start mining"; }
       }
       if (bar) bar.style.width = pct + "%";
@@ -2879,10 +2896,12 @@
       state.forestStarted = 0;
       const pan = document.getElementById("forest-panel");
       if (!pan || !pan.classList.contains("open")) state.forestReady = true;
-      const n = Math.floor(Math.random() * 4);
-      state.lumber = (state.lumber || 0) + n;
-      const msg = n === 0 ? "No lumber this time." : ("You chopped " + n + " lumber.");
-      if (pan && pan.classList.contains("open")) openLoot(msg, n);
+      state.pendingFight = true;
+      state.fightKind = "forest";
+      state.mobLevel = 1 + Math.floor(Math.random() * 3);
+      state.pendingLoot = "";
+      state.pendingLootN = 0;
+      if (pan && pan.classList.contains("open")) startFight();
       toast("Chopping finished");
       save();
       paintForest();
@@ -2917,7 +2936,7 @@
       parkInv(pan);
       paintMine();
       fillMinerStats();
-      if (state.pendingLoot || state.pendingFight) startFight();
+      if (state.pendingFight) startFight();
       pan.classList.add("open");
       pan.setAttribute("aria-hidden", "false");
       document.getElementById("app") && document.getElementById("app").classList.add("scene");
@@ -3508,6 +3527,7 @@
       tickCrops();
       fixNums();
       paintMine();
+      paintForest();
       const sw = document.getElementById("stat-water");
       if (sw) sw.textContent = "💧 " + state.water + "/" + waterMax();
       const sc = document.getElementById("stat-corn-top");
@@ -3800,6 +3820,7 @@
       paintForest();
       dressMiner();
       pan.classList.add("open");
+      if (state.pendingFight && state.fightKind === "forest") startFight();
       pan.setAttribute("aria-hidden", "false");
       document.getElementById("app") && document.getElementById("app").classList.add("scene");
     }
@@ -3822,7 +3843,9 @@
     const gpc = document.getElementById("gear-pick-close");
     if (gpc) gpc.onclick = function () { const b = document.getElementById("gear-pick"); if (b) { b.hidden = true; b.classList.remove('open'); } };
     const lootTake = document.getElementById("loot-take");
-    if (lootTake) lootTake.onclick = closeLoot;
+    if (lootTake) lootTake.onclick = function (ev) { ev.stopPropagation(); closeLoot(); };
+    const lootBox = document.getElementById("loot-box");
+    if (lootBox) lootBox.onclick = function () { closeLoot(); };
     function syncInvButtons() {
       const g = document.getElementById("gear-box");
       const s = document.getElementById("stats-box");
@@ -3953,7 +3976,8 @@
     if (as) as.onclick = () => showAssetSide("structures");
     document.getElementById("market-close").onclick = closeMarket;
     wrap.addEventListener("pointerdown", (ev) => {
-      const open = document.querySelector("#market-panel.open, #shed-panel.open, #log-panel.open, #craft-panel.open, #barn-panel, #silo-panel.open");
+      if (ev.target.closest("#loot-box, #fight-box, #ask-box, #gear-pick")) return;
+      const open = document.querySelector("#market-panel.open, #shed-panel.open, #log-panel.open, #craft-panel.open, #barn-panel.open, #silo-panel.open, #mine-panel.open, #forest-panel.open");
       if (!open) return;
       if (ev.target.closest("#market-panel, #shed-panel, #log-panel, #craft-panel, #barn-panel, #silo-panel, #worth-panel, #mine-panel, #forest-panel, #log-tab, #stat-worth, .tile.shed")) return;
       closeAllTabs();
