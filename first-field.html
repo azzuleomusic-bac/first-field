@@ -239,7 +239,7 @@
       display: none;
       position: absolute;
       left: 50%;
-      top: 42%;
+      top: 62%;
       transform: translate(-50%, -50%);
       width: min(168px, calc(100% - 72px));
       z-index: 34;
@@ -273,39 +273,79 @@
     }
     .miner {
       position: absolute;
-      left: 28px; bottom: 10px;
-      width: 36px; height: 54px;
+      left: 16px; bottom: 6px;
+      width: 56px; height: 86px;
     }
-    .miner-body {
-      width: 22px; height: 34px;
-      margin: 16px auto 0;
-      background: #c45c3e;
-      border-radius: 6px 6px 4px 4px;
-      position: relative;
-    }
-    .miner-body::before {
-      content: "";
+    .miner-head {
       position: absolute;
-      left: 3px; top: -12px;
-      width: 16px; height: 16px;
+      left: 18px; top: 0;
+      width: 20px; height: 20px;
       background: #e8c3b0;
       border-radius: 50%;
+      z-index: 4;
+      box-shadow: 0 12px 0 -8px #2c2118;
     }
+    .miner-torso {
+      position: absolute;
+      left: 14px; top: 18px;
+      width: 28px; height: 32px;
+      background: #e8c3b0;
+      border-radius: 8px 8px 4px 4px;
+      overflow: hidden;
+      z-index: 3;
+    }
+    .miner-legs-wrap {
+      position: absolute;
+      left: 16px; top: 48px;
+      width: 24px; height: 34px;
+      background: #e8c3b0;
+      border-radius: 0 0 4px 4px;
+      overflow: hidden;
+      z-index: 2;
+    }
+    .miner.has-shirt .miner-torso,
+    .fight-miner.has-shirt .miner-torso {
+      background: #6b8f4a;
+      box-shadow: inset 0 4px 0 #5a7a3c;
+    }
+    .miner.has-shirt .miner-torso::after,
+    .fight-miner.has-shirt .miner-torso::after {
+      content: "";
+      position: absolute;
+      left: -5px; top: 6px;
+      width: 8px; height: 10px;
+      background: #6b8f4a;
+      border-radius: 3px;
+      box-shadow: 30px 0 0 #6b8f4a;
+    }
+    .miner.has-pants .miner-legs-wrap,
+    .fight-miner.has-pants .miner-legs-wrap {
+      background: #3d4a73;
+      box-shadow: inset 8px 0 0 #2f3a5c;
+    }
+    .wear { pointer-events: none; }
+    .wear svg { width: 100%; height: 100%; display: block; }
+    .fight-miner { width: 28px; height: 70px; margin: 8px auto 0; position: relative; background: transparent !important; }
+    .fight-miner::before { display: none !important; }
+    .fight-miner .miner-head { left: 4px; top: 0; width: 18px; height: 18px; }
+    .fight-miner .miner-torso { left: 2px; top: 16px; width: 24px; height: 28px; }
+    .fight-miner .miner-legs-wrap { left: 4px; top: 42px; width: 20px; height: 26px; }
     .pick {
       position: absolute;
-      left: 20px; top: 8px;
-      width: 28px; height: 4px;
-      background: #cfd4da;
-      transform-origin: 0 50%;
-      border-radius: 2px;
+      left: 38px; top: 28px;
+      width: 4px; height: 28px;
+      background: #6b4423;
+      transform: rotate(-28deg);
+      transform-origin: bottom center;
+      z-index: 5;
     }
     .pick::after {
       content: "";
       position: absolute;
-      right: -6px; top: -8px;
-      width: 12px; height: 18px;
-      background: #8a8680;
-      border-radius: 2px 8px 8px 2px;
+      left: -9px; top: -6px;
+      width: 22px; height: 8px;
+      background: #8a8f96;
+      border-radius: 2px;
     }
     .mine-stage.on .miner { animation: minerBob 0.38s ease-in-out infinite; }
     .mine-stage.on .pick { animation: pickSwing 0.38s ease-in-out infinite; }
@@ -539,8 +579,9 @@
     }
     #fight-box.open { display: block; }
     #fight-box h3 { margin: 0 0 8px; color: var(--gold); }
-    .fight-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
-                .hp-wrap { position: relative; }
+    .fight-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; align-items: end; }
+    .fight-side { text-align: center; min-height: 128px; display: flex; flex-direction: column; align-items: center; }
+                .hp-wrap { position: relative; width: 88%; margin: 8px auto 0; }
     .fight-name { position: relative; min-height: 22px; }
     .pop {
       display: inline-block;
@@ -554,17 +595,17 @@
     .pop.crit { color: #fff1a8; text-shadow: 0 0 8px #e8c36a, 0 0 2px #000; font-size: 22px; }
     .fight-side.flash { filter: brightness(1.5); }
     .hp-num { font-size: 11px; margin: 3px 0 0; opacity: 0.9; }
-    #fight-hit { min-height: 18px; font-size: 13px; font-weight: 700; color: var(--gold); margin: 0 0 4px; }
+    #fight-status { min-height: 20px; font-size: 13px; font-weight: 700; color: var(--gold); margin: 8px 0 0; text-align: center; clear: both; }
     .dmg { min-height: 16px; font-size: 13px; font-weight: 800; color: #e8c36a; }
     #dmg-miner { color: #c45c3e; }
     .fight-name { font-size: 12px; margin-bottom: 4px; }
-    .hp { height: 10px; background: #2a1a12; border-radius: 99px; overflow: hidden; }
+    .hp { height: 14px; background: #2a1a12; border-radius: 99px; overflow: hidden; width: 100%; margin-top: 8px; }
     .hp > i { display:block; height:100%; width:100%; background: #7cba3a; transition: width 0.2s linear; }
+    .hp.mob > i { background: #c45c3e; }
+    .hp-num { font-size: 11px; margin-top: 3px; }
     #hp-mob { background: #c45c3e; }
-    .fight-miner, .fight-mob { height: 54px; margin-top: 8px; position: relative; }
-    .fight-miner { background: #c45c3e; width: 22px; height: 34px; margin: 16px auto 0; border-radius: 6px; }
-    .fight-miner::before { content:""; position:absolute; left:3px; top:-12px; width:16px; height:16px; background:#e8c3b0; border-radius:50%; }
-    .fight-mob { width: 36px; height: 28px; margin: 18px auto 0; background:#5a3a68; border-radius: 40% 40% 30% 30%; box-shadow: 0 -10px 0 -4px #5a3a68; }
+    .fight-miner { height: 76px; margin: 8px auto 0; }
+    .fight-mob { width: 40px; height: 36px; margin: 28px auto 0; background:#5a3a68; border-radius: 40% 40% 30% 30%; box-shadow: 0 -12px 0 -4px #5a3a68; flex-shrink: 0; }
     #fight-box .fight-miner.swing { animation: minerBob 0.4s ease-in-out 1; }
     #fight-box .fight-mob.swing { animation: minerBob 0.4s ease-in-out 1; }
     #fight-box .fight-miner.hit, #fight-box .fight-mob.hit { animation: rockHit 0.28s ease-out 1; }
@@ -797,7 +838,9 @@
         <h3>Mine</h3>
         <div id="mine-stage" class="mine-stage">
           <div class="miner" id="miner">
-            <div class="miner-body"></div>
+            <div class="miner-head"></div>
+            <div class="miner-torso"><div class="wear wear-shirt" id="miner-shirt"></div></div>
+            <div class="miner-legs-wrap"><div class="wear wear-pants" id="miner-pants"></div></div>
             <div class="pick"></div>
           </div>
           <div class="rock"></div>
@@ -865,18 +908,18 @@
         <div class="fight-row">
           <div class="fight-side">
             <div class="fight-name">Miner <span class="pop" id="pop-miner"></span></div>
+            <div class="fight-miner"><div class="miner-head"></div><div class="miner-torso"><div class="wear wear-shirt" id="fight-shirt"></div></div><div class="miner-legs-wrap"><div class="wear wear-pants" id="fight-pants"></div></div></div>
             <div class="hp-wrap"><div class="hp"><i id="hp-miner"></i></div></div>
             <div class="hp-num" id="hp-miner-n"></div>
-            <div class="fight-miner"></div>
           </div>
           <div class="fight-side">
             <div class="fight-name">Creature <span class="pop" id="pop-mob"></span></div>
-            <div class="hp-wrap"><div class="hp"><i id="hp-mob"></i></div></div>
-            <div class="hp-num" id="hp-mob-n"></div>
             <div class="fight-mob"></div>
+            <div class="hp-wrap"><div class="hp mob"><i id="hp-mob"></i></div></div>
+            <div class="hp-num" id="hp-mob-n"></div>
           </div>
         </div>
-        <p id="fight-status">Battle!</p>
+        <p id="fight-status" style="display:none"></p>
       </div>
       <div id="loot-box" aria-hidden="true">
         <h3>Loot</h3>
@@ -2179,7 +2222,9 @@
       const box = document.getElementById("fight-box");
       const title = box && box.querySelector("h3");
       if (title) title.textContent = "Fight — lv " + lvl;
-      if (box) { box.classList.add("open"); box.setAttribute("aria-hidden", "false"); }
+      if (box) { box.classList.add("open"); box.setAttribute("aria-hidden", "false");
+        dressMiner();
+      }
       const mMax = 50;
       let m = mMax;
       const cMax = lvl === 1 ? 30 : lvl === 2 ? 50 : 70;
@@ -2228,7 +2273,7 @@
             po.textContent = (hit.crit ? "CRIT " : "") + "-" + hit.dmg;
             po.classList.toggle("crit", hit.crit);
           }
-          if (st) st.textContent = hit.crit ? "Miner crits!" : "Miner attacks";
+          if (st) st.textContent = "";
         } else {
           if (mobEl) { void mobEl.offsetWidth; mobEl.classList.add("swing"); }
           if (minerEl) { void minerEl.offsetWidth; minerEl.classList.add("hit"); }
@@ -2303,7 +2348,9 @@
         if (n > 0) art.innerHTML = '<svg viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="32" cy="30" rx="22" ry="14" fill="#6d6a66"/><ellipse cx="24" cy="26" rx="10" ry="8" fill="#8a8680"/><ellipse cx="40" cy="28" rx="12" ry="9" fill="#5a5753"/><path fill="#9a9690" d="M18 24 l8-8 10 4-4 8z"/></svg>' + (n > 1 ? "<small>×" + n + "</small>" : "");
         else art.innerHTML = "";
       }
-      if (box) { box.classList.add("open"); box.setAttribute("aria-hidden", "false"); }
+      if (box) { box.classList.add("open"); box.setAttribute("aria-hidden", "false");
+        dressMiner();
+      }
     }
     function closeLoot() {
       const box = document.getElementById("loot-box");
@@ -2407,6 +2454,14 @@
         return "<li><span>" + r[0] + "</span><span>" + r[1] + "</span></li>";
       }).join("");
     }
+    function dressMiner() {
+      ["miner", "fight-box"].forEach(function (id) {
+        const root = id === "miner" ? document.getElementById("miner") : document.querySelector("#fight-box .fight-miner");
+        if (!root) return;
+        root.classList.toggle("has-shirt", !!state.gearShirt);
+        root.classList.toggle("has-pants", !!state.gearPants);
+      });
+    }
     function mineOn() { return (state.miningUntil || 0) > now(); }
     function paintMine() {
       const stage = document.getElementById("mine-stage");
@@ -2415,6 +2470,7 @@
       const bar = document.getElementById("mine-bar");
       const on = mineOn();
       if (stage) stage.classList.toggle("on", on);
+      dressMiner();
       const total = FF.mineMs || 20000;
       let started = state.miningStarted || (state.miningUntil ? state.miningUntil - total : 0);
       let pct = 0;
@@ -3062,7 +3118,8 @@
       if (wo) wo.textContent = "Farm worth " + farmWorth() + " sats";
       fillBarn();
 
-      document.getElementById("mode-farm").classList.toggle("active", state.mode === "farm");
+      const mf = document.getElementById("mode-farm");
+      if (mf) mf.classList.toggle("active", state.mode === "farm");
       const mv = document.getElementById("mode-move");
       if (mv) mv.classList.toggle("active", state.mode === "move");
       ["carrot", "corn", "sell", "craft", "barn", "mine"].forEach((name) => {
@@ -3080,8 +3137,8 @@
         },
         move: { any: "Hold 1 second to pick up. Drop on free space." }
       };
-      document.getElementById("hint").textContent =
-        state.mode === "move" ? hints.move.any : (hints.farm[state.tool] || "");
+      const hintEl = document.getElementById("hint");
+      if (hintEl) hintEl.textContent = state.mode === "move" ? hints.move.any : (hints.farm[state.tool] || "");
 
       grid.innerHTML = "";
 
