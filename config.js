@@ -1,10 +1,11 @@
 window.FF = {
   updates: [
-    "Sep 30 — Tap the sats pill for the in-game wallet + trade log.",
-    "Sep 30 — Empty plots: dark raked topsoil, not flat brown.",
-    "Sep 30 — Well is wider (less bottle-shaped). Full well stays bright, no pulse.",
-    "Sep 30 — Farm grass is mottled turf with grain.",
-    "Sep 30 — Test: wells fill at 2 seconds per water."
+    "Sep 30 \u2014 Wallet now logs +/\u2212 sats when you buy or sell, plus a line when you return from idle.",
+    "Sep 30 \u2014 Tap the sats pill for the in-game wallet + trade log.",
+    "Sep 30 \u2014 Empty plots: dark raked topsoil, not flat brown.",
+    "Sep 30 \u2014 Well is wider (less bottle-shaped). Full well stays bright, no pulse.",
+    "Sep 30 \u2014 Farm grass is mottled turf with grain.",
+    "Sep 30 \u2014 Test: wells fill at 2 seconds per water."
   ],
   starterSats: 30,
   pack30Bonus: 20,
@@ -40,48 +41,123 @@ window.FF = {
 };
 
 (function bootWallet() {
+  var SAVE = "first-field-v1";
+  var LEDGER = "first-field-ledger";
+  var lastSats = null;
+  var idleNoted = false;
+
   function ready(fn) {
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fn);
     else fn();
   }
-  function readSave() {
-    try { return JSON.parse(localStorage.getItem("first-field-v1") || "{}"); }
-    catch (e) { return {}; }
+  function readJson(key) {
+    try { return JSON.parse(localStorage.getItem(key) || "null"); }
+    catch (e) { return null; }
+  }
+  function readSave() { return readJson(SAVE) || {}; }
+  function readLedger() {
+    var rows = readJson(LEDGER);
+    return Array.isArray(rows) ? rows : [];
+  }
+  function writeLedger(rows) {
+    try { localStorage.setItem(LEDGER, JSON.stringify(rows.slice(0, 40))); }
+    catch (e) {}
+  }
+  function pushLedger(entry) {
+    var rows = readLedger();
+    var last = rows[0];
+    if (last && last.text === entry.text && Math.abs((last.at || 0) - entry.at) < 1500) return;
+    rows.unshift(entry);
+    writeLedger(rows);
+  }
+  function fmtAway(ms) {
+    var m = Math.max(1, Math.round(ms / 60000));
+    if (m < 60) return m + " min";
+    var h = Math.round(m / 60 * 10) / 10;
+    return h + "h";
+  }
+  function noteIdle() {
+    if (idleNoted) return;
+    idleNoted = true;
+    var save = readSave();
+    var last = save.lastTick || save.savedAt;
+    if (!last) return;
+    var away = Date.now() - last;
+    if (away < 2 * 60 * 1000) return;
+    var cap = 6 * 60 * 60 * 1000;
+    var used = Math.min(away, cap);
+    pushLedger({
+      at: Date.now(),
+      delta: 0,
+      bal: typeof save.sats === "number" ? save.sats : 0,
+      text: "Returned after " + fmtAway(away) + " \u2014 farm kept ticking" + (away > cap ? " (capped 6h)" : "")
+    });
+  }
+  function watchSaves() {
+    var raw = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = function (key, val) {
+      raw(key, val);
+      if (key !== SAVE) return;
+      try {
+        var s = JSON.parse(val);
+        var sats = typeof s.sats === "number" ? s.sats : 0;
+        if (lastSats === null) { lastSats = sats; return; }
+        if (sats === lastSats) return;
+        var delta = sats - lastSats;
+        lastSats = sats;
+        var log = Array.isArray(s.marketLog) && s.marketLog[0] ? s.marketLog[0].text : "";
+        var text = log || (delta > 0 ? "Sats in" : "Sats out");
+        pushLedger({ at: Date.now(), delta: delta, bal: sats, text: text });
+      } catch (e) {}
+    };
+    var s0 = readSave();
+    if (typeof s0.sats === "number") lastSats = s0.sats;
   }
   function fill() {
-    const save = readSave();
-    const sats = typeof save.sats === "number" ? save.sats : 0;
-    const bal = document.getElementById("wallet-bal");
-    if (bal) bal.textContent = "⚡ " + sats + " sats";
-    const pill = document.getElementById("stat-sats");
+    var save = readSave();
+    var sats = typeof save.sats === "number" ? save.sats : 0;
+    var bal = document.getElementById("wallet-bal");
+    var pill = document.getElementById("stat-sats");
     if (pill && /sats/.test(pill.textContent || "")) {
-      const live = pill.textContent.replace(/[^\d-]/g, "");
-      if (live !== "" && bal) bal.textContent = "⚡ " + live + " sats";
+      var live = pill.textContent.replace(/[^\d-]/g, "");
+      if (live !== "") sats = Number(live) || sats;
     }
-    const ul = document.getElementById("wallet-history");
+    if (bal) bal.textContent = "\u26a1 " + sats + " sats";
+    var ul = document.getElementById("wallet-history");
     if (!ul) return;
-    const rows = Array.isArray(save.marketLog) ? save.marketLog.slice(0, 20) : [];
+    var rows = readLedger();
+    if (!rows.length && Array.isArray(save.marketLog)) {
+      rows = save.marketLog.slice(0, 20).map(function (r) {
+        return { at: r.at, delta: 0, bal: sats, text: r.text || "" };
+      });
+    }
     if (!rows.length) {
-      ul.innerHTML = "<li>No trades yet. Sell at the market to fill this log.</li>";
+      ul.innerHTML = "<li>No sat moves yet. Buy or sell, then open this again.</li>";
       return;
     }
     ul.innerHTML = rows.map(function (r) {
-      const d = new Date(r.at || Date.now());
-      const tstr = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-      return "<li>" + tstr + " — " + (r.text || "") + "</li>";
+      var d = new Date(r.at || Date.now());
+      var tstr = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      var sign = "";
+      var cls = "";
+      if (r.delta > 0) { sign = "<b class=\"up\">+" + r.delta + "</b> "; cls = "gain"; }
+      else if (r.delta < 0) { sign = "<b class=\"dn\">" + r.delta + "</b> "; cls = "loss"; }
+      return "<li class=\"" + cls + "\">" + tstr + " \u2014 " + sign + (r.text || "") + "</li>";
     }).join("");
   }
   function openWallet() {
-    const pan = document.getElementById("wallet-panel");
+    var pan = document.getElementById("wallet-panel");
     if (!pan) return;
-    const on = pan.classList.contains("open");
+    var on = pan.classList.contains("open");
     pan.classList.toggle("open", !on);
     pan.setAttribute("aria-hidden", on ? "true" : "false");
     if (!on) fill();
   }
   ready(function () {
+    watchSaves();
+    noteIdle();
     if (document.getElementById("wallet-panel")) return;
-    const style = document.createElement("style");
+    var style = document.createElement("style");
     style.textContent = [
       "#stat-sats{cursor:pointer}",
       "#wallet-panel{display:none;position:absolute;top:48px;left:8px;width:min(300px,calc(100% - 16px));max-height:55%;overflow:auto;z-index:20;background:rgba(14,22,12,0.94);border:1px solid rgba(232,195,106,0.3);border-radius:14px;padding:10px 12px 12px;color:#f4ead4}",
@@ -90,16 +166,18 @@ window.FF = {
       "#wallet-panel .note{font-size:11px;opacity:.8;margin:0 0 10px}",
       "#wallet-panel .ghost[disabled]{opacity:.45}",
       "#wallet-history{list-style:none;margin:0;padding:0;font-size:12px}",
-      "#wallet-history li{margin-bottom:6px}"
+      "#wallet-history li{margin-bottom:6px}",
+      "#wallet-history .up{color:#8fd18f}",
+      "#wallet-history .dn{color:#e08a72}"
     ].join("");
     document.head.appendChild(style);
-    const pan = document.createElement("div");
+    var pan = document.createElement("div");
     pan.id = "wallet-panel";
     pan.setAttribute("aria-hidden", "true");
-    pan.innerHTML = '<h3>Wallet</h3><div class="bal" id="wallet-bal">⚡ 0 sats</div><p class="note">In-game / virtual sats. No real Bitcoin. ZBD send comes later.</p><button type="button" class="ghost" id="wallet-send" disabled>Send sats (ZBD later)</button><h3 style="margin-top:12px">Recent trades</h3><ul id="wallet-history"></ul><button type="button" class="ghost" id="wallet-close">Close</button>';
-    const wrap = document.getElementById("field-wrap") || document.getElementById("app") || document.body;
+    pan.innerHTML = '<h3>Wallet</h3><div class="bal" id="wallet-bal">\u26a1 0 sats</div><p class="note">In-game / virtual sats. No real Bitcoin. ZBD send comes later.</p><button type="button" class="ghost" id="wallet-send" disabled>Send sats (ZBD later)</button><h3 style="margin-top:12px">Sat ledger</h3><ul id="wallet-history"></ul><button type="button" class="ghost" id="wallet-close">Close</button>';
+    var wrap = document.getElementById("field-wrap") || document.getElementById("app") || document.body;
     wrap.appendChild(pan);
-    const pill = document.getElementById("stat-sats");
+    var pill = document.getElementById("stat-sats");
     if (pill) {
       pill.setAttribute("role", "button");
       pill.addEventListener("click", function (ev) {
