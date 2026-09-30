@@ -125,6 +125,7 @@
       background:
         linear-gradient(180deg, #8a5a32 0%, #6b4226 55%, #5a361e 100%);
       border: 2px solid #c4a07a;
+      box-shadow: 0 3px 0 #3d2818, 0 5px 8px rgba(0,0,0,0.2);
     }
     .tile.plot.ready {
       box-shadow: 0 6px 0 var(--soil-dark), 0 0 0 3px rgba(232, 195, 106, 0.7);
@@ -133,13 +134,56 @@
       box-shadow: 0 6px 0 var(--soil-dark), 0 0 0 3px rgba(74, 163, 199, 0.55);
     }
     .tile.well {
-      background: #2a333c;
-      border: 3px solid #cfd4da;
-      width: calc(var(--tile) * 1.15);
-      height: calc(var(--tile) * 1.15);
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      width: calc(var(--tile) * 1.08);
+      height: calc(var(--tile) * 1.08);
       z-index: 3;
+      overflow: visible;
+    }
+    .well-rim {
+      position: absolute;
+      left: 6%; right: 6%; top: 10%; bottom: 16%;
+      border-radius: 50%;
+      background:
+        repeating-conic-gradient(from 12deg, #8d8a82 0 14deg, #6a6860 14deg 22deg, #b0aba0 22deg 30deg, #5c5a54 30deg 38deg),
+        #7a7870;
+      box-shadow:
+        0 5px 0 #3a3832,
+        inset 0 0 0 5px #9a968c,
+        inset 0 0 0 8px #4a4842,
+        inset 0 0 18px rgba(0,0,0,0.45);
+      z-index: 1;
+    }
+    .well-hole {
+      position: absolute;
+      left: 24%; right: 24%; top: 24%; bottom: 24%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 50% 35%, #2a3540 0%, #0e141a 70%);
+      box-shadow: inset 0 0 0 3px #3e3c38, inset 0 6px 10px rgba(0,0,0,0.55);
       overflow: hidden;
     }
+    .well-fill {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 0%;
+      background: radial-gradient(circle at 50% 20%, #c5eef8 0%, #3a9ec4 50%, #16384c 100%);
+      transition: height 0.8s linear;
+      z-index: 0;
+    }
+    .well-moss {
+      position: absolute;
+      left: 18%; bottom: 20%;
+      width: 16%; height: 10%;
+      background: #3d5a32;
+      border-radius: 40%;
+      opacity: 0.55;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .tile.well .emoji { display: none; }
+    .tile.well .label { position: relative; z-index: 4; margin-top: auto; padding-bottom: 0; font-size: 9px; }
     .tile.shed {
       background: #3e2a18;
       border: 3px solid #c4a07a;
@@ -164,12 +208,63 @@
       z-index: 2;
     }
     .tile.silo {
-      background: linear-gradient(180deg, #cfc8b0 0%, #8a7d5a 70%, #5c5138 100%);
-      border: 3px solid #efe6c8;
-      width: calc(var(--tile) * 1.1);
-      height: calc(var(--tile) * 1.25);
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      width: calc(var(--tile) * 0.98);
+      height: calc(var(--tile) * 1.50);
       z-index: 3;
+      overflow: visible;
     }
+    .silo-art {
+      position: absolute;
+      inset: 10px 14px 18px 14px;
+      border-radius: 6px 6px 3px 3px;
+      background:
+        repeating-linear-gradient(180deg, rgba(0,0,0,0.10) 0 3px, transparent 3px 7px),
+        linear-gradient(90deg, #6e1c18 0%, #c43b2e 16%, #e05a48 42%, #b13228 78%, #5a1612 100%);
+      box-shadow: inset 3px 0 0 rgba(255,255,255,0.16), inset -5px 0 8px rgba(0,0,0,0.35), 0 5px 0 #3a100e;
+      overflow: hidden;
+      z-index: 1;
+    }
+    .silo-art::before {
+      content: "";
+      position: absolute;
+      left: 4%; right: 4%;
+      top: -12px;
+      height: 22px;
+      background: radial-gradient(ellipse at 50% 70%, #f2f0ea 0%, #c8c4ba 38%, #8a867c 100%);
+      border-radius: 50% 50% 6px 6px;
+      box-shadow: 0 2px 0 #5a221c;
+    }
+    .silo-art::after {
+      content: "";
+      position: absolute;
+      right: 6px; bottom: 10px;
+      width: 7px; height: 16px;
+      background: #d8d4cc;
+      border-radius: 1px 3px 2px 1px;
+      box-shadow: 2px 8px 0 #8a2a22;
+    }
+    .silo-grain {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 0%;
+      background:
+        repeating-linear-gradient(90deg, rgba(0,0,0,0.07) 0 3px, transparent 3px 6px),
+        linear-gradient(180deg, #f0d56a 0%, #d4a017 45%, #8a6a10 100%);
+      transition: height 0.7s ease;
+      z-index: 0;
+    }
+    .silo-grain::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; top: -7px;
+      height: 12px;
+      background: radial-gradient(ellipse at 50% 100%, #ffe28a 0%, transparent 72%);
+    }
+    .tile.silo .emoji { display: none; }
+    .tile.silo .label { position: relative; z-index: 2; margin-top: auto; padding-bottom: 1px; font-size: 9px; }
         .tile.sheep {
       background: linear-gradient(180deg, #d8d0c0 0%, #8a8374 70%, #4a463c 100%);
       border: 3px solid #efe6d8;
@@ -432,26 +527,38 @@
     .pick {
       display: none;
       position: absolute;
-      right: 42px; bottom: 22px;
-      width: 4px; height: 30px;
-      background: #6b4423;
+      right: 54px; bottom: 20px;
+      width: 3px; height: 34px;
+      background: linear-gradient(#8a5a2b, #4a2e14);
+      border-radius: 1px;
       transform-origin: 50% 100%;
       z-index: 6;
       pointer-events: none;
     }
+    .pick::before,
+    .pick::after { content: ""; position: absolute; }
+    .pick::before {
+      left: -2px; top: 10px;
+      width: 7px; height: 3px;
+      background: #6a6e74;
+      border-radius: 1px;
+    }
     .pick::after {
-      content: "";
-      position: absolute;
-      left: -10px; top: -5px;
-      width: 24px; height: 9px;
-      background: #8a8f96;
-      border-radius: 2px;
+      left: -13px; top: -4px;
+      width: 30px; height: 8px;
+      background: linear-gradient(90deg, #c5c9ce 0%, #8a9098 40%, #5c6168 100%);
+      clip-path: polygon(0 50%, 18% 0, 38% 28%, 62% 28%, 82% 0, 100% 50%, 82% 100%, 62% 72%, 38% 72%, 18% 100%);
+    }
+    .pick.axe::before {
+      left: -3px; top: 8px;
+      width: 8px; height: 4px;
+      background: #6b4423;
     }
     .pick.axe::after {
-      background: #7a8a6a;
-      width: 20px; height: 12px;
-      left: -8px; top: -8px;
-      border-radius: 2px 10px 10px 2px;
+      left: -4px; top: -10px;
+      width: 22px; height: 16px;
+      background: linear-gradient(180deg, #d0d4d8 0%, #8a9096 45%, #4e555c 100%);
+      clip-path: polygon(0 32%, 8% 18%, 18% 38%, 78% 0, 100% 50%, 78% 100%, 18% 62%, 8% 82%, 0 68%);
     }
     .mine-stage.on .pick { display: block; animation: pickStrike 0.42s ease-in-out infinite; }
     .mine-stage.on .rock { animation: resourceHit 0.42s ease-in-out infinite; }
@@ -460,7 +567,7 @@
       background: linear-gradient(#2f6a32 0 62%, #6b4423 62%);
       right: 18px; bottom: 10px;
     }
-    .forest-stage .pick { right: 40px; bottom: 28px; }
+    .forest-stage .pick { right: 52px; bottom: 26px; }
     .forest-stage.on .tree { animation: resourceHit 0.42s ease-in-out infinite; }
     #tool-forest.glow { box-shadow: 0 0 0 2px #c9a227; }
     @keyframes minerBob {
@@ -528,17 +635,9 @@
     }
     .tile.dragging { z-index: 20; opacity: 0.92; filter: brightness(1.08); }
     .tile.holding { z-index: 19; outline: 3px solid var(--gold); filter: brightness(1.1); }
-    .well-fill {
-      position: absolute;
-      left: 0; right: 0; bottom: 0;
-      height: 0%;
-      background: linear-gradient(180deg, #9ad8ee 0%, #2f7ea0 70%, #1b4d66 100%);
-      transition: height 0.8s linear;
-      z-index: 0;
-    }
     .tile.well .label, .tile.well .emoji {
       position: relative;
-      z-index: 1;
+      z-index: 4;
     }
     footer {
       flex: 0 0 auto;
@@ -1608,10 +1707,15 @@
       document.documentElement.style.setProperty("--tile", tileSize + "px");
     }
 
-    function placeEl(el, nx, ny) {
+    function pieceScale(p) {
+      if (p && typeof p.upgrades === "number") return 1.12 + Math.min(3, p.upgrades || 0) * 0.06;
+      return 1;
+    }
+    function placeEl(el, nx, ny, scale) {
       const p = toPx(nx, ny);
-      el.style.left = (p.x - tileSize / 2) + "px";
-      el.style.top = (p.y - tileSize / 2) + "px";
+      const s = scale || 1;
+      el.style.left = (p.x - (tileSize * s) / 2) + "px";
+      el.style.top = (p.y - (tileSize * s) / 2) + "px";
     }
 
     function toPx(nx, ny) {
@@ -1644,13 +1748,13 @@
     }
 
     function allPieces() {
-      return state.wells.map((w) => ({ id: w.id, x: w.x, y: w.y }))
-        .concat((state.silos || []).map((s) => ({ id: s.id, x: s.x, y: s.y })))
-        .concat([{ id: "shed", x: state.shed.x, y: state.shed.y }])
-        .concat(chickens().length && state.coop && typeof state.coop.x === "number" ? [{ id: "coop", x: state.coop.x, y: state.coop.y }] : [])
-        .concat(horses().length && state.horseShed && typeof state.horseShed.x === "number" ? [{ id: "horse", x: state.horseShed.x, y: state.horseShed.y }] : [])
-        .concat(sheep().length && state.sheepPen && typeof state.sheepPen.x === "number" ? [{ id: "sheep", x: state.sheepPen.x, y: state.sheepPen.y }] : [])
-        .concat(state.plots.map((p) => ({ id: p.id, x: p.x, y: p.y })));
+      return state.wells.map((w) => ({ id: w.id, kind: "well", x: w.x, y: w.y, scale: 1.18 }))
+        .concat((state.silos || []).map((s) => ({ id: s.id, kind: "silo", x: s.x, y: s.y, scale: pieceScale(s) })))
+        .concat([{ id: "shed", kind: "shed", x: state.shed.x, y: state.shed.y, scale: 1.22 }])
+        .concat(chickens().length && state.coop && typeof state.coop.x === "number" ? [{ id: "coop", kind: "coop", x: state.coop.x, y: state.coop.y, scale: 1.15 }] : [])
+        .concat(horses().length && state.horseShed && typeof state.horseShed.x === "number" ? [{ id: "horse", kind: "horse", x: state.horseShed.x, y: state.horseShed.y, scale: 1.15 }] : [])
+        .concat(sheep().length && state.sheepPen && typeof state.sheepPen.x === "number" ? [{ id: "sheep", kind: "sheep", x: state.sheepPen.x, y: state.sheepPen.y, scale: 1.15 }] : [])
+        .concat(state.plots.map((pl) => ({ id: pl.id, kind: "plot", x: pl.x, y: pl.y, scale: 1 })));
     }
 
     function posOf(kind, plot) {
@@ -1696,22 +1800,33 @@
       return state.plots.filter((p) => p.id !== skipId).map((p) => ({ id: p.id, x: p.x, y: p.y }));
     }
 
-    function blocked(nx, ny, skipId) {
+    function blocked(nx, ny, skipId, selfScale, selfKind) {
       const a = toPx(nx, ny);
-      const gap = tileSize * 0.84;
+      const ss = selfScale || 1;
       const others = allPieces().filter((p) => p.id !== skipId);
       return others.some((p) => {
         const b = toPx(p.x, p.y);
+        const plotPlot = (selfKind === "plot" && p.kind === "plot") || (!selfKind && p.kind === "plot" && String(skipId || "").indexOf("w") !== 0 && String(skipId || "").indexOf("s") !== 0);
+        const mul = (selfKind === "plot" && p.kind === "plot") ? 0.96 : 1.02;
+        const gap = tileSize * mul * (ss + (p.scale || 1)) / 2;
         return Math.abs(a.x - b.x) < gap && Math.abs(a.y - b.y) < gap;
       });
     }
 
     function snapToSame(nx, ny, kind, skipId) {
-      const { sx, sy } = stepSize();
+      let { sx, sy } = stepSize();
       const peers = sameTypePeers(kind, skipId);
       if (!peers.length) return { x: nx, y: ny };
+      let targetPeers = peers;
+      if (kind === "plot") {
+        const hits = peers.filter((p) => Math.abs(p.x - nx) < sx * 0.72 && Math.abs(p.y - ny) < sy * 0.72);
+        if (!hits.length) return { x: nx, y: ny };
+        hits.sort((a, b) => (Math.abs(a.x - nx) + Math.abs(a.y - ny)) - (Math.abs(b.x - nx) + Math.abs(b.y - ny)));
+        targetPeers = [hits[0]];
+      }
       let best = { x: nx, y: ny, score: 1e9 };
-      peers.forEach((p) => {
+      const lim = kind === "plot" ? 8 : 0.55;
+      targetPeers.forEach((p) => {
         const spots = [
           { x: p.x + sx, y: p.y },
           { x: p.x - sx, y: p.y },
@@ -1721,9 +1836,9 @@
         spots.forEach((s) => {
           s.x = clamp(s.x, 0.04, 0.96);
           s.y = clamp(s.y, 0.04, 0.96);
-          if (blocked(s.x, s.y, skipId)) return;
+          if (blocked(s.x, s.y, skipId, 1, kind)) return;
           const d = Math.abs(s.x - nx) / sx + Math.abs(s.y - ny) / sy;
-          if (d < best.score && d < 0.55) {
+          if (d < best.score && d < lim) {
             best = { x: s.x, y: s.y, score: d };
           }
         });
@@ -2519,6 +2634,10 @@
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Sep 30 — Market Crafts: Food / Equipment / Weapons. Sell stone sword for 5 sats.",
+      "Sep 30 — Market tab renamed Sell. Farm stays selected on the farm view.",
+      "Sep 30 — Fight x2 speed. Pick and axe only while working; hit lands on rock or tree.",
+      "Sep 30 — Stone sword on the miner with handle. Sword swing in fight; fists if unarmed.",
       "Sep 29 — Craft Weapons: stone sword 15 rocks + 7 lumber. Equip for +2 to +5 damage.",
       "Sep 29 — Forest fight after chop. Gear % applies to lumber too.",
       "Sep 29 — Pants / shirt / beanie: same % on rocks and lumber (shown as two stat lines).",
@@ -3339,31 +3458,39 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
 
     function tidyFarm() {
       layout();
-      state.tidyCorner = ((state.tidyCorner || 0) + 1) % 4;
-      const corners = [
-        { px: 0.10, py: 0.12, pdx: 1, pdy: 1, wx: 0.90, wy: 0.12, wdx: -1, wdy: 1, sx: 0.10, sy: 0.88 },
-        { px: 0.90, py: 0.12, pdx: -1, pdy: 1, wx: 0.10, wy: 0.12, wdx: 1, wdy: 1, sx: 0.90, sy: 0.88 },
-        { px: 0.90, py: 0.88, pdx: -1, pdy: -1, wx: 0.10, wy: 0.88, wdx: 1, wdy: -1, sx: 0.90, sy: 0.12 },
-        { px: 0.10, py: 0.88, pdx: 1, pdy: -1, wx: 0.90, wy: 0.88, wdx: -1, wdy: -1, sx: 0.10, sy: 0.12 }
-      ];
-      const c = corners[state.tidyCorner];
-      packGroup(state.plots, c.px, c.py, 3, c.pdx, c.pdy);
-      packGroup(state.wells, c.wx, c.wy, 2, c.wdx, c.wdy);
-      if (state.silos) packGroup(state.silos, c.wx, clamp(c.wy + 0.18 * c.wdy, 0.08, 0.92), 2, c.wdx, c.wdy);
-      state.shed.x = c.sx;
-      state.shed.y = c.sy;
-      if (chickens().length && state.coop) {
-        state.coop.x = 1 - c.sx;
-        state.coop.y = c.sy;
+      const { sx, sy } = stepSize();
+      const gx = Math.max(sx * 1.28, 0.16);
+      const gy = Math.max(sy * 1.28, 0.18);
+      function park(o) { if (o) { o.x = -2; o.y = -2; } }
+      (state.plots || []).forEach(park);
+      (state.wells || []).forEach(park);
+      (state.silos || []).forEach(park);
+      park(state.shed);
+      park(state.coop);
+      park(state.horseShed);
+      park(state.sheepPen);
+      function slot(item) {
+        if (!item) return;
+        const sc = pieceScale(item);
+        for (let y = 0.12; y <= 0.90; y += gy) {
+          for (let x = 0.12; x <= 0.90; x += gx) {
+            if (!blocked(x, y, item.id || "tmp", sc)) {
+              item.x = x;
+              item.y = y;
+              return;
+            }
+          }
+        }
+        item.x = 0.5;
+        item.y = 0.5;
       }
-      if (horses().length && state.horseShed) {
-        state.horseShed.x = c.sx;
-        state.horseShed.y = clamp(c.sy + 0.22, 0.08, 0.92);
-      }
-      if (sheep().length && state.sheepPen) {
-        state.sheepPen.x = clamp(c.sx + 0.18, 0.08, 0.92);
-        state.sheepPen.y = clamp(c.sy + 0.22, 0.08, 0.92);
-      }
+      (state.plots || []).forEach(slot);
+      (state.wells || []).forEach(slot);
+      (state.silos || []).forEach(slot);
+      slot(state.shed);
+      if (chickens().length) slot(state.coop);
+      if (horses().length) slot(state.horseShed);
+      if (sheep().length) slot(state.sheepPen);
       save();
       render();
       toast("Farm cleaned");
@@ -3691,8 +3818,20 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         '<div class="crop-grow"><i style="width:' + pct + '%"></i></div>';
     }
 
+    function unstickSilos() {
+      const move = (item, kind) => {
+        if (!item) return;
+        const sc = pieceScale(item);
+        if (!blocked(item.x, item.y, item.id || kind, sc)) return;
+        const spot = findSpot(kind);
+        if (spot) { item.x = spot.x; item.y = spot.y; }
+      };
+      (state.silos || []).forEach((s) => move(s, "silo"));
+      (state.wells || []).forEach((w) => move(w, "well"));
+    }
     function render() {
       tickCrops();
+      unstickSilos();
       fixNums();
       paintMine();
       paintForest();
@@ -3762,9 +3901,9 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         placeEl(well, w.x, w.y);
         const pct = Math.round((w.water / WELL_MAX) * 100);
         well.innerHTML =
-          '<div class="well-fill" style="height:' + pct + '%"></div>' +
-          '<div class="emoji">💧</div>' +
-          '<div class="label">well ' + w.water + "/" + WELL_MAX + "</div>";
+          '<div class="well-rim"><div class="well-hole"><div class="well-fill" style="height:' + pct + '%"></div></div></div>' +
+          '<div class="well-moss"></div>' +
+          '<div class="label">' + w.water + "/" + WELL_MAX + "</div>";
         bindTile(well, "well", w);
         grid.appendChild(well);
       });
@@ -3772,9 +3911,13 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       (state.silos || []).forEach((s) => {
         const el = document.createElement("div");
         el.className = "tile silo";
-        placeEl(el, s.x, s.y);
         const cap = siloCap(s);
-        el.innerHTML = '<div class="emoji">🏭</div><div class="label">silo ' + cap + '</div>';
+        const fill = cornMax() ? Math.min(100, Math.round((state.corn / cornMax()) * 100)) : 0;
+        const grow = 1 + Math.min(3, s.upgrades || 0) * 0.10;
+        el.style.width = "calc(var(--tile) * " + (0.98 + (s.upgrades||0)*0.06).toFixed(2) + ")";
+        el.style.height = "calc(var(--tile) * " + (1.50 * grow).toFixed(2) + ")";
+        el.innerHTML = '<div class="silo-art"><div class="silo-grain" style="height:' + fill + '%"></div></div><div class="label">' + state.corn + '/' + cornMax() + '</div>';
+        placeEl(el, s.x, s.y, Math.min(1.25, 1.08 + (s.upgrades||0)*0.06));
         bindTile(el, "silo", s);
         grid.appendChild(el);
       });
@@ -3882,7 +4025,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         const pos = posOf(drag.kind, drag.plot);
         pos.x = n.x;
         pos.y = n.y;
-        placeEl(el, n.x, n.y);
+        placeEl(el, n.x, n.y, pieceScale(drag.plot));
       });
       el.addEventListener("pointerup", () => {
         clearHold();
@@ -3897,11 +4040,12 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
           const pos = posOf(drag.kind, drag.plot);
           const snapped = snapToSame(pos.x, pos.y, drag.kind, drag.id);
           let nx = snapped.x, ny = snapped.y;
-          if (blocked(nx, ny, drag.id)) {
+          const sc = pieceScale(drag.plot);
+          if (blocked(nx, ny, drag.id, sc, drag.kind)) {
             nx = pos.x;
             ny = pos.y;
           }
-          if (blocked(nx, ny, drag.id)) {
+          if (blocked(nx, ny, drag.id, sc, drag.kind)) {
             nx = drag.homeX;
             ny = drag.homeY;
             toast("Need free space");
