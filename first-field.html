@@ -228,7 +228,9 @@
       line-height: 1.25;
       background: #24331f;
     }
-        .gear-art { display:block; font-size: 22px; min-height: 24px; line-height: 1; }
+            .gear-art { display:block; min-height: 36px; line-height: 1; }
+    .gear-art svg { width: 36px; height: 36px; display: block; margin: 4px auto; }
+    #gear-pick-list .row { margin-bottom: 6px; }
     .gear-slot small { display:block; opacity:0.7; font-weight:500; }
     .mine-bar { height: 10px; background: rgba(0,0,0,0.35); border-radius: 99px; overflow: hidden; margin: 0 0 8px; }
     .mine-bar > i { display:block; height:100%; width:0%; background: linear-gradient(90deg,#c45c3e,#e8c36a); transition: width 0.2s linear; }
@@ -791,6 +793,11 @@
             <button type="button" class="gear-slot" data-slot="ring1">Ring 1<br><span class="gear-art"></span><small>empty</small></button>
             <button type="button" class="gear-slot" data-slot="ring2">Ring 2<br><span class="gear-art"></span><small>empty</small></button>
           </div>
+        </div>
+        <div id="gear-pick" hidden>
+          <p id="gear-pick-title">Choose gear</p>
+          <div id="gear-pick-list"></div>
+          <button type="button" class="ghost" id="gear-pick-close">Back</button>
         </div>
         <button type="button" class="ghost" id="mine-close">Close</button>
       </div>
@@ -2212,7 +2219,51 @@
     function minerDef() {
       return (state.gearPants ? 1 : 0) + (state.gearShirt ? 1 : 0);
     }
-        function fillGearSlots() {
+        function pantsArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#3d4a73" d="M8 6 h16 v8 l-3 16 h-4 l-1-14-1 14 h-4 L8 14z"/><path fill="#2a334f" d="M15 6 h2 v8 h-2z"/></svg>'; }
+    function shirtArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#6b8f4a" d="M6 10 L12 6 h8 l6 4-4 4 h-2 v12 H12 V14 H8z"/><circle cx="16" cy="8" r="3" fill="#e8c3b0"/></svg>'; }
+
+    function openGearPick(slot) {
+      const pick = document.getElementById("gear-pick");
+      const list = document.getElementById("gear-pick-list");
+      const title = document.getElementById("gear-pick-title");
+      if (!pick || !list) return;
+      const items = [];
+      if (slot === "pants" && (state.pants || 0) > 0) items.push({ id: "pants", name: "Pants  +" + (state.pants) + "  +1 def +15% rocks", art: pantsArt() });
+      if (slot === "armor" && (state.shirts || 0) > 0) items.push({ id: "shirt", name: "Shirt  +" + (state.shirts) + "  +1 def +10% rocks", art: shirtArt() });
+      if (!items.length) { toast(slot === "pants" ? "Craft pants first" : slot === "armor" ? "Craft a shirt first" : "No gear for this slot"); return; }
+      if (title) title.textContent = "Choose for " + (slot === "pants" ? "Legs" : slot === "armor" ? "Chest" : slot);
+      list.innerHTML = items.map(function (it) {
+        return '<div class="row"><span>' + it.art + " " + it.name + '</span><button type="button" data-id="' + it.id + '">Equip</button></div>';
+      }).join("");
+      list.querySelectorAll("button").forEach(function (btn) {
+        btn.onclick = function () {
+          wearItem(btn.getAttribute("data-id"));
+          pick.hidden = true;
+        };
+      });
+      pick.hidden = false;
+    }
+    function wearItem(id) {
+      if (id === "pants") {
+        if ((state.pants || 0) < 1) return;
+        if (state.gearPants) return;
+        state.pants -= 1;
+        state.gearPants = true;
+        toast("Equipped legs");
+      }
+      if (id === "shirt") {
+        if ((state.shirts || 0) < 1) return;
+        if (state.gearShirt) return;
+        state.shirts -= 1;
+        state.gearShirt = true;
+        toast("Equipped chest");
+      }
+      fillGearStats();
+      fillGearSlots();
+      fillBarn();
+      save();
+    }
+    function fillGearSlots() {
       document.querySelectorAll(".gear-slot").forEach(function (el) {
         const slot = el.getAttribute("data-slot");
         const sm = el.querySelector("small");
@@ -2237,11 +2288,11 @@
         const art = el.querySelector(".gear-art");
         if (slot === "pants") {
           if (sm) sm.textContent = state.gearPants ? "+1 def +15% rocks" : "empty";
-          if (art) art.textContent = state.gearPants ? "👖" : "";
+          if (art) art.innerHTML = state.gearPants ? pantsArt() : "";
         }
         if (slot === "armor") {
           if (sm) sm.textContent = state.gearShirt ? "+1 def +10% rocks" : "empty";
-          if (art) art.textContent = state.gearShirt ? "👕" : "";
+          if (art) art.innerHTML = state.gearShirt ? shirtArt() : "";
         }
       });
     }
@@ -3150,6 +3201,8 @@
     if (mineCl) mineCl.onclick = closeAllTabs;
     const startMineBtn = document.getElementById("btn-mine");
     if (startMineBtn) startMineBtn.onclick = startMine;
+    const gpc = document.getElementById("gear-pick-close");
+    if (gpc) gpc.onclick = function () { const b = document.getElementById("gear-pick"); if (b) b.hidden = true; };
     const lootTake = document.getElementById("loot-take");
     if (lootTake) lootTake.onclick = closeLoot;
     const gearBtn = document.getElementById("btn-gear");
@@ -3187,18 +3240,9 @@
           if (state.gearShirt) {
             state.gearShirt = false;
             state.shirts = (state.shirts || 0) + 1;
-            toast("Unequipped shirt");
-          } else if ((state.shirts || 0) < 1) {
-            toast("Craft a shirt first");
-          } else {
-            state.shirts -= 1;
-            state.gearShirt = true;
-            toast("Equipped shirt +1 def, +10% rocks");
-          }
-          fillGearStats();
-          fillGearSlots();
-          fillBarn();
-          save();
+            toast("Unequipped chest");
+            fillGearStats(); fillGearSlots(); fillBarn(); save();
+          } else openGearPick("armor");
           return;
         }
         if (slot === "pants") {
@@ -3206,17 +3250,8 @@
             state.gearPants = false;
             state.pants = (state.pants || 0) + 1;
             toast("Unequipped legs");
-          } else if ((state.pants || 0) < 1) {
-            toast("Craft pants first");
-          } else {
-            state.pants -= 1;
-            state.gearPants = true;
-            toast("Equipped legs +1 def, +15% rocks");
-          }
-          fillGearStats();
-          fillGearSlots();
-          fillBarn();
-          save();
+            fillGearStats(); fillGearSlots(); fillBarn(); save();
+          } else openGearPick("pants");
           return;
         }
         toast("No gear in " + slot + " yet");
