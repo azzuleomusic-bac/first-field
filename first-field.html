@@ -2495,14 +2495,46 @@
     function coopInner() {
       tickChicken();
       const n = chickens().length;
-      const house = '<svg class="barn-svg" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="60" rx="22" ry="3.2" fill="#1a1208" opacity=".35"/><rect x="8" y="28" width="48" height="30" rx="2" fill="#7a4e28"/><g stroke="#4a2c14" stroke-width="1.1"><line x1="8" y1="36" x2="56" y2="36"/><line x1="8" y1="44" x2="56" y2="44"/><line x1="8" y1="52" x2="56" y2="52"/></g><rect x="8" y="28" width="48" height="30" rx="2" fill="none" stroke="#3a2210" stroke-width="1.6"/><path fill="#b43a28" d="M4 30 L32 10 L60 30 L56 32 L32 16 L8 32 Z"/><path fill="#8a2418" d="M8 32 L32 16 L56 32 L54 33.2 L32 18.4 L10 33.2 Z"/><rect x="26" y="12" width="12" height="8" rx="1" fill="#6a3018"/><rect x="28" y="8" width="8" height="6" rx="1" fill="#8a3a1c"/><rect x="30" y="34" width="14" height="18" rx="1" fill="#2a180c"/><rect x="30" y="34" width="7" height="18" fill="#1a1008" opacity=".85"/><rect x="12" y="34" width="10" height="8" rx="1" fill="#1c2830"/><rect x="13" y="35" width="8" height="6" fill="#7ec8e8" opacity=".55"/><path d="M12 58 L22 50 L22 58 Z" fill="#6a4220"/><ellipse cx="18" cy="46" rx="5.2" ry="4.4" fill="#f2d8a0"/><ellipse cx="20.4" cy="44.6" rx="2.4" ry="2.1" fill="#e8c078"/><circle cx="20.8" cy="43.8" r="0.55" fill="#1a120c"/><path d="M23.2 45.2 L26.2 46.4 L23.1 47.2 Z" fill="#e07030"/><ellipse cx="44" cy="54.5" rx="6" ry="3.2" fill="#5a3418"/><ellipse cx="42.6" cy="53.4" rx="1.5" ry="1.9" fill="#f4efe0"/><ellipse cx="45.4" cy="53.6" rx="1.5" ry="1.9" fill="#f0e6d0"/><ellipse cx="44" cy="54.8" rx="1.4" ry="1.7" fill="#efe4c8"/></svg>';
-      let cap = n + "/" + shedCap(state.coop) + " chickens";
-      if (!n) cap = "0/5 chickens";
+      const spots = [
+        [10, 22], [22, 18], [34, 22], [46, 20],
+        [8, 32], [20, 30], [32, 28], [44, 32],
+        [12, 40], [24, 38], [36, 40], [46, 42],
+        [16, 46], [28, 44], [40, 48]
+      ];
+      function oneHen(x, y) {
+        return '<g transform="translate(' + x + ',' + y + ') scale(0.78)">' +
+          '<ellipse cx="7" cy="12" rx="2" ry="1" fill="#1a1208" opacity=".25"/>' +
+          '<ellipse cx="6.5" cy="8" rx="5.2" ry="4" fill="#f2d8a0"/>' +
+          '<ellipse cx="9.4" cy="6.6" rx="2.3" ry="2" fill="#e8c078"/>' +
+          '<circle cx="10.2" cy="6" r="0.45" fill="#1a120c"/>' +
+          '<path d="M12.2 6.6 L15 7.6 L12.1 8.4 Z" fill="#e07030"/>' +
+          '<path d="M8.2 4.2 L9.2 2.4 L10.4 4.4" fill="#c43a28"/>' +
+          '</g>';
+      }
+      let flock = "";
+      const capN = shedCap(state.coop);
+      const show = Math.max(0, Math.min(capN, n));
+      for (let i = 0; i < show; i++) flock += oneHen(spots[i][0], spots[i][1]);
+      const lv = shedLvl(state.coop);
+      let yard;
+      if (lv >= 2) {
+        yard = '<rect x="3" y="3" width="58" height="50" rx="4" fill="#6a3a1c"/>' +
+          '<rect x="5" y="16" width="54" height="35" rx="2" fill="#7a4e28"/>' +
+          '<path fill="#b43a28" d="M4 18 L32 4 L60 18 L56 20 L32 8 L8 20 Z"/>' +
+          '<rect x="28" y="6" width="8" height="8" rx="1" fill="#8a3a1c"/>';
+      } else {
+        yard = '<path fill="#b43a28" d="M4 30 L32 10 L60 30 L56 32 L32 16 L8 32 Z"/>' +
+          '<rect x="8" y="30" width="48" height="26" fill="#7a4e28"/>' +
+          '<rect x="30" y="34" width="14" height="18" fill="#2a180c"/>';
+      }
+      const house = '<svg class="barn-svg" viewBox="0 0 64 64" aria-hidden="true">' + yard + flock + '</svg>';
+      let cap = n + "/" + capN + " chickens";
+      if (!n) cap = "0/" + capN + " chickens";
       const ready = chickens().filter((c) => c.stage === "eggs").length;
       const making = chickens().filter((c) => c.stage === "making");
       if (making.length && !ready) {
         const soon = Math.min.apply(null, making.map((c) => c.readyAt));
-        cap = n + "/" + shedCap(state.coop) + " · " + fmtLeft(soon - now());
+        cap = n + "/" + capN + " · " + fmtLeft(soon - now());
       }
       return house + '<div class="shed-cap">' + cap + "</div>";
     }
@@ -2557,8 +2589,12 @@
         state.coop = { x: spot.x, y: spot.y, chickens: [], level: 1 };
       }
       if (chickens().length >= shedCap(state.coop)) {
-        toast("Coop full (" + shedCap(state.coop) + "). Upgrade for 5 sats + 10 lumber");
-        await upgradeAnimalShed("coop");
+        if (shedLvl(state.coop) < 3) {
+          toast("Coop full (" + shedCap(state.coop) + "). Upgrade for more room");
+          await upgradeAnimalShed("coop");
+        } else {
+          toast("Coop full (15 chickens)");
+        }
         return;
       }
       state.sats -= FF.prices.chicken;
@@ -4343,18 +4379,20 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       const b = animalBuilding(kind);
       if (!b) { toast("No shed yet"); return false; }
       const lv = shedLvl(b);
-      if (kind === "sheep" && lv === 2) {
+      if ((kind === "sheep" || kind === "coop") && lv === 2) {
+        const label = kind === "coop" ? "chicken coop" : "sheep pasture";
+        const who = kind === "coop" ? "chickens" : "sheep";
         if ((state.sats || 0) < 15) { toast("Need 15 sats"); return false; }
         if ((state.lumber || 0) < 25) { toast("Need 25 lumber"); return false; }
         if ((state.rocks || 0) < 25) { toast("Need 25 rocks"); return false; }
-        if (!(await askYes("Upgrade sheep pasture to level 3?\n15 sats + 25 lumber + 25 rocks.\nSize 3×3 → 4×4.\nMax sheep: 10 → 15."))) return false;
+        if (!(await askYes("Upgrade " + label + " to level 3?\n15 sats + 25 lumber + 25 rocks.\nSize 3×3 → 4×4.\nMax " + who + ": 10 → 15."))) return false;
         state.sats -= 15;
         state.lumber -= 25;
         state.rocks -= 25;
         b.level = 3;
-        settleGrown("sheep", b);
-        logMarket("Upgraded sheep pasture to lvl 3 −15 sats −25 lumber −25 rocks");
-        toast("Pasture level 3 · 4×4 · 15 sheep");
+        settleGrown(kind, b);
+        logMarket("Upgraded " + label + " to lvl 3 −15 sats −25 lumber −25 rocks");
+        toast(label + " level 3 · 4×4 · 15 " + who);
         save();
         render();
         return true;
@@ -4396,7 +4434,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       }
       if (kind === "shed" || kind === "coop" || kind === "horse" || kind === "sheep" || kind === "pig") {
         const b = item || animalBuilding(kind);
-        if (kind === "sheep" && shedLvl(b) >= 3) return { w: 4, h: 4 };
+        if ((kind === "sheep" || kind === "coop") && shedLvl(b) >= 3) return { w: 4, h: 4 };
         return shedLvl(b) >= 2 ? { w: 3, h: 3 } : { w: 2, h: 2 };
       }
       return { w: 2, h: 2 };
@@ -5045,9 +5083,9 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         const coop = document.createElement("div");
         coop.className = "tile coop";
         if (chickens().some((c) => c.stage === "eggs")) coop.classList.add("ready");
-        placeEl(coop, state.coop.x, state.coop.y, 1, "coop");
+        placeEl(coop, state.coop.x, state.coop.y, 1, "coop", state.coop);
         coop.innerHTML = coopInner();
-        bindTile(coop, "coop", null);
+        bindTile(coop, "coop", state.coop);
         grid.appendChild(coop);
       }
 
