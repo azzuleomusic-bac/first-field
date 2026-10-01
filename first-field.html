@@ -1136,25 +1136,50 @@
       border: 1px solid rgba(232,195,106,0.3);
       color: var(--gold);
     }
-    #log-tab {
+    #boot-bottom {
       position: absolute;
-      top: 10px;
+      left: 0;
       right: 0;
-      z-index: 12;
-      min-height: 34px;
-      padding: 6px 10px 6px 12px;
-      border-radius: 12px 0 0 12px;
-      font-size: 11px;
+      bottom: 16px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 6;
+      pointer-events: none;
+    }
+    #boot-bottom { z-index: 30; }
+    #boot-updates {
+      pointer-events: auto;
+      position: relative;
+      z-index: 30;
+      transform: none !important;
+      min-height: 44px;
+      padding: 8px 18px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
       letter-spacing: 0.04em;
       background: rgba(14,22,12,0.88);
-      border: 1px solid rgba(232,195,106,0.35);
-      border-right: 0;
+      border: 1px solid rgba(232,195,106,0.45);
+      color: var(--gold);
+    }
+    #log-close {
+      display: block;
+      width: 100%;
+      min-height: 44px;
+      margin-top: 12px;
+      font-size: 15px;
+      font-weight: 700;
     }
     #log-panel {
       display: none;
       position: absolute;
-      top: 48px;
-      right: 8px;
+      top: auto;
+      bottom: 72px;
+      left: 50%;
+      right: auto;
+      transform: translateX(-50%);
       width: min(280px, calc(100% - 16px));
       max-height: 55%;
       overflow: auto;
@@ -1421,6 +1446,7 @@
     #shed-panel .row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; font-size: 13px; }
     #shed-panel button { min-height: 42px; padding: 0 12px; }
   
+    #log-panel { z-index: 20; bottom: calc(var(--safe-bot) + 78px) !important; }
     #market-panel, #barn-panel, #craft-panel, #worth-panel, #log-panel {
       position: fixed !important;
       left: 50% !important;
@@ -1563,6 +1589,14 @@
     <button type="button" id="boot-mute" aria-label="Mute">🔊 Sound on</button>
     <p class="legal">This game is in development. Anything you see is subject to change.</p>
     <p class="copy">© 2026 AZZULEO. All rights reserved.</p>
+    <div id="boot-bottom">
+      <button type="button" id="boot-updates">Update log</button>
+    </div>
+    <div id="log-panel" aria-hidden="true">
+      <h3>First Field log</h3>
+      <ul id="log-list"></ul>
+      <button type="button" id="log-close">Close</button>
+    </div>
           </div>
   <div id="app">
     <header>
@@ -1594,11 +1628,6 @@
         <h3>Farm worth</h3>
         <ul id="worth-list"></ul>
         <button type="button" class="ghost" id="worth-close">Close</button>
-      </div>
-      <button type="button" id="log-tab">Updates</button>
-      <div id="log-panel" aria-hidden="true">
-        <h3>First Field log</h3>
-        <ul id="log-list"></ul>
       </div>
       <div id="market-panel" aria-hidden="true">
         <h3>Market</h3>
@@ -3685,6 +3714,7 @@ if (!state.demoSmithMats) {
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Oct 1 — Update log sits centered on the start screen.",
       "Oct 1 — Killing blow plays, then the loot card. About half a second, not a wait.",
       "Oct 1 — Loot card replaces the fight the moment it ends. No empty wait.",
       "Oct 1 — Loot card opens the moment the fight closes. No wait.",
@@ -6398,7 +6428,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (ev.target.closest("#loot-box, #fight-box, #ask-box, #gear-pick")) return;
       const open = document.querySelector("#market-panel.open, #shed-panel.open, #log-panel.open, #craft-panel.open, #barn-panel.open, #silo-panel.open, #smith-panel.open, #worth-panel.open, #mine-panel.open, #forest-panel.open");
       if (!open) return;
-      if (ev.target.closest("#market-panel, #shed-panel, #log-panel, #craft-panel, #barn-panel, #silo-panel, #smith-panel, #worth-panel, #mine-panel, #forest-panel, #log-tab, #stat-worth, .tile.shed")) return;
+      if (ev.target.closest("#market-panel, #shed-panel, #log-panel, #craft-panel, #barn-panel, #silo-panel, #smith-panel, #worth-panel, #mine-panel, #forest-panel, #boot-updates, #stat-worth, .tile.shed")) return;
       closeAllTabs();
     });
     document.addEventListener("pointerdown", (ev) => {
@@ -6417,7 +6447,8 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (ev.target.closest("#loot-box, #fight-box, #ask-box, #gear-pick")) return;
       closeAllTabs();
     });
-    document.getElementById("log-tab").onclick = () => {
+    document.getElementById("boot-updates").onclick = (ev) => {
+      ev.stopPropagation();
       const pan = document.getElementById("log-panel");
       const willOpen = !pan.classList.contains("open");
       closeAllTabs();
@@ -6427,6 +6458,15 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         pan.setAttribute("aria-hidden", "false");
       }
     };
+    const logClose = document.getElementById("log-close");
+    if (logClose) logClose.onclick = (ev) => { ev.stopPropagation(); closeAllTabs(); };
+    const boot = document.getElementById("boot");
+    if (boot) boot.addEventListener("pointerdown", (ev) => {
+      const pan = document.getElementById("log-panel");
+      if (!pan || !pan.classList.contains("open")) return;
+      if (ev.target.closest("#log-panel, #boot-updates")) return;
+      closeAllTabs();
+    });
     document.getElementById("btn-tidy").onclick = tidyFarm;
     const autoBtn = document.getElementById("btn-auto");
     if (autoBtn) autoBtn.onclick = buyAuto;
