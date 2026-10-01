@@ -117,7 +117,8 @@
     #field-wrap {
       flex: 1 1 auto;
       position: relative;
-      overflow: hidden;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
       background:
         radial-gradient(ellipse 70% 55% at 18% 22%, #5a8a3a 0%, transparent 70%),
         radial-gradient(ellipse 55% 60% at 86% 18%, #4e7c34 0%, transparent 65%),
@@ -149,9 +150,39 @@
       background-size: 64px 64px;
       mix-blend-mode: overlay;
     }
+    #farm-stage {
+      position: relative;
+      background:
+        radial-gradient(ellipse 70% 55% at 18% 22%, #5a8a3a 0%, transparent 70%),
+        radial-gradient(ellipse 55% 60% at 86% 18%, #4e7c34 0%, transparent 65%),
+        radial-gradient(ellipse 80% 50% at 72% 82%, #2a4a1c 0%, transparent 70%),
+        radial-gradient(ellipse 45% 40% at 30% 70%, #3a6228 0%, transparent 75%),
+        linear-gradient(160deg, #3e6c2c, #2f5420);
+    }
     #grid {
-      position: absolute;
-      inset: 0;
+      position: relative;
+      z-index: 2;
+      min-width: 100%;
+      min-height: 100%;
+    }
+    #farm-grid { position: absolute; left: 0; top: 0; }
+    #zoom-bar {
+      position: fixed;
+      top: calc(var(--safe-top) + 112px);
+      left: 8px;
+      z-index: 35;
+      display: none;
+      gap: 6px;
+    }
+    #zoom-bar.on { display: flex; }
+    #zoom-bar button {
+      min-width: 40px;
+      min-height: 36px;
+      border-radius: 10px;
+      border: 1px solid rgba(232,195,106,0.45);
+      background: rgba(14,22,12,0.88);
+      color: #f4efe6;
+      font-weight: 800;
     }
     .tile {
       position: absolute;
@@ -164,7 +195,7 @@
       align-items: center;
       justify-content: center;
       box-shadow: 0 6px 0 var(--soil-dark), 0 10px 18px rgba(0,0,0,0.28);
-      z-index: 2;
+      z-index: 5;
       touch-action: none;
       user-select: none;
       -webkit-user-select: none;
@@ -856,20 +887,23 @@
       color: var(--gold);
       font-variant-numeric: tabular-nums;
     }
-    .tile.dragging { z-index: 20; }
+    .tile.dragging { z-index: 30; }
     #farm-grid {
       display: none;
       position: absolute;
-      inset: 0;
-      pointer-events: none;
+      left: 0;
+      top: 0;
       z-index: 1;
+      pointer-events: none;
     }
     #farm-grid.on { display: block; }
     #farm-grid i {
       position: absolute;
-      border: 1px solid rgba(232,195,106,0.28);
-      border-radius: 6px;
+      border: 2px solid rgba(232,195,106,0.85);
+      background: transparent;
+      border-radius: 4px;
       box-sizing: border-box;
+      pointer-events: none;
     }
     .tile.holding { z-index: 19; outline: 3px solid var(--gold); filter: brightness(1.1); }
     .tile.well .label, .tile.well .emoji {
@@ -1475,9 +1509,15 @@
       <input id="set-vol" type="range" min="0" max="100" value="70">
       <button type="button" id="set-off">Music off</button>
     </div>
+    <div id="zoom-bar">
+      <button type="button" id="zoom-out">−</button>
+      <button type="button" id="zoom-reset">1×</button>
+      <button type="button" id="zoom-in">+</button>
+    </div>
     <div id="field-wrap">
-      <div id="farm-grid" aria-hidden="true"></div>
+      <div id="farm-stage">
       <div id="grid"></div>
+      </div>
       <div class="pill" id="stat-worth">Farm worth 0 sats</div>
       <div id="worth-panel" aria-hidden="true">
         <h3>Farm worth</h3>
@@ -2179,6 +2219,37 @@
       const g = gridMeta();
       tileSize = g.cell;
       document.documentElement.style.setProperty("--tile", tileSize + "px");
+      const w = g.pad * 2 + g.cols * g.cell;
+      const h = g.pad * 2 + g.rows * g.cell;
+      const z = g.zoom || 1;
+      const stage = document.getElementById("farm-stage");
+      const grid = document.getElementById("grid");
+      if (stage) {
+        stage.style.width = Math.max(w * z, wrap.clientWidth) + "px";
+        stage.style.height = Math.max(h * z, wrap.clientHeight) + "px";
+      }
+      if (grid) {
+        grid.style.width = w + "px";
+        grid.style.height = h + "px";
+        grid.style.transformOrigin = "0 0";
+        grid.style.transform = "scale(" + z + ")";
+      }
+      let fg = document.getElementById("farm-grid");
+      if (grid && !fg) {
+        fg = document.createElement("div");
+        fg.id = "farm-grid";
+        fg.setAttribute("aria-hidden", "true");
+        grid.appendChild(fg);
+      } else if (grid && fg && fg.parentNode !== grid) grid.appendChild(fg);
+      const bar = document.getElementById("zoom-bar");
+      const marketOpen = document.getElementById("market-panel") && document.getElementById("market-panel").classList.contains("open");
+      if (bar) bar.classList.toggle("on", (state.farmExpands || 0) >= 1 && !marketOpen);
+    }
+    function setFarmZoom(z, paint) {
+      if ((state.farmExpands || 0) < 1) return;
+      state.viewZoom = Math.max(0.7, Math.min(2.4, z));
+      layout();
+      if (paint !== false) render();
     }
 
     function pieceScale(p) {
@@ -2217,9 +2288,10 @@
 
     function fromPx(px, py) {
       const g = gridMeta();
+      const z = g.zoom || 1;
       return {
-        x: clamp((px - g.pad) / (g.cols * g.cell), 0, 1),
-        y: clamp((py - g.pad) / (g.rows * g.cell), 0, 1)
+        x: clamp((px - g.pad * z) / (g.cols * g.cell * z), 0, 1),
+        y: clamp((py - g.pad * z) / (g.rows * g.cell * z), 0, 1)
       };
     }
 
@@ -3497,7 +3569,7 @@
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
-      "Oct 1 — Farm fight music in Mine and Forest fights. Farm songs pause for the fight, then come back.",
+      "Oct 1 — After the first expand, zoom and scroll the farm. Grid box count per expand stays the same.",
       "Oct 1 — Corn and carrot grow in 10 seconds. Harvest chops the stalks at the base and they fall.",
       "Oct 1 — Clean farm packs buildings in rows, then plots in one block. No stacking on pastures.",
       "Oct 1 — Horse pasture: starts 3×3, Lvl 2 = 4×4 / 10, Lvl 3 = 5×5 / 15. Same upgrade price as cows.",
@@ -4460,6 +4532,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       renderMarketHistory();
       pan.classList.add("open");
       pan.setAttribute("aria-hidden", "false");
+      layout();
     }
     function closeMarket() {
       closeAllTabs();
@@ -4584,6 +4657,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (state.sats < cost) { toast("Need " + cost + " sats to expand"); return false; }
       state.sats -= cost;
       state.farmExpands = (state.farmExpands || 0) + 1;
+      state.viewZoom = 1;
       logMarket("Farm +30% −" + cost + " sats");
       layout();
       save();
@@ -4676,11 +4750,12 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       const extra = state.farmExpands || 0;
       const cols = 8 + extra * 2;
       const rows = 10 + extra * 2;
-      const cell = Math.max(18, Math.min(
+      const fitAll = Math.max(18, Math.min(
         (wrap.clientWidth - pad * 2) / cols,
         (wrap.clientHeight - pad * 2) / rows
       ));
-      return { cols: cols, rows: rows, cell: cell, pad: pad };
+      const z = extra < 1 ? 1 : Math.max(1, Math.min(2.4, state.viewZoom || 1));
+      return { cols: cols, rows: rows, cell: fitAll, pad: pad, zoom: z };
     }
     function snapCell(nx, ny, kind, item) {
       const g = gridMeta();
@@ -4700,12 +4775,23 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       };
     }
     function showFarmGrid(on) {
-      const box = document.getElementById("farm-grid");
-      if (!box) return;
+      const grid = document.getElementById("grid");
+      if (!grid) return;
+      let box = document.getElementById("farm-grid");
+      if (!box) {
+        box = document.createElement("div");
+        box.id = "farm-grid";
+      }
+      if (box.parentNode !== grid) grid.insertBefore(box, grid.firstChild);
       box.classList.toggle("on", !!on);
       box.innerHTML = "";
       if (!on) return;
       const g = gridMeta();
+      box.style.left = "0px";
+      box.style.top = "0px";
+      box.style.width = "100%";
+      box.style.height = "100%";
+      box.style.transform = "none";
       for (let r = 0; r < g.rows; r++) {
         for (let c = 0; c < g.cols; c++) {
           const i = document.createElement("i");
@@ -4872,6 +4958,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (state.sats < cost) { toast("Need " + cost + " sats to expand"); return null; }
       state.sats -= cost;
       state.farmExpands = (state.farmExpands || 0) + 1;
+      state.viewZoom = 1;
       logMarket("Farm +30% −" + cost + " sats");
       layout();
       save();
@@ -4992,12 +5079,12 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (state.sats < cost) { toast("Need " + cost + " sats"); return; }
       state.sats -= cost;
       state.farmExpands = (state.farmExpands || 0) + 1;
+      state.viewZoom = 1;
       logMarket("Farm +30% −" + cost + " sats");
       toast("Farm expanded");
       layout();
       save();
       render();
-      openMarket(true);
     }
 
     async function buyWell() {
@@ -5644,8 +5731,12 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         }, 700);
       });
       el.addEventListener("pointermove", (ev) => {
+        if (Math.hypot(ev.clientX - startPX, ev.clientY - startPY) > 12) {
+          pendingTap = false;
+          clearHold();
+        }
         if (!drag || drag.el !== el) return;
-        const rect = wrap.getBoundingClientRect();
+        const rect = document.getElementById("grid").getBoundingClientRect();
         const x = ev.clientX - rect.left;
         const y = ev.clientY - rect.top;
         const n = fromPx(x, y);
@@ -5657,10 +5748,10 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         pos.y = snap.y;
         placeEl(el, snap.x, snap.y, 1, drag.kind, drag.plot);
       });
-      el.addEventListener("pointerup", () => {
+      el.addEventListener("pointerup", (ev) => {
         clearHold();
         holdLock = false;
-        if (pendingTap && !(drag && drag.el === el)) {
+        if (pendingTap && !(drag && drag.el === el) && Math.hypot(ev.clientX - startPX, ev.clientY - startPY) < 12) {
           pendingTap = false;
           tapAction();
           return;
@@ -5712,6 +5803,29 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (el) el.onclick = fn;
     }
     on("mode-farm", () => { state.mode = "farm"; render(); });
+    on("zoom-in", function () { setFarmZoom((state.viewZoom || 1) + 0.25); });
+    on("zoom-out", function () { setFarmZoom((state.viewZoom || 1) - 0.25); });
+    on("zoom-reset", function () { setFarmZoom(1); });
+    (function farmPinch() {
+      let startDist = 0, startZoom = 1;
+      wrap.addEventListener("touchstart", function (ev) {
+        if ((state.farmExpands || 0) < 1 || ev.touches.length < 2) return;
+        const a = ev.touches[0], b = ev.touches[1];
+        startDist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1;
+        startZoom = state.viewZoom || 1;
+      }, { passive: false });
+      wrap.addEventListener("touchmove", function (ev) {
+        if ((state.farmExpands || 0) < 1 || ev.touches.length < 2 || !startDist) return;
+        ev.preventDefault();
+        const a = ev.touches[0], b = ev.touches[1];
+        const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1;
+        setFarmZoom(startZoom * (d / startDist), false);
+      }, { passive: false });
+      wrap.addEventListener("touchend", function () {
+        if (startDist) render();
+        startDist = 0;
+      });
+    })();
     const mvBtn = document.getElementById("mode-move");
     if (mvBtn) mvBtn.onclick = () => { state.mode = "move"; render(); };
     document.getElementById("shed-feed").onclick = feedCow;
