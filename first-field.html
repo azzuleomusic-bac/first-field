@@ -1173,7 +1173,13 @@
     }
 
     #market-panel h3, #craft-panel h3, #barn-panel h3, #worth-panel h3, #mine-panel h3, #forest-panel h3 { margin: 0 0 8px; font-size: 14px; color: var(--gold); }
-    #market-panel p, #craft-panel p, #barn-panel p, #worth-panel p, #mine-panel p, #forest-panel p { margin: 0 0 10px; font-size: 12px; opacity: 0.8; }
+    #market-panel p.disclaimer {
+      margin: 0 0 10px;
+      font-size: 11px;
+      line-height: 1.35;
+      opacity: 0.7;
+      font-weight: 500;
+    }
         #market-panel .have { display:block; font-size:11px; opacity:0.75; margin-top:2px; font-weight:600; color:var(--gold); }
     #market-panel .row, #craft-panel .row, #barn-panel .row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; font-size: 13px; }
 
@@ -1272,7 +1278,7 @@
       </div>
       <div id="market-panel" aria-hidden="true">
         <h3>Market</h3>
-        <p>Visual sats only — no real Bitcoin yet.</p>
+        <p class="disclaimer">Demo market to simulate the future online market. Prices shown do not reflect future value. Visual sats only — no real Bitcoin yet.</p>
         <div class="modes three" id="market-tabs" style="margin-bottom:8px">
           <button type="button" id="mtab-resources">Sell</button>
           <button type="button" id="mtab-seeds">Seeds</button>
@@ -1288,7 +1294,7 @@
             <div class="row"><span>50 💧 water → 1 ⚡ sat<br><small class="have" data-have="water"></small></span><button type="button" id="sell-water">Sell water</button></div>
             <div class="row"><span>10 🥕 carrots → 1 ⚡ sat<br><small class="have" data-have="carrots"></small></span><button type="button" id="sell-carrots">Sell carrots</button></div>
             <div class="row"><span>40 🌽 corn → 1 ⚡ sat<br><small class="have" data-have="corn"></small></span><button type="button" id="sell-corn">Sell corn</button></div>
-            <div class="row"><span>20 🍎 apples → 3 ⚡ sats<br><small class="have" data-have="apples"></small></span><button type="button" id="sell-apples">Sell apples</button></div>
+            <div class="row"><span>15 🍎 apples → 1 ⚡ sat<br><small class="have" data-have="apples"></small></span><button type="button" id="sell-apples">Sell apples</button></div>
           </div>
           <div id="rcat-animal-list" hidden>
             <div class="row"><span>5 🥛 milk → 1 ⚡ sat<br><small class="have" data-have="milk"></small></span><button type="button" id="sell-milk">Sell milk</button></div>
@@ -1889,9 +1895,9 @@
       });
     }
     function fixNums() {
-      ["water","carrots","corn","carrotSeeds","cornSeeds","milk","eggs","pudding","pants","shirts","beanies","rocks","wool","horseHair","sats"].forEach((k) => {
+      ["water","carrots","corn","carrotSeeds","cornSeeds","milk","eggs","pudding","pants","shirts","beanies","rocks","wool","horseHair","sats","apples","swords","lumber"].forEach((k) => {
         const n = Number(state[k]);
-        state[k] = Number.isFinite(n) ? n : 0;
+        state[k] = Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
       });
     }
     function toast(msg) {
@@ -3808,20 +3814,22 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     }
 
     async function askSellBundles(have, unit, label) {
-      const maxB = Math.floor(have / unit);
-      if (maxB < 1) { toast("Need " + unit + " " + label); return (state.gearPants ? 1 : 0) + (state.gearShirt ? 1 : 0); }
+      const stock = Math.max(0, Number(have) || 0);
+      const maxB = Math.floor(stock / unit);
+      if (maxB < 1) { toast("Need " + unit + " " + label); return 0; }
       if (maxB === 1) {
         return (await askYes("Sell " + unit + " " + label + " for 1 sat?")) ? 1 : 0;
       }
       if (await askYes("Sell ALL? " + (maxB * unit) + " " + label + " for " + maxB + " sats")) return maxB;
       if (await askYes("Sell just one? " + unit + " " + label + " for 1 sat")) return 1;
-      return (state.gearPants ? 1 : 0) + (state.gearShirt ? 1 : 0);
+      return 0;
     }
 
     async function sellMilk() {
       const n = await askSellBundles(state.milk, FF.sell.milk.qty, "milk");
-      if (!n) return;
-      state.milk -= n * FF.sell.milk.qty;
+      const need = n * FF.sell.milk.qty;
+      if (!n || (state.milk || 0) < need) return;
+      state.milk -= need;
       state.sats += n;
       logMarket("Sold " + (n * 5) + " milk +" + n + " sat");
       toast("Sold " + (n * 5) + " milk for " + n + " sat");
@@ -3832,8 +3840,9 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
 
     async function sellWater() {
       const n = await askSellBundles(state.water, FF.sell.water.qty, "water");
-      if (!n) return;
-      state.water -= n * FF.sell.water.qty;
+      const need = n * FF.sell.water.qty;
+      if (!n || (state.water || 0) < need) return;
+      state.water -= need;
       state.sats += n;
       logMarket("Sold " + (n * 50) + " water +" + n + " sat");
       toast("Sold " + (n * 50) + " water for " + n + " sat");
@@ -3863,8 +3872,9 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
 
     async function sellCorn() {
       const n = await askSellBundles(state.corn, FF.sell.corn.qty, "corn");
-      if (!n) return;
-      state.corn -= n * FF.sell.corn.qty;
+      const need = n * FF.sell.corn.qty;
+      if (!n || (state.corn || 0) < need) return;
+      state.corn -= need;
       state.sats += n;
       logMarket("Sold " + (n * 40) + " corn +" + n + " sat");
       toast("Sold " + (n * 40) + " corn for " + n + " sat");
@@ -3875,8 +3885,9 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
 
     async function sellCarrots() {
       const n = await askSellBundles(state.carrots, FF.sell.carrots.qty, "carrots");
-      if (!n) return;
-      state.carrots -= n * FF.sell.carrots.qty;
+      const need = n * FF.sell.carrots.qty;
+      if (!n || (state.carrots || 0) < need) return;
+      state.carrots -= need;
       state.sats += n;
       logMarket("Sold " + (n * 10) + " carrots +" + n + " sat");
       toast("Sold " + (n * 10) + " carrots for " + n + " sat");
@@ -4952,9 +4963,9 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     document.getElementById("buy-tree").onclick = buyTree;
         const sellApples = document.getElementById("sell-apples");
     if (sellApples) sellApples.onclick = function(){
-      if ((state.apples || 0) < 20) { toast("Need 20 apples"); return; }
-      state.apples -= 20; state.sats += 3;
-      logMarket("Sold 20 apples +3 sats");
+      if ((state.apples || 0) < 15) { toast("Need 15 apples"); return; }
+      state.apples -= 15; state.sats += 1;
+      logMarket("Sold 15 apples +1 sat");
       save(); render();
     };
     document.getElementById("mtab-resources").onclick = () => showMarketTab("resources");
