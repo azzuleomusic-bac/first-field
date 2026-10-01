@@ -2502,7 +2502,7 @@
         [16, 46], [28, 44], [40, 48]
       ];
       function oneHen(x, y) {
-        return '<g transform="translate(' + x + ',' + y + ') scale(0.78)">' +
+        return '<g class="hen-bod" transform="translate(' + x + ',' + y + ') scale(0.78)">' +
           '<ellipse cx="7" cy="12" rx="2" ry="1" fill="#1a1208" opacity=".25"/>' +
           '<ellipse cx="6.5" cy="8" rx="5.2" ry="4" fill="#f2d8a0"/>' +
           '<ellipse cx="9.4" cy="6.6" rx="2.3" ry="2" fill="#e8c078"/>' +
@@ -2697,7 +2697,7 @@
         [16, 42], [28, 40], [40, 44]
       ];
       function oneSheep(x, y) {
-        return '<g transform="translate(' + x + ',' + y + ') scale(0.72)">' +
+        return '<g class="sheep-bod" transform="translate(' + x + ',' + y + ') scale(0.72)">' +
           '<ellipse cx="9" cy="16.6" rx="2.2" ry="1.1" fill="#1a1208" opacity=".28"/>' +
           '<rect x="5.2" y="12.2" width="1.5" height="4.2" rx=".6" fill="#3a3228"/>' +
           '<rect x="11.4" y="12.2" width="1.5" height="4.2" rx=".6" fill="#3a3228"/>' +
@@ -5014,6 +5014,10 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       const hintEl = document.getElementById("hint");
       if (hintEl) hintEl.textContent = state.mode === "move" ? hints.move.any : (hints.farm[state.tool] || "");
 
+      const keepSheep = grid.querySelector(".tile.sheep");
+      if (keepSheep) keepSheep.remove();
+      const keepCoop = grid.querySelector(".tile.coop");
+      if (keepCoop) keepCoop.remove();
       grid.innerHTML = "";
 
       state.plots.forEach((plot) => {
@@ -5080,12 +5084,25 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       grid.appendChild(shed);
 
       if (chickens().length && state.coop && typeof state.coop.x === "number") {
-        const coop = document.createElement("div");
+        const sig = String(chickens().length) + ":" + shedLvl(state.coop) + ":" + Math.round((state.coop.x||0)*100) + ":" + Math.round((state.coop.y||0)*100);
+        const coop = (keepCoop && keepCoop.dataset.sig === sig) ? keepCoop : document.createElement("div");
         coop.className = "tile coop";
+        coop.dataset.sig = sig;
         if (chickens().some((c) => c.stage === "eggs")) coop.classList.add("ready");
+        else coop.classList.remove("ready");
         placeEl(coop, state.coop.x, state.coop.y, 1, "coop", state.coop);
-        coop.innerHTML = coopInner();
-        bindTile(coop, "coop", state.coop);
+        if (coop !== keepCoop) {
+          coop.innerHTML = coopInner();
+          bindTile(coop, "coop", state.coop);
+        } else {
+          const cap = coop.querySelector(".shed-cap");
+          if (cap) {
+            const tmp = document.createElement("div");
+            tmp.innerHTML = coopInner();
+            const next = tmp.querySelector(".shed-cap");
+            if (next) cap.textContent = next.textContent;
+          }
+        }
         grid.appendChild(coop);
       }
 
@@ -5099,12 +5116,26 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         grid.appendChild(stable);
       }
       if (sheep().length && state.sheepPen && typeof state.sheepPen.x === "number") {
-        const pen = document.createElement("div");
+        const sig = String(sheep().length) + ":" + shedLvl(state.sheepPen) + ":" + Math.round((state.sheepPen.x||0)*100) + ":" + Math.round((state.sheepPen.y||0)*100);
+        const pen = (keepSheep && keepSheep.dataset.sig === sig) ? keepSheep : document.createElement("div");
         pen.className = "tile sheep";
+        pen.dataset.sig = sig;
         if (sheep().some((s) => s.stage === "wool")) pen.classList.add("ready");
+        else pen.classList.remove("ready");
         placeEl(pen, state.sheepPen.x, state.sheepPen.y, 1, "sheep", state.sheepPen);
-        pen.innerHTML = sheepInner();
-        bindTile(pen, "sheep", state.sheepPen);
+        if (pen !== keepSheep) {
+          pen.innerHTML = sheepInner();
+          bindTile(pen, "sheep", state.sheepPen);
+        } else {
+          const cap = pen.querySelector(".shed-cap");
+          if (cap) {
+            const html = sheepInner();
+            const tmp = document.createElement("div");
+            tmp.innerHTML = html;
+            const next = tmp.querySelector(".shed-cap");
+            if (next) cap.textContent = next.textContent;
+          }
+        }
         grid.appendChild(pen);
       }
       if (pigs().length && state.pigPen && typeof state.pigPen.x === "number") {
@@ -5578,6 +5609,106 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     ensureDemoSheds();
     last = now();
     render();
+    (function walkSheep() {
+      const box = { x0: 7, y0: 14, x1: 48, y1: 42 };
+      const souls = [];
+      function aim() {
+        return {
+          x: box.x0 + Math.random() * (box.x1 - box.x0),
+          y: box.y0 + Math.random() * (box.y1 - box.y0)
+        };
+      }
+      function step() {
+        const nodes = document.querySelectorAll(".tile.sheep g.sheep-bod");
+        if (souls.length !== nodes.length) {
+          souls.length = 0;
+          nodes.forEach(function (g) {
+            const t = g.getAttribute("transform") || "";
+            const m = /translate\(([-0-9.]+),\s*([-0-9.]+)\)/.exec(t);
+            const p = aim();
+            souls.push({
+              x: m ? Number(m[1]) : p.x,
+              y: m ? Number(m[2]) : p.y,
+              tx: p.x,
+              ty: p.y,
+              wait: Math.random() * 800
+            });
+          });
+        }
+        nodes.forEach(function (g, i) {
+          const s = souls[i];
+          if (!s) return;
+          if (s.wait > 0) { s.wait -= 16; }
+          else {
+            const dx = s.tx - s.x, dy = s.ty - s.y;
+            const d = Math.sqrt(dx * dx + dy * dy) || 1;
+            if (d < 0.6) {
+              const n = aim();
+              s.tx = n.x; s.ty = n.y;
+              s.wait = 400 + Math.random() * 1400;
+            } else {
+              const spd = 0.07;
+              s.x += (dx / d) * spd;
+              s.y += (dy / d) * spd;
+            }
+          }
+          const face = (s.tx < s.x) ? 1 : -1;
+          g.setAttribute("transform", "translate(" + s.x.toFixed(2) + "," + s.y.toFixed(2) + ") scale(0.72) translate(8,8) scale(" + face + ",1) translate(-8,-8)");
+        });
+        requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    })();
+    (function walkHens() {
+      const box = { x0: 8, y0: 18, x1: 48, y1: 44 };
+      const souls = [];
+      function aim() {
+        return {
+          x: box.x0 + Math.random() * (box.x1 - box.x0),
+          y: box.y0 + Math.random() * (box.y1 - box.y0)
+        };
+      }
+      function step() {
+        const nodes = document.querySelectorAll(".tile.coop g.hen-bod");
+        if (souls.length !== nodes.length) {
+          souls.length = 0;
+          nodes.forEach(function (g) {
+            const t = g.getAttribute("transform") || "";
+            const m = /translate\(([-0-9.]+),\s*([-0-9.]+)\)/.exec(t);
+            const p = aim();
+            souls.push({
+              x: m ? Number(m[1]) : p.x,
+              y: m ? Number(m[2]) : p.y,
+              tx: p.x,
+              ty: p.y,
+              wait: Math.random() * 700
+            });
+          });
+        }
+        nodes.forEach(function (g, i) {
+          const s = souls[i];
+          if (!s) return;
+          if (s.wait > 0) { s.wait -= 16; }
+          else {
+            const dx = s.tx - s.x, dy = s.ty - s.y;
+            const d = Math.sqrt(dx * dx + dy * dy) || 1;
+            if (d < 0.6) {
+              const n = aim();
+              s.tx = n.x; s.ty = n.y;
+              s.wait = 280 + Math.random() * 900;
+            } else {
+              const spd = 0.11;
+              s.x += (dx / d) * spd;
+              s.y += (dy / d) * spd;
+            }
+          }
+          const face = (s.tx < s.x) ? -1 : 1;
+          g.setAttribute("transform", "translate(" + s.x.toFixed(2) + "," + s.y.toFixed(2) + ") scale(0.78) translate(7,7) scale(" + face + ",1) translate(-7,-7)");
+        });
+        requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    })();
     requestAnimationFrame(loop);
     const bootBtn = document.getElementById("boot-start");
     const bootSong = document.getElementById("boot-song");
