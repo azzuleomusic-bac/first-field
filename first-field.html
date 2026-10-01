@@ -2770,10 +2770,12 @@
       render();
     }
     function autoPlantWaterHarvest() {
+      const seed = (state.tool === "carrot") ? "carrot" : "corn";
+      const crop = CROPS[seed];
       state.plots.forEach((plot) => {
         if (plot.crop && (plot.crop.stage === "ready" || cropReady(plot))) harvest(plot);
-        if (plot.crop && plot.crop.stage === "dry" && state.water >= 1) waterPlot(plot);
-        if (!plot.crop && state.cornSeeds >= 1) plant(plot, "corn");
+        if (plot.crop && plot.crop.stage === "dry" && state.water >= (crop.waterCost || 1)) waterPlot(plot);
+        if (!plot.crop && crop && (state[crop.seedKey] || 0) >= 1) plant(plot, seed);
       });
     }
     function autoWells() {
@@ -2907,6 +2909,7 @@
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Sep 30 — Auto plants the selected seed (carrot or corn).",
       "Sep 30 — Tap one well to collect that well only.",
       "Sep 30 — Sell only if you have the goods. Stock cannot go below 0.",
       "Sep 30 — Apples: 15 → 1 sat. Demo market note: prices are not future value.",
