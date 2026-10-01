@@ -1,6 +1,8 @@
-/* 2026-09-30-sounds-visible */
+/* 2026-09-30-sell-guard */
 window.FF = window.FF || {};
 window.FF.updates = [
+  "Sep 30 \u2014 Sell only if you have the goods. Stock cannot go below 0.",
+  "Sep 30 \u2014 Apples: 15 \u2192 1 sat. Demo market note: prices are not future value.",
   "Sep 30 \u2014 Mine and forest hits only play while that panel is open on screen.",
   "Sep 30 \u2014 Sounds: pick cracks rock in the mine, axe thud in the forest, splash when you take well water.",
   "Sep 30 \u2014 Ready sheds glow instead of saying milk ready. Drag shows cell count.",
