@@ -5243,10 +5243,11 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       return musicGain;
     }
     function currentVol() {
-      let vol = 70;
+      let vol = 100;
       try {
-        const n = Number(localStorage.getItem("ff-vol"));
-        if (Number.isFinite(n)) vol = n;
+        const raw = localStorage.getItem("ff-vol");
+        const n = Number(raw);
+        if (raw != null && Number.isFinite(n) && n >= 15) vol = n;
       } catch (e) {}
       return Math.max(0, Math.min(100, vol));
     }
