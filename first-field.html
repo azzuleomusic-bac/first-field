@@ -2778,8 +2778,9 @@
     }
     function autoWells() {
       const room = waterMax() - state.water;
-      const pool = (state.wells || []).reduce((n, w) => n + (w.water || 0), 0);
-      if (room > 0 && pool > 0) collectWell(state.wells[0]);
+      if (room <= 0) return;
+      const ready = (state.wells || []).find((w) => (w.water || 0) > 0);
+      if (ready) collectWell(ready);
     }
     function autoTrees() {
       (state.trees || []).forEach((tr) => {
@@ -2906,6 +2907,10 @@
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Sep 30 — Tap one well to collect that well only.",
+      "Sep 30 — Sell only if you have the goods. Stock cannot go below 0.",
+      "Sep 30 — Apples: 15 → 1 sat. Demo market note: prices are not future value.",
+      "Sep 30 — Mine and forest hits only play while that panel is open on screen.",
       "Sep 30 — Sounds: pick cracks rock in the mine, axe thud in the forest, splash when you take well water.",
       "Sep 30 — Ready sheds glow instead of saying milk ready. Drag shows cell count.",
       "Sep 30 — Sheds: Lvl 1 is 2×2 / 5 animals. Lvl 2 is 5 sats + 10 lumber, 3×3 / 10 animals.",
@@ -4327,30 +4332,26 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       });
     }
     function collectWell(well) {
+      if (!well) {
+        toast("Tap a well");
+        return;
+      }
       const room = waterMax() - state.water;
       if (room <= 0) {
         toast("Water can is full");
         return;
       }
-      const pool = (state.wells || []).reduce((n, w) => n + (w.water || 0), 0);
+      const pool = well.water || 0;
       if (pool <= 0) {
-        toast("Wells are empty — wait a bit");
+        toast("This well is empty — wait a bit");
         return;
       }
-      let need = Math.min(room, pool);
-      let take = 0;
-      const at = well || (state.wells && state.wells[0]);
-      (state.wells || []).forEach((w) => {
-        if (need <= 0) return;
-        const sip = Math.min(w.water, need);
-        w.water -= sip;
-        need -= sip;
-        take += sip;
-      });
+      const take = Math.min(room, pool);
+      well.water -= take;
       state.water += take;
-      if (take && at) {
+      if (take) {
         playWellCollect();
-        floatGain(at.x, at.y, "💧 +" + take);
+        floatGain(well.x, well.y, "💧 +" + take);
       }
       toast("+" + take + " water");
       save();
