@@ -3497,6 +3497,11 @@
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Oct 1 — Farm fight music in Mine and Forest fights. Farm songs pause for the fight, then come back.",
+      "Oct 1 — Corn and carrot grow in 10 seconds. Harvest chops the stalks at the base and they fall.",
+      "Oct 1 — Clean farm packs buildings in rows, then plots in one block. No stacking on pastures.",
+      "Oct 1 — Horse pasture: starts 3×3, Lvl 2 = 4×4 / 10, Lvl 3 = 5×5 / 15. Same upgrade price as cows.",
+      "Oct 1 — Cow pasture: lush yard, cows walk inside the fence. Lvl 3 is 5×5 / 15.",
       "Oct 1 — Pig pen: muddy paddock that fills its grid zone. Pigs walk and face the way they go.",
       "Oct 1 — Pigs use the same upgrade path as sheep: Lvl 2 = 3×3 / 10, Lvl 3 = 15 sats + 25 wood + 25 rocks → 4×4 / 15.",
       "Oct 1 — Start button stays pressed while you hold it, pops back on release, then the splash fades into the farm.",
@@ -3762,6 +3767,8 @@
         if (c <= 0 || m <= 0) {
           clearInterval(fightTimer);
           fightTimer = 0;
+          const fsNow = document.getElementById("fight-song");
+          if (fsNow) { fsNow.pause(); try { fsNow.currentTime = 0; } catch (e) {} }
           const win = m > 0 && c <= 0;
           if (st) st.textContent = win ? "Creature down." : "Miner is down.";
           if (box) box.classList.remove("on");
@@ -3797,6 +3804,9 @@
           setTimeout(function () {
             if (box) { box.classList.remove("open"); box.setAttribute("aria-hidden", "true"); }
             state.pendingFight = false;
+            const fs = document.getElementById("fight-song");
+            if (fs) { fs.pause(); try { fs.currentTime = 0; } catch (e) {} }
+            if (typeof resumeMusicAfterFight === "function") resumeMusicAfterFight();
             openLoot(state.pendingLoot, state.pendingLootN);
           }, 700);
         }
@@ -6393,7 +6403,9 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     let needTapSound = false;
     function startBootTune() {
       const fs = document.getElementById("fight-song");
-      if (fs && !document.getElementById("fight-box").classList.contains("open")) {
+      const fightOpen = document.getElementById("fight-box") && document.getElementById("fight-box").classList.contains("open");
+      const lootOpen = document.getElementById("loot-box") && document.getElementById("loot-box").classList.contains("open");
+      if (fs && !fightOpen && !lootOpen) {
         fs.pause();
         try { fs.currentTime = 0; } catch (e) {}
       }
