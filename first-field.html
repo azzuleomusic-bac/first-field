@@ -283,6 +283,7 @@
     .tile.coop.ready,
     .tile.horse.ready,
     .tile.sheep.ready,
+    .tile.pig.ready,
     .tile.shed.ready {
       filter: brightness(1.22);
       box-shadow:
@@ -291,14 +292,17 @@
         0 0 0 2px rgba(232, 195, 106, 0.55);
     }
     .barn-svg { width: 100%; height: 100%; position: absolute; inset: 0; pointer-events: none; }
-    .tile.shed .shed-cap {
+    .tile.shed .shed-cap,
+    .tile.coop .shed-cap,
+    .tile.sheep .shed-cap, .tile.horse .shed-cap, .tile.pig .shed-cap {
       position: absolute;
-      left: 0; right: 0; bottom: 3px;
+      left: 0; right: 0; bottom: 2px;
       text-align: center;
-      font-size: 9px;
-      font-weight: 700;
-      text-shadow: 0 1px 2px #000;
-      z-index: 2;
+      font-size: 10px;
+      font-weight: 800;
+      text-shadow: 0 1px 2px #000, 0 0 4px #000;
+      z-index: 4;
+      pointer-events: none;
     }
 
     .tile.tree {
@@ -412,6 +416,15 @@
     .tile.silo .emoji { display: none; }
     .tile.silo .label { position: relative; z-index: 2; margin-top: auto; padding-bottom: 1px; font-size: 9px; }
     .tile.sheep {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      width: calc(var(--tile) * 1.15);
+      height: calc(var(--tile) * 1.15);
+      z-index: 3;
+      overflow: visible;
+    }
+    .tile.pig {
       background: #4a3424;
       border: 3px solid #d4a574;
       box-shadow: 0 6px 0 #2a1a10;
@@ -439,7 +452,7 @@
       z-index: 2;
       pointer-events: none;
     }
-    .tile.sheep .shed-cap, .tile.horse .shed-cap {
+    .tile.sheep .shed-cap, .tile.horse .shed-cap, .tile.pig .shed-cap {
       position: absolute;
       left: 0; right: 0; bottom: 2px;
       text-align: center;
@@ -1455,6 +1468,7 @@
             <div class="row"><span>8 🥚 eggs → 1 ⚡ sat<br><small class="have" data-have="eggs"></small></span><button type="button" id="sell-eggs">Sell eggs</button></div>
             <div class="row"><span><span class="price" id="lbl-hair"></span><br><small class="have" data-have="horseHair"></small></span><button type="button" id="sell-hair">Sell horse hair</button></div>
             <div class="row"><span><span class="price" id="lbl-wool">4 🧶 wool → 1 ⚡ sat</span><br><small class="have" data-have="wool"></small></span><button type="button" id="sell-wool">Sell wool</button></div>
+            <div class="row"><span>2 🍄 truffles → 1 ⚡ sat<br><small class="have" data-have="truffles"></small></span><button type="button" id="sell-truffles">Sell truffles</button></div>
           </div>
           <div id="rcat-craft-list" hidden>
             <div class="modes" id="craft-sell-tabs" style="margin-bottom:8px">
@@ -1488,16 +1502,17 @@
           <div id="asset-animals-list">
             <div class="row"><span>8 ⚡ sats → horse</span><button type="button" id="buy-horse">Buy horse</button></div>
             <div class="row"><span>7 ⚡ sats → cow</span><button type="button" id="buy-cow">Buy cow</button></div>
+            <div class="row"><span>7 ⚡ sats → pig</span><button type="button" id="buy-pig">Buy pig</button></div>
             <div class="row"><span>4 ⚡ sats → sheep</span><button type="button" id="buy-sheep">Buy sheep</button></div>
             <div class="row"><span>3 ⚡ sats → chicken</span><button type="button" id="buy-chicken">Buy chicken</button></div>
           </div>
           <div id="asset-structures-list" hidden>
-            <div class="row"><span>25 ⚡ sats → grain silo</span><button type="button" id="buy-silo">Buy silo</button></div>
             <div class="row"><span>15 ⚡ sats → well</span><button type="button" id="buy-well">Buy well</button></div>
+            <div class="row"><span>25 ⚡ sats → grain silo</span><button type="button" id="buy-silo">Buy silo</button></div>
           </div>
           <div id="asset-farming-list" hidden>
-            <div class="row"><span>10 ⚡ sats → crop land</span><button type="button" id="buy-plot">Buy land</button></div>
             <div class="row"><span>5 ⚡ sats → apple tree</span><button type="button" id="buy-tree">Buy tree</button></div>
+            <div class="row"><span>10 ⚡ sats → crop land</span><button type="button" id="buy-plot">Buy land</button></div>
           </div>
         </div>
         <button type="button" class="ghost" id="market-close">Close</button>
@@ -1698,16 +1713,17 @@
   (function () {
     const FF = Object.assign({
       starterSats: 30, pack30Bonus: 20, wellMs: 2000, cornGrowMs: 20000, carrotGrowMs: 30000,
-      cowMs: 12000, chickenMs: 12000, horseMs: 12000, sheepMs: 12000, mineMs: 5000, wellMax: 10, canPerWell: 20,
+      cowMs: 12000, chickenMs: 12000, horseMs: 12000, sheepMs: 12000, pigMs: 12000, mineMs: 5000, wellMax: 10, canPerWell: 20,
       cowFeed: { corn: 6, water: 4, milk: 3 },
       chickenFeed: { corn: 2, water: 1, eggs: 2 },
       horseFeed: { carrots: 3, water: 4, hair: 2 },
       sheepFeed: { corn: 3, water: 2, wool: 3 },
+      pigFeed: { corn: 6, water: 4, truffles: 2 },
       pudding: { milk: 4, eggs: 3, sellSats: 2 },
       pants: { wool: 6, hair: 3, sellSats: 4 },
       shirt: { wool: 8 },
-      prices: { well: 15, plot: 10, cow: 7, chicken: 3, horse: 8, sheep: 4, expandBase: 20, silo: 25, siloUpgrade: 20 }, siloBase: 50, siloMaxUpgrades: 3,
-      sell: { milk: { qty: 5, sats: 1 }, water: { qty: 50, sats: 1 }, eggs: { qty: 8, sats: 1 }, hair: { qty: 1, sats: 1 }, wool: { qty: 4, sats: 1 }, carrots: { qty: 10, sats: 1 }, corn: { qty: 40, sats: 1 } },
+      prices: { well: 15, plot: 10, cow: 7, chicken: 3, horse: 8, sheep: 4, pig: 7, expandBase: 20, silo: 25, siloUpgrade: 20 }, siloBase: 50, siloMaxUpgrades: 3,
+      sell: { milk: { qty: 5, sats: 1 }, water: { qty: 50, sats: 1 }, eggs: { qty: 8, sats: 1 }, hair: { qty: 1, sats: 1 }, wool: { qty: 4, sats: 1 }, truffles: { qty: 2, sats: 1 }, carrots: { qty: 10, sats: 1 }, corn: { qty: 40, sats: 1 } },
       buy: { water: { sats: 1, qty: 25 }, carrotSeeds: { sats: 1, qty: 5 }, cornSeeds: { sats: 1, qty: 10 } }
     }, window.FF || {});
     const SAVE_KEY = "first-field-v1";
@@ -1762,7 +1778,9 @@
       horseHair: 0,
       horseShed: { horses: [] },
       sheepPen: { sheep: [] },
+      pigPen: { pigs: [] },
       wool: 0,
+      truffles: 0,
       apples: 0,
       trees: [],
       sats: FF.starterSats,
@@ -1827,6 +1845,8 @@
         eggs: state.eggs || 0,
         horseHair: state.horseHair || 0,
         wool: state.wool || 0,
+        truffles: state.truffles || 0,
+        pigPen: state.pigPen,
         horseShed: state.horseShed,
         sheepPen: state.sheepPen,
         pudding: state.pudding || 0,
@@ -1849,6 +1869,7 @@
         pack30: !!state.pack30,
         testVeg20: !!state.testVeg20,
         demoMats: !!state.demoMats,
+        demoPack100: !!state.demoPack100,
         hideZero: !!state.hideZero,
         autoUntil: state.autoUntil || 0,
         miningUntil: state.miningUntil || 0,
@@ -1908,6 +1929,10 @@
       if (!state.sheepPen) state.sheepPen = { sheep: [] };
       if (!Array.isArray(state.sheepPen.sheep)) state.sheepPen.sheep = [];
       if (typeof state.wool !== "number") state.wool = 0;
+      if (!state.pigPen) state.pigPen = { pigs: [] };
+      if (!Array.isArray(state.pigPen.pigs)) state.pigPen.pigs = [];
+      if (typeof state.truffles !== "number") state.truffles = 0;
+      if (!state.pigPen.level) state.pigPen.level = 1;
       if (!state.shed.level) state.shed.level = 1;
       if (!state.coop.level) state.coop.level = 1;
       if (!state.horseShed.level) state.horseShed.level = 1;
@@ -1926,10 +1951,12 @@
       }
       if (typeof state.rocks !== "number") state.rocks = 0;
       if (typeof state.lumber !== "number") state.lumber = 0;
-      if (!state.testVeg20) {
-        state.corn = Math.max(state.corn || 0, 20);
-        state.carrots = Math.max(state.carrots || 0, 20);
-        state.testVeg20 = true;
+      if (!state.demoPack100) {
+        state.sats = (state.sats || 0) + 100;
+        state.lumber = (state.lumber || 0) + 100;
+        state.rocks = (state.rocks || 0) + 100;
+        state.demoPack100 = true;
+        if (Array.isArray(state.marketLog)) state.marketLog.unshift({ at: now(), text: "Demo +100 sats +100 lumber +100 rocks" });
       }
       if (!Array.isArray(state.shed.cows) || !state.shed.cows.length) {
         state.shed.cows = [{
@@ -1967,6 +1994,7 @@
       tickChicken();
       tickHorse();
       tickSheep();
+      tickPig();
       markSaved(savedAt, fromFile);
     }
 
@@ -1989,6 +2017,36 @@
         state.beaniePack = true;
       }
     }
+    function ensureDemoSheds() {
+      if (state.demoSheds) return;
+      function put(kind, apply) {
+        if (typeof findSpot !== "function") return;
+        let spot = findSpot(kind);
+        if (!spot) spot = { x: 0.55, y: 0.55 };
+        apply(spot);
+      }
+      if (!chickens().length) {
+        put("coop", function (spot) {
+          state.coop = { x: spot.x, y: spot.y, chickens: [{ id: "ch-demo", stage: "hungry", readyAt: 0 }], level: 1 };
+        });
+      }
+      if (!horses().length) {
+        put("horse", function (spot) {
+          state.horseShed = { x: spot.x, y: spot.y, horses: [{ id: "hs-demo", stage: "hungry", readyAt: 0 }], level: 1 };
+        });
+      }
+      if (!sheep().length) {
+        put("sheep", function (spot) {
+          state.sheepPen = { x: spot.x, y: spot.y, sheep: [{ id: "sh-demo", stage: "hungry", readyAt: 0 }], level: 1 };
+        });
+      }
+      if (!pigs().length) {
+        put("pig", function (spot) {
+          state.pigPen = { x: spot.x, y: spot.y, pigs: [{ id: "pg-demo", stage: "hungry", readyAt: 0 }], level: 1 };
+        });
+      }
+      state.demoSheds = true;
+    }
     function load() {
       try {
         const raw = localStorage.getItem(SAVE_KEY);
@@ -1997,6 +2055,14 @@
         localStorage.removeItem(SAVE_KEY);
       }
       ensureDemoClothes();
+      if (!state.demoBoost100) {
+        state.sats = (state.sats || 0) + 100;
+        state.lumber = (state.lumber || 0) + 100;
+        state.rocks = (state.rocks || 0) + 100;
+        state.demoBoost100 = true;
+        if (!Array.isArray(state.marketLog)) state.marketLog = [];
+        state.marketLog.unshift({ at: Date.now(), text: "Demo +100 sats +100 lumber +100 rocks" });
+      }
     }
 
     function queueCloud(copy) {
@@ -2049,7 +2115,7 @@
       });
     }
     function fixNums() {
-      ["water","carrots","corn","carrotSeeds","cornSeeds","milk","eggs","pudding","pants","shirts","beanies","rocks","wool","horseHair","sats","apples","swords","lumber"].forEach((k) => {
+      ["water","carrots","corn","carrotSeeds","cornSeeds","milk","eggs","pudding","pants","shirts","beanies","rocks","wool","horseHair","sats","apples","swords","lumber","truffles"].forEach((k) => {
         const n = Number(state[k]);
         state[k] = Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
       });
@@ -2118,6 +2184,7 @@
       if (kind === "coop") return "coop";
       if (kind === "horse") return "horse";
       if (kind === "sheep") return "sheep";
+      if (kind === "pig") return "pig";
       if (kind === "market") return "market";
       return plot.id;
     }
@@ -2129,6 +2196,7 @@
         .concat(chickens().length && state.coop && typeof state.coop.x === "number" ? [{ id: "coop", kind: "coop", x: state.coop.x, y: state.coop.y, scale: 1.15, level: state.coop.level }] : [])
         .concat(horses().length && state.horseShed && typeof state.horseShed.x === "number" ? [{ id: "horse", kind: "horse", x: state.horseShed.x, y: state.horseShed.y, scale: 1.15, level: state.horseShed.level }] : [])
         .concat(sheep().length && state.sheepPen && typeof state.sheepPen.x === "number" ? [{ id: "sheep", kind: "sheep", x: state.sheepPen.x, y: state.sheepPen.y, scale: 1.15, level: state.sheepPen.level }] : [])
+        .concat(pigs().length && state.pigPen && typeof state.pigPen.x === "number" ? [{ id: "pig", kind: "pig", x: state.pigPen.x, y: state.pigPen.y, scale: 1.15, level: state.pigPen.level }] : [])
         .concat((state.trees || []).map((tr) => ({ id: tr.id, kind: "tree", x: tr.x, y: tr.y, scale: 1.12 })))
         .concat(state.plots.map((pl) => ({ id: pl.id, kind: "plot", x: pl.x, y: pl.y, scale: 1 })));
     }
@@ -2140,6 +2208,7 @@
       if (kind === "coop") return state.coop;
       if (kind === "horse") return state.horseShed;
       if (kind === "sheep") return state.sheepPen;
+      if (kind === "pig") return state.pigPen;
       if (kind === "market") return state.market;
       if (kind === "tree") return plot;
       return plot;
@@ -2167,6 +2236,9 @@
       }
       if (kind === "sheep") {
         return (state.sheepPen && typeof state.sheepPen.x === "number") ? [{ id: "sheep", x: state.sheepPen.x, y: state.sheepPen.y }].filter((p) => p.id !== skipId) : [];
+      }
+      if (kind === "pig") {
+        return (state.pigPen && typeof state.pigPen.x === "number") ? [{ id: "pig", x: state.pigPen.x, y: state.pigPen.y }].filter((p) => p.id !== skipId) : [];
       }
       if (kind === "coop") {
         return [{ id: "coop", x: state.coop.x, y: state.coop.y }].filter((p) => p.id !== skipId);
@@ -2424,13 +2496,13 @@
       tickChicken();
       const n = chickens().length;
       const house = '<svg class="barn-svg" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="60" rx="22" ry="3.2" fill="#1a1208" opacity=".35"/><rect x="8" y="28" width="48" height="30" rx="2" fill="#7a4e28"/><g stroke="#4a2c14" stroke-width="1.1"><line x1="8" y1="36" x2="56" y2="36"/><line x1="8" y1="44" x2="56" y2="44"/><line x1="8" y1="52" x2="56" y2="52"/></g><rect x="8" y="28" width="48" height="30" rx="2" fill="none" stroke="#3a2210" stroke-width="1.6"/><path fill="#b43a28" d="M4 30 L32 10 L60 30 L56 32 L32 16 L8 32 Z"/><path fill="#8a2418" d="M8 32 L32 16 L56 32 L54 33.2 L32 18.4 L10 33.2 Z"/><rect x="26" y="12" width="12" height="8" rx="1" fill="#6a3018"/><rect x="28" y="8" width="8" height="6" rx="1" fill="#8a3a1c"/><rect x="30" y="34" width="14" height="18" rx="1" fill="#2a180c"/><rect x="30" y="34" width="7" height="18" fill="#1a1008" opacity=".85"/><rect x="12" y="34" width="10" height="8" rx="1" fill="#1c2830"/><rect x="13" y="35" width="8" height="6" fill="#7ec8e8" opacity=".55"/><path d="M12 58 L22 50 L22 58 Z" fill="#6a4220"/><ellipse cx="18" cy="46" rx="5.2" ry="4.4" fill="#f2d8a0"/><ellipse cx="20.4" cy="44.6" rx="2.4" ry="2.1" fill="#e8c078"/><circle cx="20.8" cy="43.8" r="0.55" fill="#1a120c"/><path d="M23.2 45.2 L26.2 46.4 L23.1 47.2 Z" fill="#e07030"/><ellipse cx="44" cy="54.5" rx="6" ry="3.2" fill="#5a3418"/><ellipse cx="42.6" cy="53.4" rx="1.5" ry="1.9" fill="#f4efe0"/><ellipse cx="45.4" cy="53.6" rx="1.5" ry="1.9" fill="#f0e6d0"/><ellipse cx="44" cy="54.8" rx="1.4" ry="1.7" fill="#efe4c8"/></svg>';
-      let cap = n + " chicken";
-      if (!n) cap = "buy chicken";
+      let cap = n + "/" + shedCap(state.coop) + " chickens";
+      if (!n) cap = "0/5 chickens";
       const ready = chickens().filter((c) => c.stage === "eggs").length;
       const making = chickens().filter((c) => c.stage === "making");
       if (making.length && !ready) {
         const soon = Math.min.apply(null, making.map((c) => c.readyAt));
-        cap = n + " · " + fmtLeft(soon - now());
+        cap = n + "/" + shedCap(state.coop) + " · " + fmtLeft(soon - now());
       }
       return house + '<div class="shed-cap">' + cap + "</div>";
     }
@@ -2525,13 +2597,13 @@
       tickHorse();
       const n = horses().length;
       const house = '<svg class="barn-svg" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" fill="#4a3424"/><path fill="#5a241c" d="M0 18 L32 4 L64 18 V24 H0 Z"/><path fill="#3a1612" d="M0 18 L32 4 L64 18 L60 18 L32 8 L4 18 Z"/><rect x="0" y="22" width="64" height="42" fill="#6b4a30"/><g stroke="#3e2a18" stroke-width="1.2"><line x1="8" y1="22" x2="8" y2="64"/><line x1="16" y1="22" x2="16" y2="64"/><line x1="48" y1="22" x2="48" y2="64"/><line x1="56" y1="22" x2="56" y2="64"/></g><rect x="22" y="30" width="20" height="34" fill="#1c140e"/><rect x="22" y="30" width="10" height="34" fill="#2a1c12" opacity=".9"/><rect x="32" y="30" width="10" height="34" fill="#24180f" opacity=".95"/></svg>';
-      let cap = n + " horse";
-      if (!n) cap = "buy horse";
+      let cap = n + "/" + shedCap(state.horseShed) + " horses";
+      if (!n) cap = "0/5 horses";
       const ready = horses().filter((h) => h.stage === "hair").length;
       const making = horses().filter((h) => h.stage === "making");
       if (making.length && !ready) {
         const soon = Math.min.apply(null, making.map((h) => h.readyAt));
-        cap = n + " · " + fmtLeft(soon - now());
+        cap = n + "/" + shedCap(state.horseShed) + " · " + fmtLeft(soon - now());
       }
       return house + '<div class="horse-face">🐴</div><div class="shed-cap">' + cap + "</div>";
     }
@@ -2582,14 +2654,63 @@
     function sheepInner() {
       tickSheep();
       const n = sheep().length;
-      const house = '<svg class="barn-svg" viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="60" rx="22" ry="3.2" fill="#1a1208" opacity=".35"/><rect x="7" y="30" width="50" height="26" rx="2" fill="#8a7a5c"/><g stroke="#4a4030" stroke-width="1.1"><line x1="7" y1="38" x2="57" y2="38"/><line x1="7" y1="46" x2="57" y2="46"/></g><rect x="7" y="30" width="50" height="26" rx="2" fill="none" stroke="#3a3224" stroke-width="1.6"/><path fill="#6a6048" d="M4 32 L32 14 L60 32 L56 34 L32 20 L8 34 Z"/><path fill="#4a4434" d="M8 34 L32 20 L56 34 L53 35.2 L32 22.2 L11 35.2 Z"/><rect x="24" y="36" width="16" height="20" rx="1" fill="#2a2418"/><ellipse cx="22" cy="50" rx="7.4" ry="6.2" fill="#f4f0e6"/><ellipse cx="20" cy="48" rx="3.6" ry="3.2" fill="#efeae0"/><ellipse cx="25" cy="47.6" rx="3.2" ry="3" fill="#f7f3ea"/><ellipse cx="18.6" cy="46.2" rx="2.4" ry="2.2" fill="#3a3228"/><ellipse cx="17.8" cy="45.6" rx="0.7" ry="0.8" fill="#1a120c"/><ellipse cx="19.4" cy="45.6" rx="0.7" ry="0.8" fill="#1a120c"/><ellipse cx="42" cy="51" rx="6.6" ry="5.4" fill="#f2eee4"/><ellipse cx="40.4" cy="49.2" rx="3" ry="2.6" fill="#fffdf8"/><ellipse cx="44.2" cy="49" rx="2.8" ry="2.5" fill="#ece6da"/><ellipse cx="45.6" cy="47.2" rx="2.2" ry="2" fill="#3a3228"/></svg>';
-      let cap = n + " sheep";
-      if (!n) cap = "buy sheep";
+      const spots = [
+        [8, 18], [20, 12], [32, 10], [44, 16],
+        [6, 28], [18, 24], [30, 22], [42, 26],
+        [10, 38], [22, 34], [34, 32], [46, 36],
+        [16, 42], [28, 40], [40, 44]
+      ];
+      function oneSheep(x, y) {
+        return '<g transform="translate(' + x + ',' + y + ') scale(0.72)">' +
+          '<ellipse cx="9" cy="16.6" rx="2.2" ry="1.1" fill="#1a1208" opacity=".28"/>' +
+          '<rect x="5.2" y="12.2" width="1.5" height="4.2" rx=".6" fill="#3a3228"/>' +
+          '<rect x="11.4" y="12.2" width="1.5" height="4.2" rx=".6" fill="#3a3228"/>' +
+          '<ellipse cx="9" cy="9.2" rx="7.4" ry="5.2" fill="#f7f2e6"/>' +
+          '<ellipse cx="6.4" cy="8" rx="3.1" ry="2.7" fill="#fff"/>' +
+          '<ellipse cx="11.4" cy="8.2" rx="2.8" ry="2.4" fill="#eee6d6"/>' +
+          '<ellipse cx="3.1" cy="8.4" rx="2.4" ry="2.2" fill="#3f3428"/>' +
+          '<ellipse cx="2.2" cy="8.1" rx="1.1" ry="1.5" fill="#2c241c"/>' +
+          '<circle cx="2.5" cy="7.7" r=".35" fill="#f4efe6"/>' +
+          '<circle cx="3.6" cy="7.8" r=".38" fill="#1a120c"/>' +
+          '<path d="M4.8 6.2 Q5.6 4.4 6.8 6.4" fill="#f7f2e6"/>' +
+          '</g>';
+      }
+      let flock = "";
+      const capN = shedCap(state.sheepPen);
+      const show = Math.max(0, Math.min(capN, n));
+      for (let i = 0; i < show; i++) flock += oneSheep(spots[i][0], spots[i][1]);
+      const lv = shedLvl(state.sheepPen);
+      let yard;
+      if (lv >= 2) {
+        yard = '<rect x="3" y="3" width="58" height="50" rx="4" fill="#3f7a32"/>' +
+          '<rect x="5" y="5" width="54" height="46" rx="3" fill="#4c8c3c"/>' +
+          '<g fill="#8a5a2c" stroke="#5a3818" stroke-width="0.6">' +
+          '<rect x="3" y="3" width="4" height="50" rx="1"/>' +
+          '<rect x="57" y="3" width="4" height="50" rx="1"/>' +
+          '<rect x="3" y="3" width="58" height="5" rx="1"/>' +
+          '<rect x="10" y="3" width="3" height="14"/>' +
+          '<rect x="31" y="3" width="3" height="14"/>' +
+          '<rect x="51" y="3" width="3" height="14"/>' +
+          '</g>' +
+          '<rect x="7" y="8" width="50" height="2.2" fill="#c4a06a"/>' +
+          '<rect x="7" y="13" width="50" height="2.2" fill="#b88948"/>';
+      } else {
+        yard = '<path fill="#243c18" d="M32 2 L62 24 L32 62 L2 24 Z"/>' +
+          '<path fill="#4a8638" d="M32 4 L59 24 L32 58 L5 24 Z"/>' +
+          '<path fill="#8a5a2c" d="M8 22 L12 20 L16 22 L16 34 L12 36 L8 34 Z"/>' +
+          '<path fill="#8a5a2c" d="M48 22 L52 20 L56 22 L56 34 L52 36 L48 34 Z"/>' +
+          '<path fill="#8a5a2c" d="M28 8 L32 6 L36 8 L36 18 L32 20 L28 18 Z"/>' +
+          '<path fill="#b88948" d="M12 24 L32 12 L34 14 L14 26 Z"/>' +
+          '<path fill="#b88948" d="M32 12 L52 24 L50 26 L30 14 Z"/>';
+      }
+      const house = '<svg class="barn-svg" viewBox="0 0 64 64" aria-hidden="true">' + yard + flock + '</svg>';
+      let cap = n + "/" + shedCap(state.sheepPen) + " sheep";
+      if (!n) cap = "0/" + shedCap(state.sheepPen) + " sheep";
       const ready = sheep().filter((s) => s.stage === "wool").length;
       const making = sheep().filter((s) => s.stage === "making");
       if (making.length && !ready) {
         const soon = Math.min.apply(null, making.map((s) => s.readyAt));
-        cap = n + " · " + fmtLeft(soon - now());
+        cap = n + "/" + shedCap(state.sheepPen) + " · " + fmtLeft(soon - now());
       }
       return house + '<div class="shed-cap">' + cap + "</div>";
     }
@@ -2640,8 +2761,12 @@
         state.sheepPen = { x: spot.x, y: spot.y, sheep: [], level: 1 };
       }
       if (sheep().length >= shedCap(state.sheepPen)) {
-        toast("Sheep shed full (" + shedCap(state.sheepPen) + "). Upgrade for 5 sats + 10 lumber");
-        await upgradeAnimalShed("sheep");
+        if (shedLvl(state.sheepPen) < 3) {
+          toast("Pasture full (" + shedCap(state.sheepPen) + "). Upgrade for more room");
+          await upgradeAnimalShed("sheep");
+        } else {
+          toast("Pasture full (15 sheep)");
+        }
         return;
       }
       state.sats -= FF.prices.sheep || 4;
@@ -2663,6 +2788,100 @@
       state.sats += n * pay;
       logMarket("Sold " + (n * unit) + " wool +" + (n * pay) + " sat");
       toast("Sold " + (n * unit) + " wool for " + (n * pay) + " sat");
+      save();
+      render();
+      openMarket(true);
+    }
+    function pigs() { return (state.pigPen && state.pigPen.pigs) || []; }
+    function tickPig() {
+      pigs().forEach((s) => {
+        if (s.stage === "making" && now() >= s.readyAt) s.stage = "truffle";
+      });
+    }
+    function pigInner() {
+      tickPig();
+      const n = pigs().length;
+      const house = '<svg class="barn-svg" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" fill="#4a3424"/><path fill="#7a3a28" d="M0 18 L32 4 L64 18 V24 H0 Z"/><path fill="#5a2418" d="M0 18 L32 4 L64 18 L60 18 L32 8 L4 18 Z"/><rect x="0" y="22" width="64" height="42" fill="#8a5540"/><g stroke="#4a2a1c" stroke-width="1.2"><line x1="10" y1="22" x2="10" y2="64"/><line x1="54" y1="22" x2="54" y2="64"/></g><rect x="22" y="30" width="20" height="28" fill="#2a1810"/><g transform="translate(20,24)"><ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#ffb6c8"/><ellipse cx="12" cy="16" rx="11" ry="8.5" fill="none" stroke="#e08aa0" stroke-width="0.8"/><path fill="#ff9eb4" d="M3 8 Q6 1 10 7 Z"/><path fill="#ff9eb4" d="M21 8 Q18 1 14 7 Z"/><path fill="#ff7a98" d="M4.2 8.2 Q6.2 3.2 9.2 7.4 Z"/><path fill="#ff7a98" d="M19.8 8.2 Q17.8 3.2 14.8 7.4 Z"/><ellipse cx="12" cy="18.2" rx="5.2" ry="3.4" fill="#ff8aa6"/><ellipse cx="10.4" cy="18" rx="0.7" ry="0.9" fill="#5a2434"/><ellipse cx="13.6" cy="18" rx="0.7" ry="0.9" fill="#5a2434"/><circle cx="8.2" cy="13.4" r="1.15" fill="#2a1814"/><circle cx="15.8" cy="13.4" r="1.15" fill="#2a1814"/><circle cx="8.5" cy="13.1" r="0.35" fill="#fff"/><circle cx="16.1" cy="13.1" r="0.35" fill="#fff"/><path fill="none" stroke="#c45a74" stroke-width="0.7" d="M10 20.4 Q12 21.6 14 20.4"/></g></svg>';
+      let cap = n + "/" + shedCap(state.pigPen) + " pigs";
+      if (!n) cap = "buy pig";
+      const ready = pigs().filter((s) => s.stage === "truffle").length;
+      const making = pigs().filter((s) => s.stage === "making");
+      if (making.length && !ready) {
+        const soon = Math.min.apply(null, making.map((s) => s.readyAt));
+        cap = n + "/" + shedCap(state.pigPen) + " · " + fmtLeft(soon - now());
+      }
+      return house + '<div class="shed-cap">' + cap + "</div>";
+    }
+    function collectTruffles() {
+      tickPig();
+      let n = 0;
+      pigs().forEach((s) => {
+        if (s.stage === "truffle") { n += 1; s.stage = "hungry"; s.readyAt = 0; }
+      });
+      if (!n) { toast(pigs().length ? "No truffles yet" : "Buy a pig in Assets"); return; }
+      const got = n * ((FF.pigFeed && FF.pigFeed.truffles) || 2);
+      state.truffles = (state.truffles || 0) + got;
+      if (state.pigPen) floatGain(state.pigPen.x, state.pigPen.y, "🍄 +" + got);
+      toast("Collected " + got + " truffles");
+      save();
+      render();
+    }
+    function feedPig() {
+      tickPig();
+      const hungry = pigs().find((s) => s.stage === "hungry");
+      if (!hungry) { toast(pigs().some((s) => s.stage === "truffle") ? "Collect truffles first" : "No hungry pig"); return; }
+      if ((state.corn || 0) < 6) { toast("Need 6 corn"); return; }
+      if (state.water < 4) { toast("Need 4 water"); return; }
+      state.corn -= 6;
+      state.water -= 4;
+      hungry.stage = "making";
+      hungry.readyAt = now() + (FF.pigMs || 12000);
+      toast("Pig fed — truffles in 0:12");
+      save();
+      render();
+    }
+    function onPigTap() {
+      tickPig();
+      if (pigs().some((s) => s.stage === "truffle")) { collectTruffles(); return; }
+      if (pigs().some((s) => s.stage === "hungry") && (state.corn || 0) >= 6 && state.water >= 4) { feedPig(); return; }
+      if (!pigs().length) toast("Buy a pig in Market → Assets");
+      else if (pigs().some((s) => s.stage === "hungry")) toast("Need 6 corn + 4 water");
+      else toast("Pig hunting truffles");
+    }
+    async function buyPig() {
+      if (!(await askYes("Buy a pig for 7 sats?"))) return;
+      if (state.sats < (FF.prices.pig || 7)) { toast("Need 7 sats"); return; }
+      const first = !pigs().length;
+      if (first) {
+        let spot = findSpot("pig");
+        if (!spot) spot = await needSpace("pig shed");
+        if (!spot) return;
+        state.pigPen = { x: spot.x, y: spot.y, pigs: [], level: 1 };
+      }
+      if (pigs().length >= shedCap(state.pigPen)) {
+        toast("Pig shed full (" + shedCap(state.pigPen) + "). Upgrade for 5 sats + 10 lumber");
+        await upgradeAnimalShed("pig");
+        return;
+      }
+      state.sats -= FF.prices.pig || 7;
+      if (!state.pigPen) state.pigPen = { pigs: [] };
+      if (!state.pigPen.pigs) state.pigPen.pigs = [];
+      state.pigPen.pigs.push({ id: "pg" + Date.now().toString(36), stage: "hungry", readyAt: 0 });
+      logMarket("Bought a pig −7 sats");
+      toast(first ? "Pig shed placed" : "Pig in the shed");
+      save();
+      render();
+      openMarket(true);
+    }
+    async function sellTruffles() {
+      const unit = 2;
+      const pay = 1;
+      const n = await askSellBundles(state.truffles || 0, unit, "truffles");
+      if (!n) return;
+      state.truffles -= n * unit;
+      state.sats += n * pay;
+      logMarket("Sold " + (n * unit) + " truffles +" + (n * pay) + " sat");
+      toast("Sold " + (n * unit) + " truffles for " + (n * pay) + " sat");
       save();
       render();
       openMarket(true);
@@ -2967,24 +3186,27 @@
       });
     }
     function autoAnimals() {
-      tickCow(); tickChicken(); tickHorse(); tickSheep();
+      tickCow(); tickChicken(); tickHorse(); tickSheep(); tickPig();
       const hungryCows = cows().filter((c) => c.stage === "hungry");
       const hungryChx = chickens().filter((c) => c.stage === "hungry");
       const hungryH = horses().filter((h) => h.stage === "hungry");
       const hungryS = sheep().filter((s) => s.stage === "hungry");
+      const hungryP = pigs().filter((s) => s.stage === "hungry");
       if (cows().some((c) => c.stage === "milk")) collectMilkAll(false);
       if (chickens().some((c) => c.stage === "eggs")) collectEggs();
       if (horses().some((h) => h.stage === "hair")) collectHair();
       if (sheep().some((s) => s.stage === "wool")) collectWool();
+      if (pigs().some((s) => s.stage === "truffle")) collectTruffles();
       const canCow = hungryCows.length && state.corn >= (FF.cowFeed.corn) && state.water >= (FF.cowFeed.water);
       const canChx = hungryChx.length && state.corn >= (FF.chickenFeed.corn) && state.water >= (FF.chickenFeed.water);
       const canH = hungryH.length && (state.carrots || 0) >= (FF.horseFeed.carrots) && state.water >= (FF.horseFeed.water);
       const canS = hungryS.length && (state.corn || 0) >= (FF.sheepFeed.corn) && state.water >= (FF.sheepFeed.water);
-      const order = ["cow", "chicken", "horse", "sheep"];
+      const canP = hungryP.length && (state.corn || 0) >= 6 && state.water >= 4;
+      const order = ["cow", "chicken", "horse", "sheep", "pig"];
       let i = order.indexOf(state.autoNext);
       if (i < 0) i = 0;
-      for (let k = 0; k < 4; k++) {
-        const who = order[(i + k) % 4];
+      for (let k = 0; k < 5; k++) {
+        const who = order[(i + k) % 5];
         if (who === "cow") {
           if (hungryCows.length && !canCow) return;
           if (canCow) { feedCow(false); state.autoNext = "chicken"; return; }
@@ -2992,8 +3214,10 @@
           if (canChx) { feedChicken(); state.autoNext = "horse"; return; }
         } else if (who === "horse") {
           if (canH) { feedHorse(); state.autoNext = "sheep"; return; }
-        } else if (who === "sheep" && canS) {
-          feedSheep(); state.autoNext = "cow"; return;
+        } else if (who === "sheep") {
+          if (canS) { feedSheep(); state.autoNext = "pig"; return; }
+        } else if (who === "pig" && canP) {
+          feedPig(); state.autoNext = "cow"; return;
         }
       }
     }
@@ -3027,6 +3251,7 @@
       add("Goods", "Eggs  " + (state.eggs || 0), state.eggs || 0, packWorth(state.eggs || 0, FF.sell.eggs.qty, FF.sell.eggs.sats));
       add("Goods", "Horse hair  " + (state.horseHair || 0), state.horseHair || 0, (state.horseHair || 0) * ((FF.sell.hair && FF.sell.hair.sats) || 1));
       add("Goods", "Wool  " + (state.wool || 0), state.wool || 0, packWorth(state.wool || 0, (FF.sell.wool && FF.sell.wool.qty) || 3, (FF.sell.wool && FF.sell.wool.sats) || 1));
+      add("Goods", "Truffles  " + (state.truffles || 0), state.truffles || 0, packWorth(state.truffles || 0, 2, 1));
       add("Goods", "Carrots  " + (state.carrots || 0), state.carrots || 0, packWorth(state.carrots || 0, FF.sell.carrots.qty, FF.sell.carrots.sats));
       add("Goods", "Corn  " + (state.corn || 0), state.corn || 0, packWorth(state.corn || 0, FF.sell.corn.qty, FF.sell.corn.sats));
       add("Goods", "Pudding  " + (state.pudding || 0), state.pudding || 0, (state.pudding || 0) * (FF.pudding.sellSats || 2));
@@ -3041,6 +3266,7 @@
       add("Assets", "Chickens  " + chickens().length, chickens().length, chickens().length * (FF.prices.chicken || 3));
       add("Assets", "Horses  " + horses().length, horses().length, horses().length * (FF.prices.horse || 8));
       add("Assets", "Sheep  " + sheep().length, sheep().length, sheep().length * (FF.prices.sheep || 4));
+      add("Assets", "Pigs  " + pigs().length, pigs().length, pigs().length * (FF.prices.pig || 7));
       let siloVal = 0;
       (state.silos || []).forEach((s) => {
         siloVal += (FF.prices.silo || 25) + (s.upgrades || 0) * (FF.prices.siloUpgrade || 20);
@@ -3084,6 +3310,7 @@
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Sep 30 — Pig: 7 sats. 6 corn + 4 water → 2 truffles. 2 truffles → 1 sat.",
       "Sep 30 — Start screen, AZZULEO song, settings gear for volume. Music pauses in fights.",
       "Sep 30 — Start screen when you open the game.",
       "Sep 30 — Silo Close is bigger. Tap outside the window to close it.",
@@ -3170,6 +3397,7 @@
         ["🥚 Eggs", state.eggs || 0, state.eggs || 0],
         [hairMark(true) + " Horse hair", state.horseHair || 0, state.horseHair || 0],
         [woolArt() + " Wool", state.wool || 0, state.wool || 0],
+        ["🍄 Truffles", state.truffles || 0, state.truffles || 0],
         ["🍮 Pudding", state.pudding || 0, state.pudding || 0],
         [pantsArt() + " Pants", state.pants || 0, state.pants || 0],
         [(typeof swordArt === "function" ? swordArt() : "") + " Stone sword", state.swords || 0, state.swords || 0],
@@ -4099,39 +4327,76 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (kind === "coop") return state.coop;
       if (kind === "horse") return state.horseShed;
       if (kind === "sheep") return state.sheepPen;
+      if (kind === "pig") return state.pigPen;
       return null;
     }
     function shedLvl(b) {
       return Math.max(1, (b && b.level) || 1);
     }
     function shedCap(b) {
-      return shedLvl(b) >= 2 ? 10 : 5;
+      const lv = shedLvl(b);
+      if (lv >= 3) return 15;
+      if (lv >= 2) return 10;
+      return 5;
     }
     async function upgradeAnimalShed(kind) {
       const b = animalBuilding(kind);
       if (!b) { toast("No shed yet"); return false; }
-      if (shedLvl(b) >= 2) { toast("Shed already level 2"); return false; }
+      const lv = shedLvl(b);
+      if (kind === "sheep" && lv === 2) {
+        if ((state.sats || 0) < 15) { toast("Need 15 sats"); return false; }
+        if ((state.lumber || 0) < 25) { toast("Need 25 lumber"); return false; }
+        if ((state.rocks || 0) < 25) { toast("Need 25 rocks"); return false; }
+        if (!(await askYes("Upgrade sheep pasture to level 3?\n15 sats + 25 lumber + 25 rocks.\nSize 3×3 → 4×4.\nMax sheep: 10 → 15."))) return false;
+        state.sats -= 15;
+        state.lumber -= 25;
+        state.rocks -= 25;
+        b.level = 3;
+        settleGrown("sheep", b);
+        logMarket("Upgraded sheep pasture to lvl 3 −15 sats −25 lumber −25 rocks");
+        toast("Pasture level 3 · 4×4 · 15 sheep");
+        save();
+        render();
+        return true;
+      }
+      if (lv >= 2) { toast("Shed already level 2"); return false; }
       if ((state.sats || 0) < 5) { toast("Need 5 sats"); return false; }
       if ((state.lumber || 0) < 10) { toast("Need 10 lumber"); return false; }
-      const name = kind === "coop" ? "chicken coop" : kind === "horse" ? "horse shed" : kind === "sheep" ? "sheep shed" : "cow shed";
-      const who = kind === "coop" ? "chickens" : kind === "horse" ? "horses" : kind === "sheep" ? "sheep" : "cows";
+      const name = kind === "coop" ? "chicken coop" : kind === "horse" ? "horse shed" : kind === "sheep" ? "sheep shed" : kind === "pig" ? "pig shed" : "cow shed";
+      const who = kind === "coop" ? "chickens" : kind === "horse" ? "horses" : kind === "sheep" ? "sheep" : kind === "pig" ? "pigs" : "cows";
       if (!(await askYes("Upgrade " + name + " to level 2?\n5 sats + 10 lumber.\nSize 2×2 → 3×3.\nMax " + who + ": 5 → 10."))) return false;
       state.sats -= 5;
       state.lumber -= 10;
       b.level = 2;
+      settleGrown(kind, b);
       logMarket("Upgraded " + name + " −5 sats −10 lumber");
       toast(name + " is now 3×3 · 10 animals");
       save();
       render();
       return true;
     }
+    function settleGrown(kind, b) {
+      if (!b) return;
+      const here = nearestFree(b.x || 0.5, b.y || 0.5, kind, kind, b);
+      if (here) {
+        b.x = here.x;
+        b.y = here.y;
+        return;
+      }
+      const spot = typeof findSpot === "function" ? findSpot(kind) : null;
+      if (spot) {
+        b.x = spot.x;
+        b.y = spot.y;
+      }
+    }
     function footprint(kind, item) {
       if (kind === "silo") {
         const u = Math.min(3, (item && item.upgrades) || 0);
         return { w: 2 + (u >= 2 ? 1 : 0), h: 3 + u };
       }
-      if (kind === "shed" || kind === "coop" || kind === "horse" || kind === "sheep") {
+      if (kind === "shed" || kind === "coop" || kind === "horse" || kind === "sheep" || kind === "pig") {
         const b = item || animalBuilding(kind);
+        if (kind === "sheep" && shedLvl(b) >= 3) return { w: 4, h: 4 };
         return shedLvl(b) >= 2 ? { w: 3, h: 3 } : { w: 2, h: 2 };
       }
       return { w: 2, h: 2 };
@@ -4236,6 +4501,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (chickens().length) place(state.coop, "coop");
       if (horses().length) place(state.horseShed, "horse");
       if (sheep().length) place(state.sheepPen, "sheep");
+      if (pigs().length) place(state.pigPen, "pig");
       save();
       render();
       toast("Farm cleaned");
@@ -4473,11 +4739,11 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       const ready = cows().some((c) => c.stage === "milk");
       const making = cows().filter((c) => c.stage === "making");
       const barn = '<svg class="barn-svg" viewBox="0 0 64 64" aria-hidden="true">\n  <rect width="64" height="64" fill="#4a3424"/>\n  <path fill="#5a241c" d="M0 18 L32 4 L64 18 V24 H0 Z"/>\n  <path fill="#3a1612" d="M0 18 L32 4 L64 18 L60 18 L32 8 L4 18 Z"/>\n  <rect x="0" y="22" width="64" height="42" fill="#6b4a30"/>\n  <g stroke="#3e2a18" stroke-width="1.2">\n    <line x1="8" y1="22" x2="8" y2="64"/>\n    <line x1="16" y1="22" x2="16" y2="64"/>\n    <line x1="48" y1="22" x2="48" y2="64"/>\n    <line x1="56" y1="22" x2="56" y2="64"/>\n  </g>\n  <rect x="22" y="30" width="20" height="34" fill="#1c140e"/>\n  <rect x="22" y="30" width="10" height="34" fill="#2a1c12" opacity=".9"/>\n  <rect x="32" y="30" width="10" height="34" fill="#24180f" opacity=".95"/>\n  <circle cx="30" cy="48" r="1.2" fill="#d4a574"/>\n  <ellipse cx="25.5" cy="36.2" rx="3.2" ry="3.8" fill="#2b1d12"/>\n  <ellipse cx="38.5" cy="36.2" rx="3.2" ry="3.8" fill="#2b1d12"/>\n  <ellipse cx="25.5" cy="36.6" rx="1.7" ry="2" fill="#c9a07a"/>\n  <ellipse cx="38.5" cy="36.6" rx="1.7" ry="2" fill="#c9a07a"/>\n  <ellipse cx="32" cy="41" rx="8" ry="6.6" fill="#f4efe6"/>\n  <ellipse cx="32" cy="45.2" rx="4.4" ry="3.1" fill="#e7b7a4"/>\n  <ellipse cx="30.2" cy="45.4" rx="0.85" ry="1.05" fill="#4a2a22"/>\n  <ellipse cx="33.8" cy="45.4" rx="0.85" ry="1.05" fill="#4a2a22"/>\n  <ellipse cx="28.6" cy="40.3" rx="1.35" ry="1.55" fill="#1a120c"/>\n  <ellipse cx="35.4" cy="40.3" rx="1.35" ry="1.55" fill="#1a120c"/>\n  <ellipse cx="28.9" cy="39.9" rx="0.45" ry="0.5" fill="#f6f0e4"/>\n  <ellipse cx="35.7" cy="39.9" rx="0.45" ry="0.5" fill="#f6f0e4"/>\n  <path d="M29 47.2 Q32 48.8 35 47.2" fill="none" stroke="#c9a24a" stroke-width="0.95"/>\n  <path fill="#e8c36a" stroke="#8a6a20" stroke-width="0.5" d="M32 48 l2.7 4.3 h-5.4 z"/>\n  <circle cx="32" cy="53.1" r="0.95" fill="#d4a017" stroke="#8a6a20" stroke-width="0.45"/>\n</svg>';
-      let cap = n + " cow";
-      if (!n) cap = "0 cow";
+      let cap = n + "/" + shedCap(state.shed) + " cows";
+      if (!n) cap = "0/" + shedCap(state.shed) + " cows";
       else if (making.length && !ready) {
         const soon = Math.min.apply(null, making.map((c) => c.readyAt));
-        cap = n + " · " + fmtLeft(soon - now());
+        cap = n + "/" + shedCap(state.shed) + " · " + fmtLeft(soon - now());
       }
       return barn + '<div class="shed-cap">' + cap + "</div>";
     }
@@ -4798,10 +5064,19 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         const pen = document.createElement("div");
         pen.className = "tile sheep";
         if (sheep().some((s) => s.stage === "wool")) pen.classList.add("ready");
-        placeEl(pen, state.sheepPen.x, state.sheepPen.y, 1, "sheep");
+        placeEl(pen, state.sheepPen.x, state.sheepPen.y, 1, "sheep", state.sheepPen);
         pen.innerHTML = sheepInner();
-        bindTile(pen, "sheep", null);
+        bindTile(pen, "sheep", state.sheepPen);
         grid.appendChild(pen);
+      }
+      if (pigs().length && state.pigPen && typeof state.pigPen.x === "number") {
+        const sty = document.createElement("div");
+        sty.className = "tile pig";
+        if (pigs().some((s) => s.stage === "truffle")) sty.classList.add("ready");
+        placeEl(sty, state.pigPen.x, state.pigPen.y, 1, "pig");
+        sty.innerHTML = pigInner();
+        bindTile(sty, "pig", null);
+        grid.appendChild(sty);
       }
     }
 
@@ -4833,6 +5108,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         else if (kind === "coop") onCoopTap();
         else if (kind === "horse") onHorseTap();
         else if (kind === "sheep") onSheepTap();
+        else if (kind === "pig") onPigTap();
         else if (kind === "silo") openSilo(plot);
         else if (kind === "tree") onTreeTap(plot);
         else onPlotTap(plot);
@@ -4945,6 +5221,10 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     if (buySheepBtn) buySheepBtn.onclick = buySheep;
     const sellWoolBtn = document.getElementById("sell-wool");
     if (sellWoolBtn) sellWoolBtn.onclick = sellWool;
+    const buyPigBtn = document.getElementById("buy-pig");
+    if (buyPigBtn) buyPigBtn.onclick = buyPig;
+    const sellTrufflesBtn = document.getElementById("sell-truffles");
+    if (sellTrufflesBtn) sellTrufflesBtn.onclick = sellTruffles;
     const sellHairBtn = document.getElementById("sell-hair");
     if (sellHairBtn) sellHairBtn.onclick = sellHair;
     document.getElementById("sell-eggs").onclick = sellEggs;
@@ -5226,11 +5506,12 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       tickChicken();
       tickHorse();
       tickSheep();
+      tickPig();
       if (autoOn()) autoTick();
       if (state.miningUntil && state.miningUntil <= now()) finishMine();
       if (state.forestUntil && state.forestUntil <= now()) finishForest();
       const due = state.plots.some((p) => p.crop && p.crop.stage === "growing")
-        || cows().some((c) => c.stage === "making") || chickens().some((c) => c.stage === "making" || c.stage === "eggs") || horses().some((h) => h.stage === "making" || h.stage === "hair") || sheep().some((s) => s.stage === "making" || s.stage === "wool") || mineOn() || forestOn();
+        || cows().some((c) => c.stage === "making") || chickens().some((c) => c.stage === "making" || c.stage === "eggs") || horses().some((h) => h.stage === "making" || h.stage === "hair") || sheep().some((s) => s.stage === "making" || s.stage === "wool") || pigs().some((s) => s.stage === "making" || s.stage === "truffle") || mineOn() || forestOn();
       const afterWell = state.wells.reduce((n, w) => n + w.water, 0);
       if (afterWell !== beforeWell || due || t - lastPaint > 400) {
         lastPaint = t;
@@ -5256,6 +5537,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
 
     load();
     layout();
+    ensureDemoSheds();
     last = now();
     render();
     requestAnimationFrame(loop);
