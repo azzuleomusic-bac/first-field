@@ -203,7 +203,7 @@
     .tile::after {
       content: "";
       position: absolute;
-      inset: -22px;
+      inset: -4px;
     }
     .tile.plot {
       background:
@@ -2225,14 +2225,13 @@
       const stage = document.getElementById("farm-stage");
       const grid = document.getElementById("grid");
       if (stage) {
-        stage.style.width = Math.max(w * z, wrap.clientWidth) + "px";
-        stage.style.height = Math.max(h * z, wrap.clientHeight) + "px";
+        stage.style.width = Math.max(w, wrap.clientWidth) + "px";
+        stage.style.height = Math.max(h, wrap.clientHeight) + "px";
       }
       if (grid) {
         grid.style.width = w + "px";
         grid.style.height = h + "px";
-        grid.style.transformOrigin = "0 0";
-        grid.style.transform = "scale(" + z + ")";
+        grid.style.transform = "none";
       }
       let fg = document.getElementById("farm-grid");
       if (grid && !fg) {
@@ -2247,7 +2246,7 @@
     }
     function setFarmZoom(z, paint) {
       if ((state.farmExpands || 0) < 1) return;
-      state.viewZoom = Math.max(0.7, Math.min(2.4, z));
+      state.viewZoom = Math.max(1, Math.min(2.8, z));
       layout();
       if (paint !== false) render();
     }
@@ -2290,8 +2289,8 @@
       const g = gridMeta();
       const z = g.zoom || 1;
       return {
-        x: clamp((px - g.pad * z) / (g.cols * g.cell * z), 0, 1),
-        y: clamp((py - g.pad * z) / (g.rows * g.cell * z), 0, 1)
+        x: clamp((px - g.pad) / (g.cols * g.cell), 0, 1),
+        y: clamp((py - g.pad) / (g.rows * g.cell), 0, 1)
       };
     }
 
@@ -4657,7 +4656,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (state.sats < cost) { toast("Need " + cost + " sats to expand"); return false; }
       state.sats -= cost;
       state.farmExpands = (state.farmExpands || 0) + 1;
-      state.viewZoom = 1;
+      state.viewZoom = 1.15;
       logMarket("Farm +30% −" + cost + " sats");
       layout();
       save();
@@ -4750,12 +4749,12 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       const extra = state.farmExpands || 0;
       const cols = 8 + extra * 2;
       const rows = 10 + extra * 2;
-      const fitAll = Math.max(18, Math.min(
-        (wrap.clientWidth - pad * 2) / cols,
-        (wrap.clientHeight - pad * 2) / rows
+      const base = Math.max(36, Math.min(
+        (wrap.clientWidth - pad * 2) / 8,
+        (wrap.clientHeight - pad * 2) / 10
       ));
-      const z = extra < 1 ? 1 : Math.max(1, Math.min(2.4, state.viewZoom || 1));
-      return { cols: cols, rows: rows, cell: fitAll, pad: pad, zoom: z };
+      const z = extra < 1 ? 1 : Math.max(1, Math.min(2.8, state.viewZoom || 1.15));
+      return { cols: cols, rows: rows, cell: base * z, pad: pad, zoom: z };
     }
     function snapCell(nx, ny, kind, item) {
       const g = gridMeta();
@@ -4958,7 +4957,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (state.sats < cost) { toast("Need " + cost + " sats to expand"); return null; }
       state.sats -= cost;
       state.farmExpands = (state.farmExpands || 0) + 1;
-      state.viewZoom = 1;
+      state.viewZoom = 1.15;
       logMarket("Farm +30% −" + cost + " sats");
       layout();
       save();
@@ -5079,7 +5078,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (state.sats < cost) { toast("Need " + cost + " sats"); return; }
       state.sats -= cost;
       state.farmExpands = (state.farmExpands || 0) + 1;
-      state.viewZoom = 1;
+      state.viewZoom = 1.15;
       logMarket("Farm +30% −" + cost + " sats");
       toast("Farm expanded");
       layout();
