@@ -4264,7 +4264,9 @@ if (!state.demoSmithMats) {
           if (mobEl) { void mobEl.offsetWidth; mobEl.classList.add("hit"); }
           const a = minerAtk();
           const base = a.min + Math.floor(Math.random() * (a.max - a.min + 1));
-          const hit = rollHit(base);
+          const clanDmg = clanPct(state.fightKind === "forest" ? "forest" : "mine");
+          const boosted = Math.max(1, Math.round(base * (1 + clanDmg / 100)));
+          const hit = rollHit(boosted);
           c -= hit.dmg;
           if (c < 0) c = 0;
           if (po) {
@@ -4644,7 +4646,8 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       const cw = clothWorn();
       const lw = leatherWorn();
       ul.innerHTML = "<li><span>Health</span><span>50</span></li>" +
-        "<li><span>Damage</span><span>" + a.min + " to " + a.max + "</span></li>" +
+        "<li><span>Damage</span><span>" + Math.max(1, Math.round(a.min * (1 + clanFightPct() / 100))) + " to " + Math.max(1, Math.round(a.max * (1 + clanFightPct() / 100))) + "</span></li>" +
+        "<li><span>" + clanFightLabel() + "</span><span>+" + clanFightPct() + "%</span></li>" +
         "<li><span>Defense</span><span>" + minerDef() + "</span></li>" +
         "<li><span>Loot</span><span>" + (rockB ? ("+" + rockB + "%") : "0%") + "</span></li>" +
         "<li class='" + (cw >= 5 ? "set-full" : "") + "'><span>Cloth set</span><span>" + cw + "/5" + (cw >= 5 ? " Woolworks" : "") + "</span></li>" +
@@ -4681,13 +4684,30 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (!state.gearLeatherBoots && (state.leatherBoots || 0) > 0) wearItem("lboots");
       toast("Leather set on");
     }
+    function clanFightKey() {
+      const forestOpen = document.getElementById("forest-panel") && document.getElementById("forest-panel").classList.contains("open");
+      return forestOpen || state.fightKind === "forest" ? "forest" : "mine";
+    }
+    function clanFightPct() {
+      const key = clanFightKey();
+      return (state.clan && state.clan.relics && state.clan.relics[key]) || 0;
+    }
+    function clanFightLabel() {
+      return clanFightKey() === "forest" ? "Vs forest monsters" : "Vs mine monsters";
+    }
     function fillMinerStats() {
       const ul = document.getElementById("miner-stats");
       if (!ul) return;
+      const pct = clanFightPct();
+      const atk = minerAtk();
+      const lo = Math.max(1, Math.round(atk.min * (1 + pct / 100)));
+      const hi = Math.max(lo, Math.round(atk.max * (1 + pct / 100)));
       const rows = [
         ["Health", "50"],
         ["Crit chance", "10%"],
-        ["Damage", minerAtk().min + " to " + minerAtk().max],
+        ["Damage", lo + " to " + hi],
+        ["Vs mine monsters", ((state.clan && state.clan.relics && state.clan.relics.mine) || 0) + "%"],
+        ["Vs forest monsters", ((state.clan && state.clan.relics && state.clan.relics.forest) || 0) + "%"],
         ["Defense", String(minerDef())],
         ["Loot", (function(){ const b = Math.round(lootBonus() * 100); return b ? ("+" + b + "%") : "0%"; })()],
         ["Cloth set", clothWorn() + "/5" + (clothWorn() >= 5 ? " Woolworks" : "")],
@@ -5037,6 +5057,8 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         || (document.getElementById("barn-panel") && document.getElementById("barn-panel").classList.contains("open"));
       const wrap = document.getElementById("app");
       if (wrap) wrap.classList.remove("scene");
+      state.inClan = false;
+      document.body.classList.remove("in-clan");
       ["market-panel", "shed-panel", "log-panel", "craft-panel", "barn-panel", "silo-panel", "smith-panel", "worth-panel", "mine-panel", "forest-panel", "adventure-panel", "clan-panel", "set-panel"].forEach((id) => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -5605,7 +5627,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         if (state.water < 5) { toast("Need 5 water"); return; }
         state.water -= 5;
         tr.stage = "grow";
-        tr.readyAt = now() + 20000;
+        tr.readyAt = now() + clanGrowMs(20000);
         toast("Apple tree growing");
         save(); render(); return;
       }
@@ -6017,7 +6039,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       }
       state.water -= c.waterCost;
       plot.crop.stage = "growing";
-      plot.crop.readyAt = now() + c.growMs;
+      plot.crop.readyAt = now() + clanGrowMs(c.growMs);
       toast("Watered — growing");
       save();
       render();
@@ -6733,12 +6755,12 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       }
     }
     function clanPrimaryCost(n) {
-      if (n <= 1) return 500;
-      if (n === 2) return 1200;
-      return Math.round(1200 * Math.pow(1.28, n - 2));
+      return 80 * n;
     }
     function clanSecondaryCost(n) { return n < 10 ? 0 : Math.round(80 * Math.pow(1.22, n - 10)); }
-    function clanTowerCost(next) { const n = next - 1; return { lumber: 40 * n, rocks: 40 * n, sats: 15 * n }; }
+    function clanTowerCost(next) { const step = next - 1; return { lumber: 80 * step, rocks: 80 * step, sats: 15 * step }; }
+    function clanPct(key) { return (state.clan && state.clan.relics && state.clan.relics[key]) || 0; }
+    function clanGrowMs(ms) { const p = clanPct("harvest"); return p ? Math.max(1000, Math.round(ms / (1 + p / 100))) : ms; }
     function clanRelicTotal() { const r = state.clan.relics; return (r.harvest || 0) + (r.forest || 0) + (r.mine || 0); }
     const CLAN_RELICS = {
       harvest: { name: "Relic of Harvest", bonus: "crop growth", primary: "corn", secondary: "carrots" },
@@ -6774,17 +6796,30 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       else paintClanRelic(sheet);
     }
     function paintClanTower() {
-      const next = state.clan.tower + 1;
+      ensureClan();
+      const lvl = state.clan.tower || 1;
+      const next = lvl + 1;
       const cost = clanTowerCost(next);
+      const after = clanTowerCost(next + 1);
       const need = (next - 1) * 5;
       const have = clanRelicTotal();
       const sheet = document.getElementById("clan-sheet");
-      sheet.innerHTML = "<h4>Clan tower</h4><p>" + state.membersWait + "</p><p>Lvl " + state.clan.tower + " holds " + (state.clan.tower * 10) + " members. Lvl " + next + " needs " + cost.lumber + " lumber, " + cost.rocks + " rock, " + cost.sats + " sats, and " + need + "% total relic progress. You have " + have + "%.</p><button type=\"button\" id=\"clan-up\">Upgrade tower</button>";
+      sheet.innerHTML = "<h4>Clan tower lvl " + lvl + "</h4><p>Holds " + (lvl * 10) + " members. Next level is " + cost.lumber + " lumber and " + cost.rocks + " rock, then " + after.lumber + " / " + after.rocks + ". First step is 80, then +80 each level.</p><p>Also " + cost.sats + " sats and " + need + "% total relics. You have " + have + "%.</p><button type=\"button\" id=\"clan-up\">Upgrade to lvl " + next + "</button>";
       document.getElementById("clan-up").onclick = function () {
-        if (have < need) { toast("Relics need " + need + "% total"); return; }
-        if ((state.lumber || 0) < cost.lumber || (state.rocks || 0) < cost.rocks || (state.sats || 0) < cost.sats) { toast("Not enough lumber, rock, or sats"); return; }
-        state.lumber -= cost.lumber; state.rocks -= cost.rocks; state.sats -= cost.sats; state.clan.tower = next;
-        save(); paintClan(); render();
+        const nowLvl = state.clan.tower || 1;
+        const nowNext = nowLvl + 1;
+        const nowCost = clanTowerCost(nowNext);
+        const nowNeed = (nowNext - 1) * 5;
+        if (clanRelicTotal() < nowNeed) { toast("Relics need " + nowNeed + "% total"); return; }
+        if ((state.lumber || 0) < nowCost.lumber || (state.rocks || 0) < nowCost.rocks || (state.sats || 0) < nowCost.sats) { toast("Need " + nowCost.lumber + " lumber and " + nowCost.rocks + " rock"); return; }
+        state.lumber -= nowCost.lumber;
+        state.rocks -= nowCost.rocks;
+        state.sats -= nowCost.sats;
+        state.clan.tower = nowNext;
+        toast("Tower lvl " + nowNext + ". Next is " + clanTowerCost(nowNext + 1).lumber + " lumber and rock");
+        save();
+        paintClan();
+        render();
       };
     }
     function paintClanRelic(key) {
@@ -6807,7 +6842,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         if ((state[spec.primary] || 0) < pCost || (state[spec.secondary] || 0) < sCost) { toast("Not enough goods"); return; }
         state[spec.primary] -= pCost;
         state[spec.secondary] -= sCost;
-        state.clan.relics[key] = next;
+        state.clan.relics[key] = next; toast(spec.name + " +" + next + "%");
         state.clan.offered[key] = (state.clan.offered[key] || 0) + 1;
         save(); paintClan(); render();
       };
@@ -6821,6 +6856,8 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       paintClan();
       pan.classList.add("open");
       pan.setAttribute("aria-hidden", "false");
+      const clanClose = document.getElementById("clan-close");
+      if (clanClose) clanClose.onclick = function () { closeClan(); render(); };
     }
     function closeClan() {
       state.inClan = false;
@@ -6835,9 +6872,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     if (advBtn) advBtn.onclick = () => { state.mode = "farm"; openAdventure(); render(); };
     const clanBtn = document.getElementById("tool-clan");
     if (clanBtn) clanBtn.onclick = () => { state.mode = "farm"; openClan(); render(); };
-    const clanClose = document.getElementById("clan-close");
-    if (clanClose) clanClose.onclick = () => { closeClan(); render(); };
-    const forestBtn = document.getElementById("tool-forest");
+        const forestBtn = document.getElementById("tool-forest");
     function openForest(force) {
       const pan = document.getElementById("forest-panel");
       const wasOpen = pan && pan.classList.contains("open");
