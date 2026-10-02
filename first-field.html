@@ -6822,6 +6822,27 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         render();
       };
     }
+    function clanPool(key) {
+      state.clan.pool = state.clan.pool || {};
+      state.clan.pool[key] = state.clan.pool[key] || {};
+      return state.clan.pool[key];
+    }
+    function clanBank(key) {
+      const spec = CLAN_RELICS[key];
+      const pool = clanPool(key);
+      let gained = 0;
+      while ((state.clan.relics[key] || 0) < 100) {
+        const next = (state.clan.relics[key] || 0) + 1;
+        const pCost = clanPrimaryCost(next);
+        const sCost = clanSecondaryCost(next);
+        if ((pool[spec.primary] || 0) < pCost || (pool[spec.secondary] || 0) < sCost) break;
+        pool[spec.primary] -= pCost;
+        if (sCost) pool[spec.secondary] -= sCost;
+        state.clan.relics[key] = next;
+        gained += 1;
+      }
+      return gained;
+    }
     function paintClanRelic(key) {
       const spec = CLAN_RELICS[key];
       const cur = state.clan.relics[key] || 0;
@@ -6829,21 +6850,32 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       const done = cur >= 100;
       const pCost = done ? 0 : clanPrimaryCost(next);
       const sCost = done ? 0 : clanSecondaryCost(next);
-      const left = 1 - (state.clan.offered[key] || 0);
+      const pool = clanPool(key);
+      const haveP = pool[spec.primary] || 0;
+      const haveS = pool[spec.secondary] || 0;
       const sheet = document.getElementById("clan-sheet");
       sheet.innerHTML = "<h4>" + spec.name + "</h4><p>+" + cur + "% " + spec.bonus + " while in the clan.</p>" +
-        (done ? "<p>Full. 100%.</p>" : "<p>Next: " + pCost + " " + spec.primary + (sCost ? " + " + sCost + " " + spec.secondary : "") + ". Today " + Math.max(0, left) + "/1 offer left.</p>") +
-        "<p>You have " + (state[spec.primary] || 0) + " " + spec.primary + (sCost || cur >= 9 ? " · " + (state[spec.secondary] || 0) + " " + spec.secondary : "") + ".</p>" +
-        (done ? "" : "<button type=\"button\" id=\"clan-offer\">Offer</button>");
+        (done ? "<p>Full. 100%.</p>" : "<p>Pile " + haveP + "/" + pCost + " " + spec.primary + (sCost ? " and " + haveS + "/" + sCost + " " + spec.secondary : "") + " toward +" + next + "%.</p>") +
+        "<p>You have " + (state[spec.primary] || 0) + " " + spec.primary + (sCost || cur >= 9 ? " · " + (state[spec.secondary] || 0) + " " + spec.secondary : "") + ". No daily cap.</p>" +
+        (done ? "" : "<label>Give " + spec.primary + "</label><input id=\"clan-give-p\" type=\"number\" min=\"1\" value=\"10\" style=\"width:100%;margin:6px 0;padding:10px;border-radius:10px;border:1px solid rgba(232,195,106,0.35);background:#120e0b;color:#efe6cf\">" +
+          (sCost ? "<label>Give " + spec.secondary + "</label><input id=\"clan-give-s\" type=\"number\" min=\"0\" value=\"0\" style=\"width:100%;margin:6px 0;padding:10px;border-radius:10px;border:1px solid rgba(232,195,106,0.35);background:#120e0b;color:#efe6cf\">" : "") +
+          "<button type=\"button\" id=\"clan-offer\">Offer</button>");
       const offer = document.getElementById("clan-offer");
       if (!offer) return;
       offer.onclick = function () {
-        if ((state.clan.offered[key] || 0) >= 1) { toast("Daily offer cap"); return; }
-        if ((state[spec.primary] || 0) < pCost || (state[spec.secondary] || 0) < sCost) { toast("Not enough goods"); return; }
-        state[spec.primary] -= pCost;
-        state[spec.secondary] -= sCost;
-        state.clan.relics[key] = next; toast(spec.name + " +" + next + "%");
-        state.clan.offered[key] = (state.clan.offered[key] || 0) + 1;
+        const pIn = document.getElementById("clan-give-p");
+        const sIn = document.getElementById("clan-give-s");
+        let giveP = Math.max(0, Math.floor(Number(pIn && pIn.value) || 0));
+        let giveS = Math.max(0, Math.floor(Number(sIn && sIn.value) || 0));
+        giveP = Math.min(giveP, state[spec.primary] || 0);
+        giveS = Math.min(giveS, state[spec.secondary] || 0);
+        if (!giveP && !giveS) { toast("Give some " + spec.primary); return; }
+        state[spec.primary] = (state[spec.primary] || 0) - giveP;
+        if (giveS) state[spec.secondary] = (state[spec.secondary] || 0) - giveS;
+        pool[spec.primary] = (pool[spec.primary] || 0) + giveP;
+        if (giveS) pool[spec.secondary] = (pool[spec.secondary] || 0) + giveS;
+        const gained = clanBank(key);
+        toast(gained ? spec.name + " +" + state.clan.relics[key] + "%" : "Piled " + giveP + " " + spec.primary);
         save(); paintClan(); render();
       };
     }
