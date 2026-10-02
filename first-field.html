@@ -1434,7 +1434,7 @@
       padding: 12px;
       color: var(--cream);
     }
-    #market-panel.open, #craft-panel.open, #barn-panel.open, #silo-panel.open, #worth-panel.open, #mine-panel.open, #forest-panel.open, #adventure-panel.open { display: block; }
+    #market-panel.open, #craft-panel.open, #barn-panel.open, #silo-panel.open, #worth-panel.open, #mine-panel.open, #forest-panel.open, #adventure-panel.open, #clan-panel.open { display: block; }
     body.in-adventure #app { visibility: hidden !important; }
     body.in-adventure #fight-box.open { z-index: 240 !important; }
     body.in-adventure #mine-panel.open,
@@ -1470,6 +1470,30 @@
     .adv-row button[disabled] { opacity: 0.35; }
     .adv-row button.boss { border-color: #c45c3e; }
     #adventure-close { width: 100%; margin-top: 8px; }
+    body.in-clan #app { visibility: hidden !important; }
+    #clan-panel {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding: calc(var(--safe-top) + 16px) 16px calc(var(--safe-bot) + 24px);
+      color: #efe6cf;
+      background:
+        radial-gradient(ellipse 70% 36% at 50% 18%, rgba(232,195,106,0.16), transparent 62%),
+        linear-gradient(180deg, #1a140c 0%, #142018 48%, #10160f 100%);
+    }
+    #clan-panel h3 { margin: 0; font-size: 28px; letter-spacing: 0.14em; color: #e8c36a; }
+    #clan-panel .adv-kicker { margin: 4px 0 12px; letter-spacing: 0.18em; font-size: 11px; opacity: 0.7; }
+    .clan-scene { position: relative; height: 250px; margin: 8px 0 14px; }
+    .clan-tower { position: absolute; left: 50%; top: 18px; transform: translateX(-50%); width: 92px; background: none; border: 0; color: #efe6cf; padding: 0; }
+    .clan-stone { height: 140px; border-radius: 8px 8px 4px 4px; background: linear-gradient(#d9c7a2, #5c4632); box-shadow: inset 0 0 0 3px #3a2a1c; position: relative; }
+    .clan-stone:before { content: ""; position: absolute; left: 50%; top: -26px; transform: translateX(-50%); border-left: 46px solid transparent; border-right: 46px solid transparent; border-bottom: 28px solid #6e1f24; }
+    .clan-win { position: absolute; left: 18px; top: 26px; width: 14px; height: 18px; background: #1c120c; box-shadow: 42px 34px #1c120c; }
+    .clan-tower small { display: block; margin-top: 8px; color: #e8c36a; font-weight: 700; }
+    .clan-relics { display: flex; justify-content: space-between; gap: 8px; position: absolute; left: 0; right: 0; bottom: 0; }
+    .clan-relics button { flex: 1; min-height: 64px; background: rgba(8,10,8,0.55); }
+    .clan-sheet { margin-top: 8px; padding: 10px; border-radius: 14px; background: rgba(8,10,8,0.55); border: 1px solid rgba(232,195,106,0.22); }
+    .clan-sheet p { margin: 6px 0; font-size: 13px; }
+    #clan-close { width: 100%; margin-top: 8px; }
+
     .fight-mob.boss {
       width: 62px; height: 54px; margin-top: 12px;
       background: #4a2a62; border-radius: 46% 46% 40% 40%;
@@ -2017,9 +2041,10 @@
         <button type="button" id="tool-plant">Plant</button>
         <button type="button" id="tool-barn">Barn</button>
       </div>
-      <div class="tools" style="grid-template-columns:1fr 1fr">
+      <div class="tools" style="grid-template-columns:1fr 1fr 1fr">
         <button type="button" id="mode-farm" class="active">Farm</button>
         <button type="button" id="tool-adventure">Adventure</button>
+        <button type="button" id="tool-clan">Clan</button>
       </div>
       <div class="hint" id="hint">Tap a plot to plant. Tap the well to fill your can.</div>
     </footer>
@@ -2257,6 +2282,7 @@
         pendingLoot: state.pendingLoot || "",
         autoNext: state.autoNext || "cow",
         mineClear: state.mineClear || 0,
+        clan: state.clan || null,
         forestClear: state.forestClear || 0,
         advLevel: state.advLevel || 1,
         bossFight: !!state.bossFight,
@@ -3919,6 +3945,7 @@ if (!state.demoSmithMats) {
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Oct 1 — Clan button opens the village. Tower, then Harvest, Forest, and Mine relics.",
       "Oct 1 — Update log is newest day first. Same-day lines stay in the order they shipped.",
       "Oct 1 — Hopeful Peak plays in Adventure. Fight music still takes over.",
       "Oct 1 — Adventure is its own world. Five chapters, 25 levels each. Boss every fifth level.",
@@ -5010,7 +5037,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         || (document.getElementById("barn-panel") && document.getElementById("barn-panel").classList.contains("open"));
       const wrap = document.getElementById("app");
       if (wrap) wrap.classList.remove("scene");
-      ["market-panel", "shed-panel", "log-panel", "craft-panel", "barn-panel", "silo-panel", "smith-panel", "worth-panel", "mine-panel", "forest-panel", "adventure-panel", "set-panel"].forEach((id) => {
+      ["market-panel", "shed-panel", "log-panel", "craft-panel", "barn-panel", "silo-panel", "smith-panel", "worth-panel", "mine-panel", "forest-panel", "adventure-panel", "clan-panel", "set-panel"].forEach((id) => {
         const el = document.getElementById(id);
         if (!el) return;
         el.classList.remove("open");
@@ -6665,6 +6692,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     function setAdventureWorld(on) {
       state.inAdventure = !!on;
       document.body.classList.toggle("in-adventure", !!on);
+      if (!on) document.body.classList.remove("in-clan");
       if (on) startAdventureTune();
       else stopAdventureTune();
     }
@@ -6688,8 +6716,127 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       pan.classList.add("open");
       pan.setAttribute("aria-hidden", "false");
     }
+
+    function clanToday() {
+      const d = new Date();
+      return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+    }
+    function ensureClan() {
+      if (!state.clan) return;
+      state.clan.relics = state.clan.relics || { harvest: 0, forest: 0, mine: 0 };
+      state.clan.tower = state.clan.tower || 1;
+      state.clan.day = state.clan.day || clanToday();
+      state.clan.offered = state.clan.offered || { harvest: 0, forest: 0, mine: 0 };
+      if (state.clan.day !== clanToday()) {
+        state.clan.day = clanToday();
+        state.clan.offered = { harvest: 0, forest: 0, mine: 0 };
+      }
+    }
+    function clanPrimaryCost(n) {
+      if (n <= 1) return 500;
+      if (n === 2) return 1200;
+      return Math.round(1200 * Math.pow(1.28, n - 2));
+    }
+    function clanSecondaryCost(n) { return n < 10 ? 0 : Math.round(80 * Math.pow(1.22, n - 10)); }
+    function clanTowerCost(next) { const n = next - 1; return { lumber: 40 * n, rocks: 40 * n, sats: 15 * n }; }
+    function clanRelicTotal() { const r = state.clan.relics; return (r.harvest || 0) + (r.forest || 0) + (r.mine || 0); }
+    const CLAN_RELICS = {
+      harvest: { name: "Relic of Harvest", bonus: "crop growth", primary: "corn", secondary: "carrots" },
+      forest: { name: "Relic of the Forest", bonus: "forest damage", primary: "lumber", secondary: "leather" },
+      mine: { name: "Relic of the Mine", bonus: "rock damage", primary: "rocks", secondary: "ironOre" }
+    };
+    function paintClan() {
+      ensureClan();
+      const world = document.getElementById("clan-world");
+      const title = document.getElementById("clan-title");
+      if (!world) return;
+      if (!state.clan) {
+        if (title) title.textContent = "CLAN";
+        world.innerHTML = "<section class=\"adv-chapter\"><h4>Create clan</h4><p>Tower level 1 holds 10 members. Offerings go through the tower.</p><input id=\"clan-name\" maxlength=\"24\" value=\"First Field\" style=\"width:100%;margin:8px 0;padding:10px;border-radius:10px;border:1px solid rgba(232,195,106,0.35);background:#120e0b;color:#efe6cf\"><button type=\"button\" id=\"clan-found\">Create clan</button></section>";
+        const found = document.getElementById("clan-found");
+        if (found) found.onclick = function () {
+          const input = document.getElementById("clan-name");
+          state.clan = { name: ((input && input.value) || "First Field").trim().slice(0, 24), tower: 1, relics: { harvest: 0, forest: 0, mine: 0 }, day: clanToday(), offered: { harvest: 0, forest: 0, mine: 0 }, sheet: "tower" };
+          save();
+          paintClan();
+          render();
+        };
+        return;
+      }
+      if (title) title.textContent = state.clan.name || "CLAN";
+      const sheet = state.clan.sheet || "tower";
+      world.innerHTML = "<div class=\"clan-scene\"><button type=\"button\" class=\"clan-tower\" id=\"clan-tower\"><div class=\"clan-stone\"><div class=\"clan-win\"></div></div><small>Tower lvl " + state.clan.tower + "</small></button><div class=\"clan-relics\"><button type=\"button\" data-relic=\"harvest\">Harvest +" + state.clan.relics.harvest + "%</button><button type=\"button\" data-relic=\"forest\">Forest +" + state.clan.relics.forest + "%</button><button type=\"button\" data-relic=\"mine\">Mine +" + state.clan.relics.mine + "%</button></div></div><div class=\"clan-sheet\" id=\"clan-sheet\"></div>";
+      document.getElementById("clan-tower").onclick = function () { state.clan.sheet = "tower"; paintClan(); };
+      world.querySelectorAll("[data-relic]").forEach(function (b) {
+        b.onclick = function () { state.clan.sheet = b.dataset.relic; paintClan(); };
+      });
+      if (sheet === "tower") paintClanTower();
+      else paintClanRelic(sheet);
+    }
+    function paintClanTower() {
+      const next = state.clan.tower + 1;
+      const cost = clanTowerCost(next);
+      const need = (next - 1) * 5;
+      const have = clanRelicTotal();
+      const sheet = document.getElementById("clan-sheet");
+      sheet.innerHTML = "<h4>Clan tower</h4><p>" + state.membersWait + "</p><p>Lvl " + state.clan.tower + " holds " + (state.clan.tower * 10) + " members. Lvl " + next + " needs " + cost.lumber + " lumber, " + cost.rocks + " rock, " + cost.sats + " sats, and " + need + "% total relic progress. You have " + have + "%.</p><button type=\"button\" id=\"clan-up\">Upgrade tower</button>";
+      document.getElementById("clan-up").onclick = function () {
+        if (have < need) { toast("Relics need " + need + "% total"); return; }
+        if ((state.lumber || 0) < cost.lumber || (state.rocks || 0) < cost.rocks || (state.sats || 0) < cost.sats) { toast("Not enough lumber, rock, or sats"); return; }
+        state.lumber -= cost.lumber; state.rocks -= cost.rocks; state.sats -= cost.sats; state.clan.tower = next;
+        save(); paintClan(); render();
+      };
+    }
+    function paintClanRelic(key) {
+      const spec = CLAN_RELICS[key];
+      const cur = state.clan.relics[key] || 0;
+      const next = cur + 1;
+      const done = cur >= 100;
+      const pCost = done ? 0 : clanPrimaryCost(next);
+      const sCost = done ? 0 : clanSecondaryCost(next);
+      const left = 1 - (state.clan.offered[key] || 0);
+      const sheet = document.getElementById("clan-sheet");
+      sheet.innerHTML = "<h4>" + spec.name + "</h4><p>+" + cur + "% " + spec.bonus + " while in the clan.</p>" +
+        (done ? "<p>Full. 100%.</p>" : "<p>Next: " + pCost + " " + spec.primary + (sCost ? " + " + sCost + " " + spec.secondary : "") + ". Today " + Math.max(0, left) + "/1 offer left.</p>") +
+        "<p>You have " + (state[spec.primary] || 0) + " " + spec.primary + (sCost || cur >= 9 ? " · " + (state[spec.secondary] || 0) + " " + spec.secondary : "") + ".</p>" +
+        (done ? "" : "<button type=\"button\" id=\"clan-offer\">Offer</button>");
+      const offer = document.getElementById("clan-offer");
+      if (!offer) return;
+      offer.onclick = function () {
+        if ((state.clan.offered[key] || 0) >= 1) { toast("Daily offer cap"); return; }
+        if ((state[spec.primary] || 0) < pCost || (state[spec.secondary] || 0) < sCost) { toast("Not enough goods"); return; }
+        state[spec.primary] -= pCost;
+        state[spec.secondary] -= sCost;
+        state.clan.relics[key] = next;
+        state.clan.offered[key] = (state.clan.offered[key] || 0) + 1;
+        save(); paintClan(); render();
+      };
+    }
+    function openClan() {
+      closeAllTabs();
+      state.inClan = true;
+      document.body.classList.add("in-clan");
+      const pan = document.getElementById("clan-panel");
+      if (!pan) return;
+      paintClan();
+      pan.classList.add("open");
+      pan.setAttribute("aria-hidden", "false");
+    }
+    function closeClan() {
+      state.inClan = false;
+      document.body.classList.remove("in-clan");
+      const pan = document.getElementById("clan-panel");
+      if (!pan) return;
+      pan.classList.remove("open");
+      pan.setAttribute("aria-hidden", "true");
+    }
+
     const advBtn = document.getElementById("tool-adventure");
     if (advBtn) advBtn.onclick = () => { state.mode = "farm"; openAdventure(); render(); };
+    const clanBtn = document.getElementById("tool-clan");
+    if (clanBtn) clanBtn.onclick = () => { state.mode = "farm"; openClan(); render(); };
+    const clanClose = document.getElementById("clan-close");
+    if (clanClose) clanClose.onclick = () => { closeClan(); render(); };
     const forestBtn = document.getElementById("tool-forest");
     function openForest(force) {
       const pan = document.getElementById("forest-panel");
@@ -7619,5 +7766,12 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         <button type="button" class="ghost" id="adventure-close">Back to farm</button>
       </div>
       
+
+<div id="clan-panel" aria-hidden="true">
+        <p class="adv-kicker">ANOTHER WORLD</p>
+        <h3 id="clan-title">CLAN</h3>
+        <div id="clan-world"></div>
+        <button type="button" class="ghost" id="clan-close">Back to farm</button>
+      </div>
 </body>
 </html>
