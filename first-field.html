@@ -119,14 +119,10 @@
       position: relative;
       overflow: auto;
       -webkit-overflow-scrolling: touch;
-      background:
-        radial-gradient(ellipse 70% 55% at 18% 22%, #5a8a3a 0%, transparent 70%),
-        radial-gradient(ellipse 55% 60% at 86% 18%, #4e7c34 0%, transparent 65%),
-        radial-gradient(ellipse 80% 50% at 72% 82%, #2a4a1c 0%, transparent 70%),
-        radial-gradient(ellipse 45% 40% at 30% 70%, #3a6228 0%, transparent 75%),
-        radial-gradient(ellipse 35% 30% at 52% 40%, #6a9844 0%, transparent 70%),
-        linear-gradient(160deg, #3e6c2c, #2f5420);
+      background: #5a8a3a;
     }
+    #field-wrap::before,
+    #field-wrap::after { content: none; }
     #field-wrap::before {
       content: "";
       position: absolute;
@@ -170,6 +166,7 @@
       width: min(340px, calc(100vw - 28px));
       max-height: calc(100svh - var(--safe-top) - var(--safe-bot) - 28px);
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       z-index: 40;
       background: rgba(14,22,12,0.96);
       border: 1px solid rgba(232,195,106,0.35);
@@ -178,9 +175,35 @@
       color: var(--cream);
     }
     #smith-panel.open { display: block; }
+    #smith-armor, #smith-weapons {
+      max-height: min(42vh, 280px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-right: 4px;
+    }
     #smith-panel .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 8px 0; }
-    #smith-panel svg, #barn-list svg { width: 28px; height: 22px; vertical-align: middle; }
-    #smith-sword-line svg { width: 36px; height: 36px; }
+    #smith-panel svg, #barn-list svg, #craft-panel svg, #market-panel svg { width: 28px; height: 22px; vertical-align: middle; }
+    #smith-sword-line svg, #smith-iron-line svg { width: 36px; height: 36px; }
+    #gear-stats li.set-full, #miner-stats li.set-full {
+      background: rgba(232,195,106,0.18);
+      border: 1px solid rgba(232,195,106,0.7);
+      border-radius: 8px;
+      padding: 4px 6px;
+      color: #e8c36a;
+      font-weight: 800;
+    }
+    #set-banner {
+      margin: 6px 0 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(232,195,106,0.16);
+      border: 1px solid #e8c36a;
+      color: #e8c36a;
+      font-weight: 800;
+      text-align: center;
+    }
+    #set-banner.leather { border-color: #c48a4a; color: #e2b07a; background: rgba(138,90,50,0.25); }
+    .gear-slot.set-full { box-shadow: 0 0 0 2px #e8c36a; }
     #smith-close { width: 100%; margin-top: 8px; }
     button { transition: transform 80ms ease, filter 80ms ease; }
     button:active, button.pressed {
@@ -189,12 +212,11 @@
     }
     #farm-stage {
       position: relative;
-      background:
-        radial-gradient(ellipse 70% 55% at 18% 22%, #5a8a3a 0%, transparent 70%),
-        radial-gradient(ellipse 55% 60% at 86% 18%, #4e7c34 0%, transparent 65%),
-        radial-gradient(ellipse 80% 50% at 72% 82%, #2a4a1c 0%, transparent 70%),
-        radial-gradient(ellipse 45% 40% at 30% 70%, #3a6228 0%, transparent 75%),
-        linear-gradient(160deg, #3e6c2c, #2f5420);
+      background-color: #5a8a3a;
+      background-image:
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.28  0 0 0 0 0.48  0 0 0 0 0.16  0 0 0 0.55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+      background-size: 180px 180px;
+      background-repeat: repeat;
     }
     #farm-stage::before,
     #farm-stage::after {
@@ -770,6 +792,59 @@
     .fight-miner.has-pants .miner-legs-wrap {
       background: #3d4a73;
       box-shadow: inset 8px 0 0 #2f3a5c;
+    }
+    .miner.has-leather-pants .miner-legs-wrap,
+    .fight-miner.has-leather-pants .miner-legs-wrap {
+      background: repeating-linear-gradient(90deg, #8a5a32 0 4px, #6b4424 4px 7px);
+      box-shadow: inset 0 0 0 1px #3a2414;
+    }
+    .miner.has-leather-vest .miner-torso,
+    .fight-miner.has-leather-vest .miner-torso {
+      background: repeating-linear-gradient(90deg, #a56b3c 0 4px, #7a4c28 4px 7px);
+      box-shadow: inset 0 4px 0 #5a381c;
+    }
+    .miner.has-leather-vest .miner-torso::after,
+    .fight-miner.has-leather-vest .miner-torso::after {
+      content: "";
+      position: absolute;
+      left: -5px; top: 6px;
+      width: 8px; height: 10px;
+      background: #7a4c28;
+      border-radius: 3px;
+      box-shadow: 30px 0 0 #7a4c28;
+    }
+    .miner.has-leather-cap .miner-head::before,
+    .fight-miner.has-leather-cap .miner-head::before {
+      content: "";
+      position: absolute;
+      left: -3px; top: -6px;
+      width: 26px; height: 13px;
+      background: repeating-linear-gradient(90deg, #8a5a32 0 3px, #6e4524 3px 6px);
+      border-radius: 10px 10px 2px 2px;
+      box-shadow: 0 4px 0 -1px #4a3018;
+      z-index: 6;
+    }
+    .wear-gloves, .wear-boots { display: none; position: absolute; pointer-events: none; }
+    .miner.has-gloves .wear-gloves, .fight-miner.has-gloves .wear-gloves,
+    .miner.has-leather-gloves .wear-gloves, .fight-miner.has-leather-gloves .wear-gloves {
+      display: block; left: -7px; bottom: 1px; width: 9px; height: 8px; border-radius: 3px; z-index: 6;
+      background: #6b8f4a; box-shadow: 29px 0 0 #6b8f4a;
+    }
+    .miner.has-leather-gloves .wear-gloves, .fight-miner.has-leather-gloves .wear-gloves {
+      background: repeating-linear-gradient(90deg, #a56b3c 0 2px, #6e4524 2px 4px);
+      box-shadow: 29px 0 0 #7a4c28;
+    }
+    .miner.has-boots .wear-boots, .fight-miner.has-boots .wear-boots,
+    .miner.has-leather-boots .wear-boots, .fight-miner.has-leather-boots .wear-boots {
+      display: block; left: 0; bottom: 0; width: 9px; height: 8px; border-radius: 2px 2px 3px 3px; z-index: 6;
+      background: #4e5d86; box-shadow: 11px 0 0 #4e5d86;
+    }
+    .miner.has-leather-boots .wear-boots, .fight-miner.has-leather-boots .wear-boots {
+      background: repeating-linear-gradient(90deg, #8a5a32 0 2px, #5c3a1e 2px 4px);
+      box-shadow: 11px 0 0 #6b4424;
+    }
+    .miner.has-iron .miner-blade::before, .fight-miner.has-iron .miner-blade::before {
+      background: linear-gradient(180deg, #e7edf4 0%, #8e99a8 46%, #3c4450 100%);
     }
 
 
@@ -1669,9 +1744,17 @@
               <div class="row"><span><span class="price" id="lbl-pants"></span><br><small class="have" data-have="pants"></small></span><button type="button" id="sell-pants">Sell pants</button></div>
               <div class="row"><span><span class="price" id="lbl-shirt"></span><br><small class="have" data-have="shirts"></small></span><button type="button" id="sell-shirt">Sell shirt</button></div>
               <div class="row"><span><span class="price" id="lbl-beanie">1 beanie → 3 ⚡ sats</span><br><small class="have" data-have="beanies"></small></span><button type="button" id="sell-beanie">Sell beanie</button></div>
+              <div class="row"><span>1 cloth gloves → 3 ⚡ sats<br><small class="have" data-have="gloves"></small></span><button type="button" id="sell-gloves">Sell gloves</button></div>
+              <div class="row"><span>1 cloth boots → 4 ⚡ sats<br><small class="have" data-have="boots"></small></span><button type="button" id="sell-boots">Sell boots</button></div>
+              <div class="row"><span>1 leather cap → 6 ⚡ sats<br><small class="have" data-have="leatherCaps"></small></span><button type="button" id="sell-lcap">Sell cap</button></div>
+              <div class="row"><span>1 leather vest → 6 ⚡ sats<br><small class="have" data-have="leatherVests"></small></span><button type="button" id="sell-lvest">Sell vest</button></div>
+              <div class="row"><span>1 leather pants → 6 ⚡ sats<br><small class="have" data-have="leatherPants"></small></span><button type="button" id="sell-lpants">Sell leather pants</button></div>
+              <div class="row"><span>1 leather gloves → 6 ⚡ sats<br><small class="have" data-have="leatherGloves"></small></span><button type="button" id="sell-lgloves">Sell leather gloves</button></div>
+              <div class="row"><span>1 leather boots → 6 ⚡ sats<br><small class="have" data-have="leatherBoots"></small></span><button type="button" id="sell-lboots">Sell leather boots</button></div>
             </div>
             <div id="csec-weapons-sell" hidden>
               <div class="row"><span><span class="price" id="lbl-sword">1 stone sword → 5 ⚡ sats</span><br><small class="have" data-have="swords"></small></span><button type="button" id="sell-sword">Sell sword</button></div>
+              <div class="row"><span>1 iron sword → 8 ⚡ sats<br><small class="have" data-have="ironSwords"></small></span><button type="button" id="sell-iron">Sell iron sword</button></div>
             </div>
           </div>
         </div>
@@ -1717,8 +1800,8 @@
         <div id="mine-stage" class="mine-stage">
           <div class="miner" id="miner">
             <div class="miner-head"></div>
-            <div class="miner-torso"><div class="wear wear-shirt" id="miner-shirt"></div></div>
-            <div class="miner-legs-wrap"><div class="wear wear-pants" id="miner-pants"></div></div>
+            <div class="miner-torso"><div class="wear wear-shirt" id="miner-shirt"></div><div class="wear wear-gloves"></div></div>
+            <div class="miner-legs-wrap"><div class="wear wear-pants" id="miner-pants"></div><div class="wear wear-boots"></div></div>
             <div class="miner-blade" aria-hidden="true"></div>
           </div>
           <div class="pick"></div>
@@ -1737,6 +1820,9 @@
         </div>
         <div id="gear-box" hidden>
           <p>Miner gear</p>
+          <p id="set-banner" hidden></p>
+          <button type="button" id="wear-cloth-set" hidden>Wear cloth set</button>
+          <button type="button" id="wear-leather-set" hidden>Wear leather set</button>
           <ul id="gear-stats"></ul>
           <div class="gear-grid">
             <button type="button" class="gear-slot" data-slot="helmet">Head<br><span class="gear-art"></span><small>empty</small></button>
@@ -1745,8 +1831,8 @@
             <button type="button" class="gear-slot" data-slot="hands">Hands<br><span class="gear-art"></span><small>empty</small></button>
             <button type="button" class="gear-slot" data-slot="pants">Legs<br><span class="gear-art"></span><small>empty</small></button>
             <button type="button" class="gear-slot" data-slot="boots">Feet<br><span class="gear-art"></span><small>empty</small></button>
-            <button type="button" class="gear-slot" data-slot="ring1">Ring 1<br><span class="gear-art"></span><small>empty</small></button>
-            <button type="button" class="gear-slot" data-slot="ring2">Ring 2<br><span class="gear-art"></span><small>empty</small></button>
+            <button type="button" class="gear-slot" data-slot="ring">Ring<br><span class="gear-art"></span><small>empty</small></button>
+            <button type="button" class="gear-slot" data-slot="pet">Pet<br><span class="gear-art"></span><small>empty</small></button>
           </div>
         </div>
         <button type="button" class="ghost" id="mine-close">Close</button>
@@ -1756,8 +1842,8 @@
     <div id="forest-stage" class="mine-stage forest-stage">
       <div class="miner" id="forest-miner">
         <div class="miner-head"></div>
-        <div class="miner-torso"><div class="wear wear-shirt"></div></div>
-        <div class="miner-legs-wrap"><div class="wear wear-pants"></div></div>
+        <div class="miner-torso"><div class="wear wear-shirt"></div><div class="wear wear-gloves"></div></div>
+        <div class="miner-legs-wrap"><div class="wear wear-pants"></div><div class="wear wear-boots"></div></div>
         <div class="miner-blade" aria-hidden="true"></div>
       </div>
       <div class="pick axe"></div>
@@ -1786,6 +1872,8 @@
           <div class="row"><span id="craft-pants-label">6 wool + 3 horse hair → 1 pants</span><button type="button" id="craft-pants">Make pants</button></div>
           <div class="row"><span id="craft-shirt-label">8 wool → 1 shirt</span><button type="button" id="craft-shirt">Make shirt</button></div>
           <div class="row"><span id="craft-beanie-label">7 wool → 1 beanie</span><button type="button" id="craft-beanie">Make beanie</button></div>
+          <div class="row"><span id="craft-gloves-label">5 wool → 1 cloth gloves</span><button type="button" id="craft-gloves">Make gloves</button></div>
+          <div class="row"><span id="craft-boots-label">6 wool + 2 horse hair → 1 cloth boots</span><button type="button" id="craft-boots">Make boots</button></div>
         </div>
         <button type="button" class="ghost" id="craft-close">Close</button>
       </div>
@@ -1803,10 +1891,15 @@
           <div class="row"><span id="smith-ingot-line"></span><button type="button" id="craft-ingot">Craft iron ingot</button></div>
         </div>
         <div id="smith-armor" hidden>
-          <p>No armor recipes yet.</p>
+          <div class="row"><span id="smith-lcap-line">4 leather → 1 leather cap</span><button type="button" id="craft-lcap">Make cap</button></div>
+          <div class="row"><span id="smith-lvest-line">6 leather → 1 leather vest</span><button type="button" id="craft-lvest">Make vest</button></div>
+          <div class="row"><span id="smith-lpants-line">5 leather → 1 leather pants</span><button type="button" id="craft-lpants">Make pants</button></div>
+          <div class="row"><span id="smith-lgloves-line">3 leather → 1 leather gloves</span><button type="button" id="craft-lgloves">Make gloves</button></div>
+          <div class="row"><span id="smith-lboots-line">4 leather → 1 leather boots</span><button type="button" id="craft-lboots">Make boots</button></div>
         </div>
         <div id="smith-weapons" hidden>
-          <div class="row"><span id="smith-sword-line">15 rocks + 7 lumber → 1 stone sword</span><button type="button" id="craft-sword">Make stone sword</button></div>
+          <div class="row"><span id="smith-sword-line">15 rocks + 7 lumber → 1 stone sword · +5 to +8 dmg</span><button type="button" id="craft-sword">Make stone sword</button></div>
+          <div class="row"><span id="smith-iron-line">2 iron ingots + 4 lumber + 1 leather → 1 iron sword · +8 to +12 dmg</span><button type="button" id="craft-iron">Make iron sword</button></div>
         </div>
         <button type="button" class="ghost" id="smith-close">Close</button>
       </div>
@@ -1831,7 +1924,7 @@
           
           <div class="fight-side">
             <div class="fight-name">Miner <span class="pop" id="pop-miner"></span></div>
-            <div class="fight-miner"><div class="miner-head"></div><div class="miner-torso"><div class="wear wear-shirt" id="fight-shirt"></div></div><div class="miner-legs-wrap"><div class="wear wear-pants" id="fight-pants"></div></div><div class="miner-blade" aria-hidden="true"></div><div class="fist-fly" aria-hidden="true">👊</div></div>
+            <div class="fight-miner"><div class="miner-head"></div><div class="miner-torso"><div class="wear wear-shirt" id="fight-shirt"></div><div class="wear wear-gloves"></div></div><div class="miner-legs-wrap"><div class="wear wear-pants" id="fight-pants"></div><div class="wear wear-boots"></div></div><div class="miner-blade" aria-hidden="true"></div><div class="fist-fly" aria-hidden="true">👊</div></div>
             <div class="hp-wrap"><div class="hp"><i id="hp-miner"></i></div></div>
             <div class="hp-num" id="hp-miner-n"></div>
           </div>
@@ -1892,8 +1985,8 @@
           <div class="gear-preview mine-stage" id="gear-miner-preview">
             <div class="miner" id="gear-miner">
               <div class="miner-head"></div>
-              <div class="miner-torso"><div class="wear wear-shirt"></div></div>
-              <div class="miner-legs-wrap"><div class="wear wear-pants"></div></div>
+              <div class="miner-torso"><div class="wear wear-shirt"></div><div class="wear wear-gloves"></div></div>
+              <div class="miner-legs-wrap"><div class="wear wear-pants"></div><div class="wear wear-boots"></div></div>
               <div class="miner-blade" aria-hidden="true"></div>
             </div>
           </div>
@@ -1976,6 +2069,23 @@
       beanies: 0,
       gearBeanie: false,
       beaniePack: false,
+      gloves: 0,
+      gearGloves: false,
+      boots: 0,
+      gearBoots: false,
+      leatherCaps: 0,
+      gearLeatherCap: false,
+      leatherVests: 0,
+      gearLeatherVest: false,
+      leatherPants: 0,
+      gearLeatherPants: false,
+      leatherGloves: 0,
+      gearLeatherGloves: false,
+      leatherBoots: 0,
+      gearLeatherBoots: false,
+      ironSwords: 0,
+      gearIron: false,
+      gearPackOct: false,
       rocks: 25,
       lumber: 25,
       demoMats: true,
@@ -2063,6 +2173,23 @@
         beanies: state.beanies || 0,
         gearBeanie: !!state.gearBeanie,
         beaniePack: !!state.beaniePack,
+        gloves: state.gloves || 0,
+        gearGloves: !!state.gearGloves,
+        boots: state.boots || 0,
+        gearBoots: !!state.gearBoots,
+        leatherCaps: state.leatherCaps || 0,
+        gearLeatherCap: !!state.gearLeatherCap,
+        leatherVests: state.leatherVests || 0,
+        gearLeatherVest: !!state.gearLeatherVest,
+        leatherPants: state.leatherPants || 0,
+        gearLeatherPants: !!state.gearLeatherPants,
+        leatherGloves: state.leatherGloves || 0,
+        gearLeatherGloves: !!state.gearLeatherGloves,
+        leatherBoots: state.leatherBoots || 0,
+        gearLeatherBoots: !!state.gearLeatherBoots,
+        ironSwords: state.ironSwords || 0,
+        gearIron: !!state.gearIron,
+        gearPackOct: !!state.gearPackOct,
         gotDemoClothes: !!state.gotDemoClothes,
         clothesPack2: !!state.clothesPack2,
         rocks: state.rocks || 0,
@@ -2217,6 +2344,22 @@
       el.textContent = extra ? "loaded " + t : "auto-saved " + t;
     }
 
+    function ensureDemoGear() {
+      if (state.gearPackOct) return;
+      state.gearPackOct = true;
+      state.gloves = (state.gloves || 0) + 1;
+      state.boots = (state.boots || 0) + 1;
+      state.leatherCaps = (state.leatherCaps || 0) + 1;
+      state.leatherVests = (state.leatherVests || 0) + 1;
+      state.leatherPants = (state.leatherPants || 0) + 1;
+      state.leatherGloves = (state.leatherGloves || 0) + 1;
+      state.leatherBoots = (state.leatherBoots || 0) + 1;
+      state.ironSwords = (state.ironSwords || 0) + 1;
+      if ((state.swords || 0) < 1 && !state.gearSword) state.swords = 1;
+      state.leatherSheets = (state.leatherSheets || 0) + 8;
+      state.ironIngots = (state.ironIngots || 0) + 4;
+      state.wool = (state.wool || 0) + 12;
+    }
     function ensureDemoClothes() {
       const have = (state.pants || 0) + (state.shirts || 0) + (state.gearPants ? 1 : 0) + (state.gearShirt ? 1 : 0);
       if (have < 1) {
@@ -2266,6 +2409,7 @@
         localStorage.removeItem(SAVE_KEY);
       }
       ensureDemoClothes();
+      ensureDemoGear();
       if (!state.demoBoost100) {
         state.sats = (state.sats || 0) + 100;
         state.lumber = (state.lumber || 0) + 100;
@@ -3387,6 +3531,10 @@ if (!state.demoSmithMats) {
       if (bn && typeof beanieArt === "function") {
         bn.innerHTML = "7 " + woolArt() + " wool -> 1 " + beanieArt() + " beanie";
       }
+      const gl = document.getElementById("craft-gloves-label");
+      if (gl && typeof glovesArt === "function") gl.innerHTML = "5 " + woolArt() + " wool -> 1 " + glovesArt() + " cloth gloves";
+      const bo = document.getElementById("craft-boots-label");
+      if (bo && typeof bootsArt === "function") bo.innerHTML = "6 " + woolArt() + " wool + 2 " + (typeof hairMark === "function" ? hairMark(true) : "") + " horse hair -> 1 " + bootsArt() + " cloth boots";
       const sw = document.getElementById("craft-sword-label");
       if (sw && typeof swordArt === "function") {
         sw.innerHTML = "15 " + rockArt() + " rocks + 7 " + lumberArt() + " lumber → 1 " + swordArt() + " stone sword";
@@ -3714,6 +3862,10 @@ if (!state.demoSmithMats) {
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Oct 1 — Armor recipes scroll. Ring and Pet slots. Wear cloth or leather set in one tap.",
+      "Oct 1 — Recipe rows show the item. A full set lights gold at 5/5.",
+      "Oct 1 — Cloth gloves and boots, leather set, and iron sword. Sets pay extra at 5/5.",
+      "Oct 1 — One grass texture on the base field and every expand.",
       "Oct 1 — Update log sits centered on the start screen.",
       "Oct 1 — Killing blow plays, then the loot card. About half a second, not a wait.",
       "Oct 1 — Loot card replaces the fight the moment it ends. No empty wait.",
@@ -3845,6 +3997,14 @@ if (!state.demoSmithMats) {
         [(typeof swordArt === "function" ? swordArt() : "") + " Stone sword", state.swords || 0, state.swords || 0],
         [shirtArt() + " Shirt", state.shirts || 0, state.shirts || 0],
         [beanieArt() + " Beanie", state.beanies || 0, state.beanies || 0],
+        [glovesArt() + " Cloth gloves", state.gloves || 0, state.gloves || 0],
+        [bootsArt() + " Cloth boots", state.boots || 0, state.boots || 0],
+        [leatherArt("cap") + " Leather cap", state.leatherCaps || 0, state.leatherCaps || 0],
+        [leatherArt("vest") + " Leather vest", state.leatherVests || 0, state.leatherVests || 0],
+        [leatherArt("pants") + " Leather pants", state.leatherPants || 0, state.leatherPants || 0],
+        [leatherArt("gloves") + " Leather gloves", state.leatherGloves || 0, state.leatherGloves || 0],
+        [leatherArt("boots") + " Leather boots", state.leatherBoots || 0, state.leatherBoots || 0],
+        [ironSwordArt() + " Iron sword", state.ironSwords || 0, state.ironSwords || 0],
         ["🪨 Rocks", state.rocks || 0, state.rocks || 0],
         ["🪵 Lumber", state.lumber || 0, state.lumber || 0],
         [leatherStripArt() + " Leather strips", state.leather || 0, state.leather || 0],
@@ -4091,7 +4251,10 @@ if (!state.demoSmithMats) {
       paintMine();
     }
     function lootBonus() {
-      return (state.gearPants ? 0.15 : 0) + (state.gearShirt ? 0.10 : 0) + (state.gearBeanie ? 0.10 : 0);
+      const cloth = (state.gearPants ? 0.15 : 0) + (state.gearShirt ? 0.10 : 0) + (state.gearBeanie ? 0.10 : 0) + (state.gearGloves ? 0.10 : 0) + (state.gearBoots ? 0.10 : 0);
+      const leather = (state.gearLeatherPants ? 0.20 : 0) + (state.gearLeatherVest ? 0.16 : 0) + (state.gearLeatherCap ? 0.16 : 0) + (state.gearLeatherGloves ? 0.16 : 0) + (state.gearLeatherBoots ? 0.16 : 0);
+      const set = clothWorn() * 0.02 + leatherWorn() * 0.03 + (clothWorn() >= 5 ? 0.05 : 0) + (leatherWorn() >= 5 ? 0.08 : 0);
+      return cloth + leather + set;
     }
     function scaleLoot(n) {
       if (!n) return 0;
@@ -4153,12 +4316,22 @@ if (!state.demoSmithMats) {
       if (fs) { fs.pause(); try { fs.currentTime = 0; } catch (e) {} }
       if (typeof resumeMusicAfterFight === "function") resumeMusicAfterFight();
     }
+    function clothWorn() {
+      return (state.gearBeanie ? 1 : 0) + (state.gearShirt ? 1 : 0) + (state.gearPants ? 1 : 0) + (state.gearGloves ? 1 : 0) + (state.gearBoots ? 1 : 0);
+    }
+    function leatherWorn() {
+      return (state.gearLeatherCap ? 1 : 0) + (state.gearLeatherVest ? 1 : 0) + (state.gearLeatherPants ? 1 : 0) + (state.gearLeatherGloves ? 1 : 0) + (state.gearLeatherBoots ? 1 : 0);
+    }
     function minerAtk() {
-      if (state.gearSword) return { min: 10, max: 17 };
+      if (state.gearIron) return { min: 16, max: 24 };
+      if (state.gearSword) return { min: 13, max: 20 };
       return { min: 8, max: 12 };
     }
     function minerDef() {
-      return (state.gearPants ? 1 : 0) + (state.gearShirt ? 1 : 0) + (state.gearBeanie ? 1 : 0);
+      const cloth = (state.gearPants ? 1 : 0) + (state.gearShirt ? 1 : 0) + (state.gearBeanie ? 1 : 0) + (state.gearGloves ? 1 : 0) + (state.gearBoots ? 1 : 0);
+      const leather = (state.gearLeatherCap ? 2 : 0) + (state.gearLeatherVest ? 2 : 0) + (state.gearLeatherPants ? 2 : 0) + (state.gearLeatherGloves ? 2 : 0) + (state.gearLeatherBoots ? 2 : 0);
+      const set = leatherWorn() + (leatherWorn() >= 5 ? 2 : 0) + (clothWorn() >= 5 ? 1 : 0);
+      return cloth + leather + set;
     }
         function woolArt() {
       return '<svg class="gear-art" viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="17" rx="10" ry="9" fill="#e8e0d4"/><ellipse cx="12" cy="14" rx="5" ry="4.5" fill="#f4efe6"/><ellipse cx="20" cy="15" rx="4.5" ry="4" fill="#d9d0c4"/><ellipse cx="16" cy="20" rx="5" ry="4" fill="#cfc6ba"/></svg>';
@@ -4167,6 +4340,14 @@ if (!state.demoSmithMats) {
     function shirtArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#6b8f4a" d="M6 10 L12 6 h8 l6 4-4 4 h-2 v12 H12 V14 H8z"/><circle cx="16" cy="8" r="3" fill="#e8c3b0"/></svg>'; }
     function beanieArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#c44b3a" d="M6 16c0-7 4.5-12 10-12s10 5 10 12v2H6z"/><circle cx="22" cy="8" r="3" fill="#e8e0d4"/></svg>'; }
 function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="sb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2f0ea"/><stop offset="0.45" stop-color="#b9b6ae"/><stop offset="1" stop-color="#6f6c66"/></linearGradient><linearGradient id="sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c48a4a"/><stop offset="1" stop-color="#5a3214"/></linearGradient></defs><path fill="url(#sb)" stroke="#4a4742" stroke-width="0.7" d="M16 2.2 L20.6 8.4 19.2 18.8 16 21.2 12.8 18.8 11.4 8.4 Z"/><path fill="#eceae3" opacity="0.85" d="M16 3.4 L18.4 8.6 17.6 17.6 16 19.4 16 3.4z"/><path fill="none" stroke="#8d8980" stroke-width="0.45" d="M13.2 7.2 L16 9.2 18.8 7.2 M12.6 11.6 L16 13.4 19.4 11.6 M13.4 15.6 L16 16.8 18.6 15.6"/><path fill="#3d3a36" d="M13.2 19.6 h5.6 l1.2 2.2 H12z"/><rect x="14.2" y="21.4" width="3.6" height="6.4" rx="0.9" fill="url(#sh)" stroke="#3a2410" stroke-width="0.45"/><path fill="#8b5a2b" d="M14.4 22.2 h3.2 v1.1 H14.4z M14.4 24.2 h3.2 v1.1 H14.4z M14.4 26.2 h3.2 v0.9 H14.4z"/><ellipse cx="16" cy="28.6" rx="2.2" ry="1.3" fill="#4a2c14" stroke="#2a180c" stroke-width="0.4"/><ellipse cx="16" cy="28.4" rx="1.2" ry="0.6" fill="#c9a35a"/></svg>'; }
+    function glovesArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#6b8f4a" d="M7 14 h6 v10 h-6z"/><path fill="#5a7a3c" d="M8 12 h4 v3 h-4z"/><path fill="#6b8f4a" d="M19 14 h6 v10 h-6z"/><path fill="#5a7a3c" d="M20 12 h4 v3 h-4z"/></svg>'; }
+    function bootsArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#4e5d86" d="M6 12 h8 v8 H6z"/><path fill="#3d4a73" d="M6 18 h12 v4 H6z"/><path fill="#4e5d86" d="M18 12 h8 v8 h-8z"/><path fill="#3d4a73" d="M16 18 h12 v4 H16z"/></svg>'; }
+    function leatherArt(kind) {
+      const body = kind === "cap" ? '<path fill="#8a5a32" d="M6 16c0-7 4.5-11 10-11s10 4 10 11v2H6z"/><path fill="#5c3a1e" d="M6 16 h20 v3 H6z"/>' : kind === "vest" ? '<path fill="#a56b3c" d="M6 10 L12 6 h8 l6 4-4 4 h-2 v12 H12 V14 H8z"/><path fill="#6e4524" d="M14 10 h4 v12 h-4z"/>' : kind === "pants" ? '<path fill="#8a5a32" d="M8 6 h16 v8 l-3 16 h-4 l-1-14-1 14 h-4 L8 14z"/><path fill="#5c3a1e" d="M15 6 h2 v10 h-2z"/>' : kind === "gloves" ? '<path fill="#a56b3c" d="M6 14 h7 v10 H6z M19 14 h7 v10 h-7z"/><path fill="#6e4524" d="M7 12 h4 v3 H7z M20 12 h4 v3 h-4z"/>' : '<path fill="#8a5a32" d="M5 12 h8 v7 H5z M18 12 h8 v7 h-8z"/><path fill="#5c3a1e" d="M4 18 h12 v4 H4z M16 18 h12 v4 H16z"/>';
+      return '<svg viewBox="0 0 32 32" aria-hidden="true">' + body + '<path fill="none" stroke="#e0c49a" stroke-width="0.6" d="M10 8 h12 M9 20 h14"/></svg>';
+    }
+    function ironSwordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="ib" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4f7fb"/><stop offset="0.4" stop-color="#9aa6b5"/><stop offset="1" stop-color="#3c4450"/></linearGradient></defs><path fill="url(#ib)" stroke="#2c323a" stroke-width="0.7" d="M16 1.6 L21.2 8.2 19.4 19.2 16 22 12.6 19.2 10.8 8.2 Z"/><path fill="#eef3f8" d="M16 2.8 L18.6 8.4 17.4 18.2 16 20 16 2.8z"/><path fill="#1e242c" d="M12.4 20 h7.2 l1.4 2.4 h-10z"/><rect x="14.2" y="22.2" width="3.6" height="6.2" rx="0.8" fill="#4a3424"/><ellipse cx="16" cy="29" rx="2.4" ry="1.3" fill="#c9a35a"/></svg>'; }
+
     function rockArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="20" rx="11" ry="7" fill="#6d6a66"/><ellipse cx="12" cy="17" rx="6" ry="5" fill="#8a8680"/><ellipse cx="20" cy="18" rx="6.5" ry="5.5" fill="#5a5753"/><path fill="#9a9690" d="M10 16 l5-5 6 3-2 5z"/></svg>'; }
     function lumberArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="14" width="22" height="6" rx="2" fill="#8b5a2b"/><rect x="7" y="10" width="18" height="5" rx="2" fill="#a36a32"/><rect x="8" y="19" width="16" height="5" rx="2" fill="#6e4220"/><ellipse cx="7" cy="17" rx="2" ry="3" fill="#d4b483"/></svg>'; }
 
@@ -4182,8 +4363,16 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (slot === "pants" && ((state.pants || 0) > 0 || state.gearPants)) items.push({ id: "pants", name: "Pants", sub: "+1 def · +15% loot", art: pantsArt(), on: !!state.gearPants });
       if (slot === "armor" && ((state.shirts || 0) > 0 || state.gearShirt)) items.push({ id: "shirt", name: "Shirt", sub: "+1 def · +10% loot", art: shirtArt(), on: !!state.gearShirt });
       if (slot === "helmet" && ((state.beanies || 0) > 0 || state.gearBeanie)) items.push({ id: "beanie", name: "Beanie", sub: "+1 def · +10% loot", art: beanieArt(), on: !!state.gearBeanie });
-      if (slot === "weapon" && ((state.swords || 0) > 0 || state.gearSword)) items.push({ id: "sword", name: "Stone sword", sub: "+2 to +5 damage", art: swordArt(), on: !!state.gearSword });
-      if (!items.length) { toast(slot === "pants" ? "Craft pants first" : slot === "armor" ? "Craft a shirt first" : slot === "helmet" ? "Craft a beanie first" : slot === "weapon" ? "Craft a stone sword first" : "No gear for this slot"); return; }
+      if (slot === "weapon" && ((state.swords || 0) > 0 || state.gearSword)) items.push({ id: "sword", name: "Stone sword", sub: "+5 to +8 damage", art: swordArt(), on: !!state.gearSword });
+      if (slot === "weapon" && ((state.ironSwords || 0) > 0 || state.gearIron)) items.push({ id: "iron", name: "Iron sword", sub: "+8 to +12 damage", art: ironSwordArt(), on: !!state.gearIron });
+      if (slot === "hands" && ((state.gloves || 0) > 0 || state.gearGloves)) items.push({ id: "gloves", name: "Cloth gloves", sub: "+1 def · +10% loot", art: glovesArt(), on: !!state.gearGloves });
+      if (slot === "hands" && ((state.leatherGloves || 0) > 0 || state.gearLeatherGloves)) items.push({ id: "lgloves", name: "Leather gloves", sub: "+2 def · +16% loot", art: leatherArt("gloves"), on: !!state.gearLeatherGloves });
+      if (slot === "boots" && ((state.boots || 0) > 0 || state.gearBoots)) items.push({ id: "boots", name: "Cloth boots", sub: "+1 def · +10% loot", art: bootsArt(), on: !!state.gearBoots });
+      if (slot === "boots" && ((state.leatherBoots || 0) > 0 || state.gearLeatherBoots)) items.push({ id: "lboots", name: "Leather boots", sub: "+2 def · +16% loot", art: leatherArt("boots"), on: !!state.gearLeatherBoots });
+      if (slot === "helmet" && ((state.leatherCaps || 0) > 0 || state.gearLeatherCap)) items.push({ id: "lcap", name: "Leather cap", sub: "+2 def · +16% loot", art: leatherArt("cap"), on: !!state.gearLeatherCap });
+      if (slot === "armor" && ((state.leatherVests || 0) > 0 || state.gearLeatherVest)) items.push({ id: "lvest", name: "Leather vest", sub: "+2 def · +16% loot", art: leatherArt("vest"), on: !!state.gearLeatherVest });
+      if (slot === "pants" && ((state.leatherPants || 0) > 0 || state.gearLeatherPants)) items.push({ id: "lpants", name: "Leather pants", sub: "+2 def · +20% loot", art: leatherArt("pants"), on: !!state.gearLeatherPants });
+      if (!items.length) { toast(slot === "pants" ? "Craft pants first" : slot === "armor" ? "Craft a shirt first" : slot === "helmet" ? "Craft a beanie first" : slot === "weapon" ? "Craft a sword first" : slot === "hands" ? "Craft gloves first" : slot === "boots" ? "Craft boots first" : "No gear for this slot"); return; }
       if (title) title.textContent = "Choose for " + (slot === "pants" ? "Legs" : slot === "armor" ? "Chest" : slot === "helmet" ? "Head" : slot === "weapon" ? "Weapon" : slot);
       list.innerHTML = items.map(function (it) {
         return '<div class="row"><span>' + it.art + '<br><b>' + it.name + '</b><small>' + (it.sub || '') + '</small></span><button type="button" data-id="' + it.id + '"' + (it.on ? ' data-off="1"' : '') + '>' + (it.on ? 'Remove' : 'Equip') + '</button></div>';
@@ -4208,45 +4397,76 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       paintGearPreview();
     }
     function takeOff(id) {
-      if (id === "pants" && state.gearPants) { state.gearPants = false; state.pants = (state.pants || 0) + 1; toast("Removed pants"); }
-      if (id === "shirt" && state.gearShirt) { state.gearShirt = false; state.shirts = (state.shirts || 0) + 1; toast("Removed shirt"); }
-      if (id === "beanie" && state.gearBeanie) { state.gearBeanie = false; state.beanies = (state.beanies || 0) + 1; toast("Removed beanie"); }
-      if (id === "sword" && state.gearSword) { state.gearSword = false; state.swords = (state.swords || 0) + 1; toast("Removed sword"); }
+      const map = {
+        pants: ["gearPants", "pants", "Removed pants"],
+        shirt: ["gearShirt", "shirts", "Removed shirt"],
+        beanie: ["gearBeanie", "beanies", "Removed beanie"],
+        gloves: ["gearGloves", "gloves", "Removed gloves"],
+        boots: ["gearBoots", "boots", "Removed boots"],
+        lcap: ["gearLeatherCap", "leatherCaps", "Removed leather cap"],
+        lvest: ["gearLeatherVest", "leatherVests", "Removed leather vest"],
+        lpants: ["gearLeatherPants", "leatherPants", "Removed leather pants"],
+        lgloves: ["gearLeatherGloves", "leatherGloves", "Removed leather gloves"],
+        lboots: ["gearLeatherBoots", "leatherBoots", "Removed leather boots"],
+        sword: ["gearSword", "swords", "Removed stone sword"],
+        iron: ["gearIron", "ironSwords", "Removed iron sword"]
+      };
+      const row = map[id];
+      if (!row || !state[row[0]]) return;
+      state[row[0]] = false;
+      state[row[1]] = (state[row[1]] || 0) + 1;
+      toast(row[2]);
       fillGearStats();
       fillGearSlots();
       fillBarn();
       paintGearPreview();
       save();
     }
+    function freeSlot(slot) {
+      if (slot === "helmet") { if (state.gearBeanie) takeOff("beanie"); if (state.gearLeatherCap) takeOff("lcap"); }
+      if (slot === "armor") { if (state.gearShirt) takeOff("shirt"); if (state.gearLeatherVest) takeOff("lvest"); }
+      if (slot === "pants") { if (state.gearPants) takeOff("pants"); if (state.gearLeatherPants) takeOff("lpants"); }
+      if (slot === "hands") { if (state.gearGloves) takeOff("gloves"); if (state.gearLeatherGloves) takeOff("lgloves"); }
+      if (slot === "boots") { if (state.gearBoots) takeOff("boots"); if (state.gearLeatherBoots) takeOff("lboots"); }
+      if (slot === "weapon") { if (state.gearSword) takeOff("sword"); if (state.gearIron) takeOff("iron"); }
+    }
     function wearItem(id) {
       if (id === "pants") {
         if ((state.pants || 0) < 1) return;
-        if (state.gearPants) return;
+        freeSlot("pants");
         state.pants -= 1;
         state.gearPants = true;
         toast("Equipped legs");
       }
       if (id === "shirt") {
         if ((state.shirts || 0) < 1) return;
-        if (state.gearShirt) return;
+        freeSlot("armor");
         state.shirts -= 1;
         state.gearShirt = true;
         toast("Equipped chest");
       }
       if (id === "beanie") {
         if ((state.beanies || 0) < 1) return;
-        if (state.gearBeanie) return;
+        freeSlot("helmet");
         state.beanies -= 1;
         state.gearBeanie = true;
         toast("Equipped beanie");
       }
       if (id === "sword") {
         if ((state.swords || 0) < 1) return;
-        if (state.gearSword) return;
+        freeSlot("weapon");
         state.swords -= 1;
         state.gearSword = true;
         toast("Equipped stone sword");
       }
+      if (id === "gloves") { if ((state.gloves || 0) < 1) return; freeSlot("hands"); state.gloves -= 1; state.gearGloves = true; toast("Equipped cloth gloves"); }
+      if (id === "boots") { if ((state.boots || 0) < 1) return; freeSlot("boots"); state.boots -= 1; state.gearBoots = true; toast("Equipped cloth boots"); }
+      if (id === "lcap") { if ((state.leatherCaps || 0) < 1) return; freeSlot("helmet"); state.leatherCaps -= 1; state.gearLeatherCap = true; toast("Equipped leather cap"); }
+      if (id === "lvest") { if ((state.leatherVests || 0) < 1) return; freeSlot("armor"); state.leatherVests -= 1; state.gearLeatherVest = true; toast("Equipped leather vest"); }
+      if (id === "lpants") { if ((state.leatherPants || 0) < 1) return; freeSlot("pants"); state.leatherPants -= 1; state.gearLeatherPants = true; toast("Equipped leather pants"); }
+      if (id === "lgloves") { if ((state.leatherGloves || 0) < 1) return; freeSlot("hands"); state.leatherGloves -= 1; state.gearLeatherGloves = true; toast("Equipped leather gloves"); }
+      if (id === "lboots") { if ((state.leatherBoots || 0) < 1) return; freeSlot("boots"); state.leatherBoots -= 1; state.gearLeatherBoots = true; toast("Equipped leather boots"); }
+      if (id === "iron") { if ((state.ironSwords || 0) < 1) return; freeSlot("weapon"); state.ironSwords -= 1; state.gearIron = true; toast("Equipped iron sword"); }
       fillGearStats();
       fillGearSlots();
       fillBarn();
@@ -4271,24 +4491,74 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
           if (art) art.innerHTML = state.gearBeanie ? beanieArt() : "";
         }
         if (slot === "weapon") {
-          if (sm) sm.textContent = state.gearSword ? "+2 to +5 damage" : "empty";
-          if (art) art.innerHTML = state.gearSword ? swordArt() : "";
+          if (state.gearIron) { if (sm) sm.textContent = "+8 to +12 damage"; if (art) art.innerHTML = ironSwordArt(); }
+          else if (state.gearSword) { if (sm) sm.textContent = "+5 to +8 damage"; if (art) art.innerHTML = swordArt(); }
+          else { if (sm) sm.textContent = "empty"; if (art) art.innerHTML = ""; }
         }
         if (slot === "hands") {
-          if (sm) sm.textContent = "empty";
-          if (art) art.innerHTML = "";
+          if (state.gearLeatherGloves) { if (sm) sm.textContent = "+2 def +16% loot"; if (art) art.innerHTML = leatherArt("gloves"); }
+          else if (state.gearGloves) { if (sm) sm.textContent = "+1 def +10% loot"; if (art) art.innerHTML = glovesArt(); }
+          else { if (sm) sm.textContent = "empty"; if (art) art.innerHTML = ""; }
         }
+        if (slot === "boots") {
+          if (state.gearLeatherBoots) { if (sm) sm.textContent = "+2 def +16% loot"; if (art) art.innerHTML = leatherArt("boots"); }
+          else if (state.gearBoots) { if (sm) sm.textContent = "+1 def +10% loot"; if (art) art.innerHTML = bootsArt(); }
+          else { if (sm) sm.textContent = "empty"; if (art) art.innerHTML = ""; }
+        }
+        if (slot === "helmet" && state.gearLeatherCap) { if (sm) sm.textContent = "+2 def +16% loot"; if (art) art.innerHTML = leatherArt("cap"); }
+        if (slot === "armor" && state.gearLeatherVest) { if (sm) sm.textContent = "+2 def +16% loot"; if (art) art.innerHTML = leatherArt("vest"); }
+        if (slot === "pants" && state.gearLeatherPants) { if (sm) sm.textContent = "+2 def +20% loot"; if (art) art.innerHTML = leatherArt("pants"); }
+        const clothFull = clothWorn() >= 5;
+        const leatherFull = leatherWorn() >= 5;
+        const clothSlot = (slot === "helmet" && state.gearBeanie) || (slot === "armor" && state.gearShirt) || (slot === "pants" && state.gearPants) || (slot === "hands" && state.gearGloves) || (slot === "boots" && state.gearBoots);
+        const leatherSlot = (slot === "helmet" && state.gearLeatherCap) || (slot === "armor" && state.gearLeatherVest) || (slot === "pants" && state.gearLeatherPants) || (slot === "hands" && state.gearLeatherGloves) || (slot === "boots" && state.gearLeatherBoots);
+        el.classList.toggle("set-full", (clothFull && clothSlot) || (leatherFull && leatherSlot));
       });
     }
     function fillGearStats() {
       const ul = document.getElementById("gear-stats");
       if (!ul) return;
       const a = minerAtk();
-      const rockB = Math.round(((state.gearPants ? 15 : 0) + (state.gearShirt ? 10 : 0) + (state.gearBeanie ? 10 : 0)));
+      const rockB = Math.round(lootBonus() * 100);
+      const cw = clothWorn();
+      const lw = leatherWorn();
       ul.innerHTML = "<li><span>Health</span><span>50</span></li>" +
         "<li><span>Damage</span><span>" + a.min + " to " + a.max + "</span></li>" +
         "<li><span>Defense</span><span>" + minerDef() + "</span></li>" +
-        "<li><span>Loot</span><span>" + (rockB ? ("+" + rockB + "%") : "0%") + "</span></li>";
+        "<li><span>Loot</span><span>" + (rockB ? ("+" + rockB + "%") : "0%") + "</span></li>" +
+        "<li class='" + (cw >= 5 ? "set-full" : "") + "'><span>Cloth set</span><span>" + cw + "/5" + (cw >= 5 ? " Woolworks" : "") + "</span></li>" +
+        "<li class='" + (lw >= 5 ? "set-full" : "") + "'><span>Leather set</span><span>" + lw + "/5" + (lw >= 5 ? " Hidebound" : "") + "</span></li>";
+      const ban = document.getElementById("set-banner");
+      if (ban) {
+        const bits = [];
+        if (cw >= 5) bits.push("Cloth set 5/5 · Woolworks");
+        if (lw >= 5) bits.push("Leather set 5/5 · Hidebound");
+        ban.hidden = !bits.length;
+        ban.className = lw >= 5 && cw < 5 ? "leather" : "";
+        ban.textContent = bits.join("  ·  ");
+      }
+      const clothHave = ((state.beanies || 0) + (state.gearBeanie ? 1 : 0) > 0) && ((state.shirts || 0) + (state.gearShirt ? 1 : 0) > 0) && ((state.pants || 0) + (state.gearPants ? 1 : 0) > 0) && ((state.gloves || 0) + (state.gearGloves ? 1 : 0) > 0) && ((state.boots || 0) + (state.gearBoots ? 1 : 0) > 0);
+      const leatherHave = ((state.leatherCaps || 0) + (state.gearLeatherCap ? 1 : 0) > 0) && ((state.leatherVests || 0) + (state.gearLeatherVest ? 1 : 0) > 0) && ((state.leatherPants || 0) + (state.gearLeatherPants ? 1 : 0) > 0) && ((state.leatherGloves || 0) + (state.gearLeatherGloves ? 1 : 0) > 0) && ((state.leatherBoots || 0) + (state.gearLeatherBoots ? 1 : 0) > 0);
+      const wc = document.getElementById("wear-cloth-set");
+      const wl = document.getElementById("wear-leather-set");
+      if (wc) wc.hidden = !(clothHave && cw < 5);
+      if (wl) wl.hidden = !(leatherHave && lw < 5);
+    }
+    function wearClothSet() {
+      if (!state.gearBeanie && (state.beanies || 0) > 0) wearItem("beanie");
+      if (!state.gearShirt && (state.shirts || 0) > 0) wearItem("shirt");
+      if (!state.gearPants && (state.pants || 0) > 0) wearItem("pants");
+      if (!state.gearGloves && (state.gloves || 0) > 0) wearItem("gloves");
+      if (!state.gearBoots && (state.boots || 0) > 0) wearItem("boots");
+      toast("Cloth set on");
+    }
+    function wearLeatherSet() {
+      if (!state.gearLeatherCap && (state.leatherCaps || 0) > 0) wearItem("lcap");
+      if (!state.gearLeatherVest && (state.leatherVests || 0) > 0) wearItem("lvest");
+      if (!state.gearLeatherPants && (state.leatherPants || 0) > 0) wearItem("lpants");
+      if (!state.gearLeatherGloves && (state.leatherGloves || 0) > 0) wearItem("lgloves");
+      if (!state.gearLeatherBoots && (state.leatherBoots || 0) > 0) wearItem("lboots");
+      toast("Leather set on");
     }
     function fillMinerStats() {
       const ul = document.getElementById("miner-stats");
@@ -4298,7 +4568,9 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         ["Crit chance", "10%"],
         ["Damage", minerAtk().min + " to " + minerAtk().max],
         ["Defense", String(minerDef())],
-        ["Loot", (function(){ const b = (state.gearPants ? 15 : 0) + (state.gearShirt ? 10 : 0) + (state.gearBeanie ? 10 : 0); return b ? ("+" + b + "%") : "0%"; })()],
+        ["Loot", (function(){ const b = Math.round(lootBonus() * 100); return b ? ("+" + b + "%") : "0%"; })()],
+        ["Cloth set", clothWorn() + "/5" + (clothWorn() >= 5 ? " Woolworks" : "")],
+        ["Leather set", leatherWorn() + "/5" + (leatherWorn() >= 5 ? " Hidebound" : "")],
         ["Crit damage", "+50%"],
         ["Mine time", Math.round((FF.mineMs || 5000) / 1000) + "s"],
         ["Rocks", String(state.rocks || 0)],
@@ -4306,25 +4578,32 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         ["Losses", String(state.mineLosses || 0)]
       ];
       ul.innerHTML = rows.map(function (r) {
-        return "<li><span>" + r[0] + "</span><span>" + r[1] + "</span></li>";
+        const full = String(r[1]).indexOf("Woolworks") >= 0 || String(r[1]).indexOf("Hidebound") >= 0;
+        return "<li class='" + (full ? "set-full" : "") + "'><span>" + r[0] + "</span><span>" + r[1] + "</span></li>";
       }).join("");
     }
     function dressMiner() {
+      const on = {
+        "has-shirt": !!state.gearShirt,
+        "has-pants": !!state.gearPants,
+        "has-beanie": !!state.gearBeanie,
+        "has-gloves": !!state.gearGloves,
+        "has-boots": !!state.gearBoots,
+        "has-leather-cap": !!state.gearLeatherCap,
+        "has-leather-vest": !!state.gearLeatherVest,
+        "has-leather-pants": !!state.gearLeatherPants,
+        "has-leather-gloves": !!state.gearLeatherGloves,
+        "has-leather-boots": !!state.gearLeatherBoots,
+        "has-sword": !!(state.gearSword || state.gearIron),
+        "has-iron": !!state.gearIron
+      };
       ["miner", "gear-miner", "forest-miner"].forEach(function (id) {
         const root = document.getElementById(id);
         if (!root) return;
-        root.classList.toggle("has-shirt", !!state.gearShirt);
-        root.classList.toggle("has-pants", !!state.gearPants);
-        root.classList.toggle("has-beanie", !!state.gearBeanie);
-        root.classList.toggle("has-sword", !!state.gearSword);
+        Object.keys(on).forEach(function (k) { root.classList.toggle(k, on[k]); });
       });
       const fm = document.querySelector("#fight-box .fight-miner");
-      if (fm) {
-        fm.classList.toggle("has-shirt", !!state.gearShirt);
-        fm.classList.toggle("has-pants", !!state.gearPants);
-        fm.classList.toggle("has-beanie", !!state.gearBeanie);
-        fm.classList.toggle("has-sword", !!state.gearSword);
-      }
+      if (fm) Object.keys(on).forEach(function (k) { fm.classList.toggle(k, on[k]); });
     }
     function mineOn() { return (state.miningUntil || 0) > now(); }
     var pickHitTimer = 0;
@@ -5295,7 +5574,20 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         if (btn) btn.classList.toggle("active", key === state.smithTab);
       });
       const line = document.getElementById("smith-sword-line");
-      if (line) line.innerHTML = swordArt() + " 15 rocks + 7 lumber → 1 stone sword · have " + (state.swords || 0);
+      if (line) line.innerHTML = swordArt() + " 15 " + rockArt() + " + 7 " + lumberArt() + " → 1 stone sword · +5 to +8 · have " + (state.swords || 0);
+      const iron = document.getElementById("smith-iron-line");
+      if (iron) iron.innerHTML = ironSwordArt() + " 2 " + ingotArt() + " + 4 " + lumberArt() + " + 1 " + leatherSheetArt() + " → 1 iron sword · +8 to +12 · have " + (state.ironSwords || 0);
+      const armor = [
+        ["smith-lcap-line", "cap", "4", "leather cap", "leatherCaps"],
+        ["smith-lvest-line", "vest", "6", "leather vest", "leatherVests"],
+        ["smith-lpants-line", "pants", "5", "leather pants", "leatherPants"],
+        ["smith-lgloves-line", "gloves", "3", "leather gloves", "leatherGloves"],
+        ["smith-lboots-line", "boots", "4", "leather boots", "leatherBoots"]
+      ];
+      armor.forEach(function (row) {
+        const el = document.getElementById(row[0]);
+        if (el) el.innerHTML = leatherSheetArt() + " " + row[2] + " → 1 " + leatherArt(row[1]) + " " + row[3] + " · have " + (state[row[4]] || 0);
+      });
     }
     function openSmith() {
       closeAllTabs();
@@ -6314,15 +6606,27 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
           return;
         }
         if (slot === "weapon") {
-          if (state.gearSword) {
-            state.gearSword = false;
-            state.swords = (state.swords || 0) + 1;
-            toast("Unequipped stone sword");
-            fillGearStats(); fillGearSlots(); fillBarn(); dressMiner(); save();
-          } else openGearPick("weapon");
+          if (state.gearIron) takeOff("iron");
+          else if (state.gearSword) takeOff("sword");
+          else openGearPick("weapon");
           return;
         }
-        toast("No gear in " + slot + " yet");
+        if (slot === "hands") {
+          if (state.gearLeatherGloves) takeOff("lgloves");
+          else if (state.gearGloves) takeOff("gloves");
+          else openGearPick("hands");
+          return;
+        }
+        if (slot === "boots") {
+          if (state.gearLeatherBoots) takeOff("lboots");
+          else if (state.gearBoots) takeOff("boots");
+          else openGearPick("boots");
+          return;
+        }
+        if (slot === "helmet" && state.gearLeatherCap) { takeOff("lcap"); return; }
+        if (slot === "armor" && state.gearLeatherVest) { takeOff("lvest"); return; }
+        if (slot === "pants" && state.gearLeatherPants) { takeOff("lpants"); return; }
+        openGearPick(slot);
       };
     }
     document.getElementById("barn-close").onclick = closeAllTabs;
@@ -6337,7 +6641,67 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       save();
     };
     document.getElementById("craft-pudding").onclick = craftPudding;
+    const wcs = document.getElementById("wear-cloth-set");
+    if (wcs) wcs.onclick = wearClothSet;
+    const wls = document.getElementById("wear-leather-set");
+    if (wls) wls.onclick = wearLeatherSet;
     document.getElementById("craft-pants").onclick = craftPants;
+    async function craftPair(need, bag, name, toastName) {
+      if (!(await askYes("Craft 1 " + name + "?"))) return;
+      for (let i = 0; i < need.length; i++) {
+        if ((state[need[i][0]] || 0) < need[i][1]) { toast("Need " + need[i][1] + " " + need[i][2]); return; }
+      }
+      need.forEach(function (n) { state[n[0]] -= n[1]; });
+      state[bag] = (state[bag] || 0) + 1;
+      toast(toastName);
+      save();
+      render();
+    }
+    async function sellBag(bag, name, pay) {
+      const have = state[bag] || 0;
+      if (have < 1) { toast("No " + name); return; }
+      let n = 1;
+      if (have > 1) {
+        if (await askYes("Sell ALL " + name + "? " + have + " for " + (have * pay) + " sats")) n = have;
+        else if (!(await askYes("Sell 1 " + name + " for " + pay + " sats?"))) return;
+      } else if (!(await askYes("Sell 1 " + name + " for " + pay + " sats?"))) return;
+      state[bag] -= n;
+      state.sats += n * pay;
+      toast("Sold " + n + " " + name);
+      save();
+      render();
+      openMarket(true);
+    }
+    const cg = document.getElementById("craft-gloves");
+    if (cg) cg.onclick = () => craftPair([["wool", 5, "wool"]], "gloves", "cloth gloves from 5 wool", "Cloth gloves ready");
+    const cbo = document.getElementById("craft-boots");
+    if (cbo) cbo.onclick = () => craftPair([["wool", 6, "wool"], ["horseHair", 2, "horse hair"]], "boots", "cloth boots from 6 wool and 2 horse hair", "Cloth boots ready");
+    const bindCraft = {
+      "craft-lcap": [[["leatherSheets", 4, "leather"]], "leatherCaps", "leather cap from 4 leather", "Leather cap ready", "armor"],
+      "craft-lvest": [[["leatherSheets", 6, "leather"]], "leatherVests", "leather vest from 6 leather", "Leather vest ready", "armor"],
+      "craft-lpants": [[["leatherSheets", 5, "leather"]], "leatherPants", "leather pants from 5 leather", "Leather pants ready", "armor"],
+      "craft-lgloves": [[["leatherSheets", 3, "leather"]], "leatherGloves", "leather gloves from 3 leather", "Leather gloves ready", "armor"],
+      "craft-lboots": [[["leatherSheets", 4, "leather"]], "leatherBoots", "leather boots from 4 leather", "Leather boots ready", "armor"]
+    };
+    Object.keys(bindCraft).forEach(function (id) {
+      const el = document.getElementById(id);
+      const spec = bindCraft[id];
+      if (el) el.onclick = async function () {
+        await craftPair(spec[0], spec[1], spec[2], spec[3]);
+        if (typeof showSmithTab === "function") showSmithTab(spec[4]);
+      };
+    });
+    const cir = document.getElementById("craft-iron");
+    if (cir) cir.onclick = async function () {
+      await craftPair([["ironIngots", 2, "iron ingots"], ["lumber", 4, "lumber"], ["leatherSheets", 1, "leather"]], "ironSwords", "iron sword from 2 ingots, 4 lumber and 1 leather", "Iron sword ready");
+      if (typeof showSmithTab === "function") showSmithTab("weapons");
+    };
+    const sells = { "sell-gloves": ["gloves", "gloves", 3], "sell-boots": ["boots", "boots", 4], "sell-lcap": ["leatherCaps", "leather cap", 6], "sell-lvest": ["leatherVests", "leather vest", 6], "sell-lpants": ["leatherPants", "leather pants", 6], "sell-lgloves": ["leatherGloves", "leather gloves", 6], "sell-lboots": ["leatherBoots", "leather boots", 6], "sell-iron": ["ironSwords", "iron sword", 8] };
+    Object.keys(sells).forEach(function (id) {
+      const el = document.getElementById(id);
+      const spec = sells[id];
+      if (el) el.onclick = () => sellBag(spec[0], spec[1], spec[2]);
+    });
     const cb = document.getElementById("craft-beanie");
     if (cb) cb.onclick = craftBeanie;
     const sb = document.getElementById("sell-beanie");
