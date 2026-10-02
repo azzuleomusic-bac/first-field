@@ -3919,6 +3919,7 @@ if (!state.demoSmithMats) {
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Oct 1 — Update log is newest day first. Same-day lines stay in the order they shipped.",
       "Oct 1 — Hopeful Peak plays in Adventure. Fight music still takes over.",
       "Oct 1 — Adventure is its own world. Five chapters, 25 levels each. Boss every fifth level.",
       "Oct 1 — Armor recipes scroll. Ring and Pet slots. Wear cloth or leather set in one tap.",
@@ -4024,14 +4025,33 @@ if (!state.demoSmithMats) {
     ];
     function allUpdates() {
       const extra = (window.FF && Array.isArray(window.FF.updates)) ? window.FF.updates : [];
+      const months = {Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+      function dayKey(line) {
+        const m = String(line).match(/^([A-Z][a-z]{2}) (\d{1,2})/);
+        if (!m) return 0;
+        return (months[m[1]] || 0) * 100 + parseInt(m[2], 10);
+      }
       const seen = {};
-      const out = [];
-      extra.concat(BASE_UPDATES).forEach((line) => {
+      const base = [];
+      const onlyExtra = [];
+      BASE_UPDATES.forEach((line) => {
         if (!line || seen[line]) return;
         seen[line] = 1;
-        out.push(line);
+        base.push(line);
       });
-      return out;
+      extra.forEach((line) => {
+        if (!line || seen[line]) return;
+        seen[line] = 1;
+        onlyExtra.push(line);
+      });
+      const grouped = {};
+      function add(line) {
+        const k = dayKey(line);
+        (grouped[k] = grouped[k] || []).push(line);
+      }
+      base.forEach(add);
+      onlyExtra.forEach(add);
+      return Object.keys(grouped).map(Number).sort((a, b) => b - a).reduce((out, k) => out.concat(grouped[k]), []);
     }
     function fillLog() {
       const ul = document.getElementById("log-list");
