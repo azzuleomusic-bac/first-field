@@ -1434,7 +1434,51 @@
       padding: 12px;
       color: var(--cream);
     }
-    #market-panel.open, #craft-panel.open, #barn-panel.open, #silo-panel.open, #worth-panel.open, #mine-panel.open, #forest-panel.open { display: block; }
+    #market-panel.open, #craft-panel.open, #barn-panel.open, #silo-panel.open, #worth-panel.open, #mine-panel.open, #forest-panel.open, #adventure-panel.open { display: block; }
+    body.in-adventure #app { visibility: hidden !important; }
+    body.in-adventure #fight-box.open { z-index: 240 !important; }
+    body.in-adventure #mine-panel.open,
+    body.in-adventure #forest-panel.open {
+      display: block !important;
+      visibility: visible !important;
+      position: fixed !important; inset: 0 !important; left: 0 !important; top: 0 !important;
+      transform: none !important; width: 100% !important; max-height: none !important;
+      height: 100% !important; border-radius: 0 !important; z-index: 210 !important;
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding: calc(var(--safe-top) + 16px) 16px calc(var(--safe-bot) + 24px);
+      background: linear-gradient(180deg, #1a140c 0%, #0c1218 42%, #10160f 100%);
+    }
+    #adventure-panel {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding: calc(var(--safe-top) + 16px) 16px calc(var(--safe-bot) + 24px);
+      color: #efe6cf;
+      background:
+        radial-gradient(ellipse 80% 40% at 50% 0%, rgba(232,195,106,0.18), transparent 60%),
+        linear-gradient(180deg, #1a140c 0%, #0c1218 42%, #10160f 100%);
+    }
+    #adventure-panel h3 { margin: 0; font-size: 28px; letter-spacing: 0.14em; color: #e8c36a; }
+    #adventure-panel .adv-kicker { margin: 4px 0 12px; letter-spacing: 0.18em; font-size: 11px; opacity: 0.7; }
+    .adv-switch { display: flex; gap: 8px; margin-bottom: 12px; }
+    .adv-switch button { flex: 1; min-height: 44px; }
+    .adv-switch button.on { border-color: #e8c36a; color: #e8c36a; }
+    .adv-chapter { margin: 0 0 14px; padding: 10px; border-radius: 14px; background: rgba(8,10,8,0.55); border: 1px solid rgba(232,195,106,0.22); }
+    .adv-chapter h4 { margin: 0 0 4px; color: #e8c36a; }
+    .adv-chapter p { margin: 0 0 8px; font-size: 12px; opacity: 0.75; }
+    .adv-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .adv-row button { min-width: 58px; min-height: 42px; }
+    .adv-row button[disabled] { opacity: 0.35; }
+    .adv-row button.boss { border-color: #c45c3e; }
+    #adventure-close { width: 100%; margin-top: 8px; }
+    .fight-mob.boss {
+      width: 62px; height: 54px; margin-top: 12px;
+      background: #4a2a62; border-radius: 46% 46% 40% 40%;
+      box-shadow: -18px -16px 0 -8px #c9a35a, 18px -16px 0 -8px #c9a35a, 0 -20px 0 -6px #2a1840;
+    }
+    .fight-mob.boss.forest-boss {
+      background: #1c3a24;
+      box-shadow: -20px -18px 0 -10px #8aaa44, 20px -18px 0 -10px #8aaa44, 0 -22px 0 -8px #102816;
+    }
     #mine-panel, #forest-panel {
       position: fixed;
       left: 50%;
@@ -1972,10 +2016,9 @@
         <button type="button" id="tool-plant">Plant</button>
         <button type="button" id="tool-barn">Barn</button>
       </div>
-      <div class="tools" style="grid-template-columns:1fr 1fr 1fr">
+      <div class="tools" style="grid-template-columns:1fr 1fr">
         <button type="button" id="mode-farm" class="active">Farm</button>
-        <button type="button" id="tool-mine">Mine</button>
-        <button type="button" id="tool-forest">Forest</button>
+        <button type="button" id="tool-adventure">Adventure</button>
       </div>
       <div class="hint" id="hint">Tap a plot to plant. Tap the well to fill your can.</div>
     </footer>
@@ -2103,6 +2146,10 @@
       autoUntil: 0,
       miningUntil: 0,
       autoNext: "cow",
+      mineClear: 0,
+      forestClear: 0,
+      advLevel: 1,
+      bossFight: false,
       farmExpands: 0,
       marketLog: [{ at: Date.now(), text: "Starter pack +" + FF.starterSats + " sats" }],
       shed: { x: 0.14, y: 0.78, cows: [{ id: "c1", stage: "hungry", readyAt: 0 }] },
@@ -2208,6 +2255,10 @@
         mineReady: !!state.mineReady,
         pendingLoot: state.pendingLoot || "",
         autoNext: state.autoNext || "cow",
+        mineClear: state.mineClear || 0,
+        forestClear: state.forestClear || 0,
+        advLevel: state.advLevel || 1,
+        bossFight: !!state.bossFight,
         farmExpands: state.farmExpands || 0,
         marketLog: state.marketLog || [],
         shed: state.shed,
@@ -2360,6 +2411,10 @@
       state.ironIngots = (state.ironIngots || 0) + 4;
       state.wool = (state.wool || 0) + 12;
     }
+    function ensureDemoAdventure() {
+      state.mineClear = 25;
+      state.forestClear = 25;
+    }
     function ensureDemoClothes() {
       const have = (state.pants || 0) + (state.shirts || 0) + (state.gearPants ? 1 : 0) + (state.gearShirt ? 1 : 0);
       if (have < 1) {
@@ -2410,6 +2465,7 @@
       }
       ensureDemoClothes();
       ensureDemoGear();
+      ensureDemoAdventure();
       if (!state.demoBoost100) {
         state.sats = (state.sats || 0) + 100;
         state.lumber = (state.lumber || 0) + 100;
@@ -3862,6 +3918,8 @@ if (!state.demoSmithMats) {
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Oct 1 — A level opens its own screen, not a green blank. Farm stays hidden.",
+      "Oct 1 — Adventure is its own world. Five chapters, 25 levels each. Boss every fifth level.",
       "Oct 1 — Armor recipes scroll. Ring and Pet slots. Wear cloth or leather set in one tap.",
       "Oct 1 — Recipe rows show the item. A full set lights gold at 5/5.",
       "Oct 1 — Cloth gloves and boots, leather set, and iron sword. Sets pay extra at 5/5.",
@@ -4074,15 +4132,24 @@ if (!state.demoSmithMats) {
       if (typeof pauseMusicForFight === "function") pauseMusicForFight();
       cancelLootPop();
       const lvl = state.mobLevel || 1;
+      const boss = !!state.bossFight;
       const box = document.getElementById("fight-box");
       const title = box && box.querySelector("h3");
-      if (title) title.textContent = ((state.fightKind === "forest") ? "Forest fight" : "Mine fight") + " — lv " + lvl;
+      const chapter = Math.ceil(lvl / 5);
+      const bossNames = state.fightKind === "forest" ? ["Root Warden", "Moss Stag", "Thorn Mother", "Owl King", "Grove Warden"] : ["Vein Tyrant", "Lamp Wight", "Flood King", "Iron Maw", "Deep Tyrant"];
+      const bossName = bossNames[Math.min(4, chapter - 1)];
+      if (title) title.textContent = boss ? bossName : (((state.fightKind === "forest") ? "Forest fight" : "Mine fight") + " — lv " + lvl);
+      const mobEl0 = box && box.querySelector(".fight-mob");
+      if (mobEl0) {
+        mobEl0.classList.toggle("boss", boss);
+        mobEl0.classList.toggle("forest-boss", boss && state.fightKind === "forest");
+      }
       if (box) { box.classList.add("open"); box.setAttribute("aria-hidden", "false");
         dressMiner();
       }
       const mMax = 50;
       let m = mMax;
-      const cMax = lvl === 1 ? 30 : lvl === 2 ? 50 : 70;
+      const cMax = boss ? 90 + chapter * 28 : 28 + lvl * 6;
       let c = cMax;
       const hm = document.getElementById("hp-miner");
       const hc = document.getElementById("hp-mob");
@@ -4099,7 +4166,7 @@ if (!state.demoSmithMats) {
       if (hm) hm.style.width = "100%";
       if (hc) hc.style.width = "100%";
       paintHp();
-      if (st) st.textContent = state.fightKind === "forest" ? ("Level " + lvl + " forest beast!") : ("Level " + lvl + " creature!");
+      if (st) st.textContent = boss ? (bossName + " blocks the way") : (state.fightKind === "forest" ? ("Level " + lvl + " forest beast!") : ("Level " + lvl + " creature!"));
       if (hitLine) hitLine.textContent = "";
       const popMiner = document.getElementById("pop-miner");
       const popMob = document.getElementById("pop-mob");
@@ -4160,8 +4227,8 @@ if (!state.demoSmithMats) {
         } else {
           if (mobEl) { void mobEl.offsetWidth; mobEl.classList.add("swing"); }
           if (minerEl) { void minerEl.offsetWidth; minerEl.classList.add("hit"); }
-          const eMin = 5 + (lvl - 1) * 2;
-          const eMax = 7 + (lvl - 1) * 2;
+          const eMin = boss ? 8 + chapter * 2 : 4 + Math.floor(lvl / 2);
+          const eMax = boss ? 14 + chapter * 2 : 6 + Math.floor(lvl / 2);
           const raw = eMin + Math.floor(Math.random() * (eMax - eMin + 1));
           const hit = rollHit(raw);
           const taken = Math.max(1, hit.dmg - minerDef());
@@ -4187,6 +4254,11 @@ if (!state.demoSmithMats) {
             const forest = state.fightKind === "forest";
             if (forest) state.forestWins = (state.forestWins || 0) + 1;
             else state.mineWins = (state.mineWins || 0) + 1;
+            const clearKey = forest ? "forestClear" : "mineClear";
+            const wonLevel = state.mobLevel || 1;
+            if (wonLevel % 5 === 0) { if (state.bossFight) state[clearKey] = Math.max(state[clearKey] || 0, wonLevel); }
+            else state[clearKey] = Math.max(state[clearKey] || 0, wonLevel);
+            state.bossFight = false;
             let n = scaleLoot(Math.floor(Math.random() * 4));
             const lvl = state.mobLevel || 1;
             const leatherN = rollExtra(lvl);
@@ -4242,11 +4314,12 @@ if (!state.demoSmithMats) {
       if (!pan || !pan.classList.contains("open")) state.mineReady = true;
       state.pendingFight = true;
       state.fightKind = "mine";
-      state.mobLevel = 1 + Math.floor(Math.random() * 3);
+      state.mobLevel = state.advLevel || 1;
+      state.bossFight = state.mobLevel % 5 === 0;
       state.pendingLoot = "";
       state.pendingLootN = 0;
       if (pan && pan.classList.contains("open")) startFight();
-      toast("Mining finished");
+      toast(state.bossFight ? "Chapter boss wakes" : "Mining finished");
       save();
       paintMine();
     }
@@ -4849,7 +4922,8 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (!pan || !pan.classList.contains("open")) state.forestReady = true;
       state.pendingFight = true;
       state.fightKind = "forest";
-      state.mobLevel = 1 + Math.floor(Math.random() * 3);
+      state.mobLevel = state.advLevel || 1;
+      state.bossFight = state.mobLevel % 5 === 0;
       state.pendingLoot = "";
       state.pendingLootN = 0;
       if (pan && pan.classList.contains("open")) startFight();
@@ -4915,7 +4989,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         || (document.getElementById("barn-panel") && document.getElementById("barn-panel").classList.contains("open"));
       const wrap = document.getElementById("app");
       if (wrap) wrap.classList.remove("scene");
-      ["market-panel", "shed-panel", "log-panel", "craft-panel", "barn-panel", "silo-panel", "smith-panel", "worth-panel", "mine-panel", "forest-panel", "set-panel"].forEach((id) => {
+      ["market-panel", "shed-panel", "log-panel", "craft-panel", "barn-panel", "silo-panel", "smith-panel", "worth-panel", "mine-panel", "forest-panel", "adventure-panel", "set-panel"].forEach((id) => {
         const el = document.getElementById(id);
         if (!el) return;
         el.classList.remove("open");
@@ -6503,6 +6577,96 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     document.getElementById("tool-barn").onclick = () => { state.mode = "farm"; state.tool = "barn"; openBarn(); render(); };
     const mineBtn = document.getElementById("tool-mine");
     if (mineBtn) mineBtn.onclick = () => { state.mode = "farm"; state.tool = "mine"; openMine(); render(); };
+    function paintAdventure() {
+      const kind = state.advWorld || "mine";
+      const clear = kind === "forest" ? (state.forestClear || 0) : (state.mineClear || 0);
+      const mineTab = document.getElementById("adv-tab-mine");
+      const forestTab = document.getElementById("adv-tab-forest");
+      if (mineTab) mineTab.classList.toggle("on", kind !== "forest");
+      if (forestTab) forestTab.classList.toggle("on", kind === "forest");
+      const names = kind === "forest"
+        ? ["First Trees", "Moss Path", "Thorn Break", "Owl Dark", "Warden Grove"]
+        : ["Vein Mouth", "Lamp Road", "Flooded Cut", "Iron Throat", "Tyrant Deep"];
+      const world = document.getElementById("adv-world");
+      if (!world) return;
+      world.innerHTML = "";
+      for (let ch = 1; ch <= 5; ch++) {
+        const card = document.createElement("section");
+        card.className = "adv-chapter";
+        const h = document.createElement("h4");
+        h.textContent = "Chapter " + ch + " · " + names[ch - 1];
+        const p = document.createElement("p");
+        p.textContent = "Levels " + ((ch - 1) * 5 + 1) + "–" + (ch * 5) + ". Level " + (ch * 5) + " is the chapter boss.";
+        const row = document.createElement("div");
+        row.className = "adv-row";
+        for (let n = 1; n <= 5; n++) {
+          const lvl = (ch - 1) * 5 + n;
+          const b = document.createElement("button");
+          b.type = "button";
+          const open = lvl <= clear + 1;
+          b.disabled = !open;
+          if (n === 5) b.className = "boss";
+          b.textContent = n === 5 ? "Boss" : String(n);
+          b.onclick = function () { startAdventure(kind, lvl); };
+          row.appendChild(b);
+        }
+        card.appendChild(h);
+        card.appendChild(p);
+        card.appendChild(row);
+        world.appendChild(card);
+      }
+    }
+    function startAdventure(kind, lvl) {
+      const clear = kind === "forest" ? (state.forestClear || 0) : (state.mineClear || 0);
+      if (lvl > clear + 1) { toast("Clear level " + (lvl - 1) + " first"); return; }
+      state.advLevel = lvl;
+      state.bossFight = false;
+      state.fightKind = kind;
+      if (kind === "forest") openForest();
+      else openMine();
+      ["mine-panel", "forest-panel", "fight-box"].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el && el.parentElement !== document.body) document.body.appendChild(el);
+      });
+      setAdventureWorld(true);
+      const h = document.querySelector(kind === "forest" ? "#forest-panel h3" : "#mine-panel h3");
+      const ch = Math.ceil(lvl / 5);
+      if (h) h.textContent = (kind === "forest" ? "Forest" : "Mine") + " · ch " + ch + " · lv " + lvl + (lvl % 5 === 0 ? " · boss after" : "");
+    }
+    function bindAdventure() {
+      const advClose = document.getElementById("adventure-close");
+      if (advClose) advClose.onclick = function () { setAdventureWorld(false); closeAllTabs(); };
+      const advMine = document.getElementById("adv-tab-mine");
+      const advForest = document.getElementById("adv-tab-forest");
+      if (advMine) advMine.onclick = function () { state.advWorld = "mine"; paintAdventure(); };
+      if (advForest) advForest.onclick = function () { state.advWorld = "forest"; paintAdventure(); };
+    }
+    function setAdventureWorld(on) {
+      state.inAdventure = !!on;
+      document.body.classList.toggle("in-adventure", !!on);
+    }
+    function backToAdventure() {
+      closeAllTabs();
+      setAdventureWorld(true);
+      const pan = document.getElementById("adventure-panel");
+      if (!pan) return;
+      bindAdventure();
+      paintAdventure();
+      pan.classList.add("open");
+      pan.setAttribute("aria-hidden", "false");
+    }
+    function openAdventure() {
+      closeAllTabs();
+      setAdventureWorld(true);
+      const pan = document.getElementById("adventure-panel");
+      if (!pan) return;
+      bindAdventure();
+      paintAdventure();
+      pan.classList.add("open");
+      pan.setAttribute("aria-hidden", "false");
+    }
+    const advBtn = document.getElementById("tool-adventure");
+    if (advBtn) advBtn.onclick = () => { state.mode = "farm"; openAdventure(); render(); };
     const forestBtn = document.getElementById("tool-forest");
     function openForest(force) {
       const pan = document.getElementById("forest-panel");
@@ -6524,9 +6688,9 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     const chopBtn = document.getElementById("btn-forest");
     if (chopBtn) chopBtn.onclick = startForest;
     const fc = document.getElementById("btn-forest-close");
-    if (fc) fc.onclick = function () { closeAllTabs(); };
+    if (fc) fc.onclick = function () { if (state.inAdventure) backToAdventure(); else closeAllTabs(); };
     const mineCl = document.getElementById("mine-close");
-    if (mineCl) mineCl.onclick = closeAllTabs;
+    if (mineCl) mineCl.onclick = function () { if (state.inAdventure) backToAdventure(); else closeAllTabs(); };
     const startMineBtn = document.getElementById("btn-mine");
     if (startMineBtn) startMineBtn.onclick = startMine;
     const gp = document.getElementById("gear-pick");
@@ -7402,5 +7566,16 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     }
   })();
 </script>
+<div id="adventure-panel" aria-hidden="true">
+        <p class="adv-kicker">ANOTHER WORLD</p>
+        <h3>ADVENTURE</h3>
+        <div class="adv-switch">
+          <button type="button" id="adv-tab-mine" class="on">Mine</button>
+          <button type="button" id="adv-tab-forest">Forest</button>
+        </div>
+        <div id="adv-world"></div>
+        <button type="button" class="ghost" id="adventure-close">Back to farm</button>
+      </div>
+      
 </body>
 </html>
