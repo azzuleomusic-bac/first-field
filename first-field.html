@@ -1446,6 +1446,13 @@
     #fight-pet.swing { animation: minerBob 0.35s ease-in-out 1; }
     
     
+    button { position: relative; touch-action: manipulation; }
+    button::after { content: ""; position: absolute; inset: -14px; }
+    #mine-panel.open button, #forest-panel.open button, #loot-take, #fight-box.open button {
+      min-height: 58px; padding: 14px 16px;
+    }
+    #loot-take { width: 100%; min-height: 68px; font-size: 18px; }
+    .pet-strip button { min-height: 88px; min-width: 92px; padding: 10px 8px; }
     .pet-strip { display: flex; gap: 6px; overflow-x: auto; margin: 8px 0; min-height: 54px; }
     .pet-strip button { min-width: 72px; background: #1e3a28; color: #f3e6c8; border: 1px solid #c9a227; border-radius: 10px; }
     .pet-strip svg { width: 48px; height: 36px; display: block; margin: 0 auto; transform: scaleX(-1); }
@@ -4054,6 +4061,10 @@ if (!state.demoSmithMats) {
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Oct 2 — Job, loot, and pet buttons have a wider tap area so a near miss still counts.",
+      "Oct 2 — Inventory and Stats work again. Taking loot stays on the Mine or Forest page.",
+      "Oct 2 — Loot, Stats, and Inventory fire on the first tap.",
+      "Oct 2 — Leaving the job clears the stuck layer. Chapter select can go back to the farm.",
       "Oct 2 — Second tap on the pet you already chose opens its stats and evolution. Pets are not in Inventory.",
       "Oct 2 — Fight shows on the Mine or Forest page when the job ends. Back no longer leaves a frozen fight on chapter select.",
       "Oct 2 — Fight opens after mining or chopping. Selected pet stands on the scene before you start.",
@@ -4836,12 +4847,18 @@ if (!state.demoSmithMats) {
     }
     function closeLoot() {
       const box = document.getElementById("loot-box");
-      if (box) { box.classList.remove("open"); box.setAttribute("aria-hidden", "true"); }
+      if (box) { box.classList.remove("open"); box.style.display = "none"; box.style.pointerEvents = "none"; box.setAttribute("aria-hidden", "true"); }
       const fight = document.getElementById("fight-box");
-      if (fight) { fight.classList.remove("open"); fight.setAttribute("aria-hidden", "true"); }
+      if (fight) { fight.classList.remove("open"); fight.style.display = "none"; fight.style.pointerEvents = "none"; fight.setAttribute("aria-hidden", "true"); }
       state.pendingLoot = "";
       state.pendingLootN = 0;
       state.pendingFight = false;
+      const job = document.querySelector("#mine-panel.open, #forest-panel.open");
+      if (state.inAdventure && job) {
+        job.style.display = "block";
+        job.style.pointerEvents = "auto";
+        job.style.zIndex = "500";
+      }
       const fs = document.getElementById("fight-song");
       if (fs) { fs.pause(); try { fs.currentTime = 0; } catch (e) {} }
       if (typeof resumeMusicAfterFight === "function") resumeMusicAfterFight();
@@ -7233,15 +7250,20 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (on) startAdventureTune();
       else stopAdventureTune();
     }
+    function releaseAdventureLayers() {
+      ["fight-box", "loot-box", "pet-card", "mine-panel", "forest-panel", "beast-page", "beast-panel"].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove("open");
+        el.style.display = "none";
+        el.style.pointerEvents = "none";
+        el.style.zIndex = "0";
+      });
+      state.pendingFight = false;
+      if (typeof fightTimer !== "undefined" && fightTimer) { cancelAnimationFrame(fightTimer); fightTimer = 0; }
+    }
     function backToAdventure() {
-      const fight = document.getElementById("fight-box");
-      if (fight && fight.classList.contains("open")) {
-        fight.classList.remove("open");
-        fight.style.display = "none";
-        fight.style.pointerEvents = "none";
-        state.pendingFight = false;
-        if (fightTimer) { cancelAnimationFrame(fightTimer); fightTimer = 0; }
-      }
+      releaseAdventureLayers();
       closeAllTabs();
       setAdventureWorld(true);
       const pan = document.getElementById("adventure-panel");
@@ -7249,6 +7271,8 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       bindAdventure();
       paintAdventure();
       pan.classList.add("open");
+      pan.style.zIndex = "900";
+      pan.style.pointerEvents = "auto";
       pan.setAttribute("aria-hidden", "false");
     }
     function openAdventure() {
@@ -7259,6 +7283,8 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       bindAdventure();
       paintAdventure();
       pan.classList.add("open");
+      pan.style.zIndex = "900";
+      pan.style.pointerEvents = "auto";
       pan.setAttribute("aria-hidden", "false");
     }
 
@@ -7464,7 +7490,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     const gpc = document.getElementById("gear-pick-close");
     if (gpc) gpc.onclick = function () { const b = document.getElementById("gear-pick"); if (b) { b.hidden = true; b.classList.remove('open'); } };
     const lootTake = document.getElementById("loot-take");
-    if (lootTake) lootTake.onclick = function (ev) { ev.stopPropagation(); closeLoot(); };
+    if (lootTake) lootTake.onclick = function (ev) { ev.preventDefault(); ev.stopPropagation(); closeLoot(); };
     const lootBox = document.getElementById("loot-box");
     if (lootBox) lootBox.onclick = function () { closeLoot(); };
     function syncInvButtons() {
@@ -7715,6 +7741,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     if (af) af.onclick = () => showAssetSide("farming");
     document.getElementById("market-close").onclick = closeMarket;
     wrap.addEventListener("pointerdown", (ev) => {
+      if (ev.target.closest("button")) return;
       if (ev.target.closest("#loot-box, #fight-box, #ask-box, #gear-pick, #pet-card")) return;
       const open = document.querySelector("#market-panel.open, #shed-panel.open, #log-panel.open, #craft-panel.open, #barn-panel.open, #silo-panel.open, #smith-panel.open, #worth-panel.open, #mine-panel.open, #forest-panel.open");
       if (!open) return;
@@ -8238,6 +8265,29 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     }
     window.pauseMusicForFight = pauseMusicForFight;
     window.resumeMusicAfterFight = resumeMusicAfterFight;
+    document.addEventListener("click", function (ev) {
+      const back = ev.target.closest && ev.target.closest("#adventure-close");
+      if (!back) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      if (typeof releaseAdventureLayers === "function") releaseAdventureLayers();
+      setAdventureWorld(false);
+      closeAllTabs();
+    }, true);
+    document.addEventListener("pointerup", function (ev) {
+      if (ev.target.closest && ev.target.closest("button, a, input")) return;
+      const x = ev.clientX, y = ev.clientY;
+      const nodes = document.querySelectorAll("#mine-panel.open button, #forest-panel.open button, #loot-box.open button, #fight-box.open button, #pet-card.open button");
+      let best = null, bestD = 42;
+      nodes.forEach(function (b) {
+        const r = b.getBoundingClientRect();
+        const cx = Math.max(r.left, Math.min(x, r.right));
+        const cy = Math.max(r.top, Math.min(y, r.bottom));
+        const d = Math.hypot(x - cx, y - cy);
+        if (d < bestD) { bestD = d; best = b; }
+      });
+      if (best) best.click();
+    }, true);
     window.startFightTune = startFightTune;
     function toggleMusicOff() {
       musicOff = !musicOff;
