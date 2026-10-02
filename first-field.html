@@ -3945,6 +3945,7 @@ if (!state.demoSmithMats) {
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Oct 1 — Wild beasts in chapter 1 levels 1-4. Beat one to loot a pet.",
       "Oct 1 — Clan button opens the village. Tower, then Harvest, Forest, and Mine relics.",
       "Oct 1 — Update log is newest day first. Same-day lines stay in the order they shipped.",
       "Oct 1 — Hopeful Peak plays in Adventure. Fight music still takes over.",
@@ -4130,6 +4131,7 @@ if (!state.demoSmithMats) {
       if (box) {
         box.classList.toggle("on", hide);
         box.textContent = hide ? "Hiding 0 balances" : "Hide 0 balances";
+      if (typeof paintBestiary === 'function') paintBestiary();
       }
     }
 
@@ -4160,6 +4162,96 @@ if (!state.demoSmithMats) {
       p.style.transform = "translate(118px, 8px) " + (sword ? "rotate(20deg)" : "");
       p.style.opacity = "0";
     }
+
+    const BEASTS = {
+      mouse: { zone: "forest", name: "Field Mouse", evo: ["Field Mouse", "Brush Mouse", "Burrow Lord"] },
+      bird: { zone: "forest", name: "Thicket Bird", evo: ["Thicket Bird", "Canopy Bird", "Grove Hawk"] },
+      rock: { zone: "mine", name: "Pebble", evo: ["Pebble", "Boulder Pup", "Vein Golem"] },
+      skull: { zone: "mine", name: "Skull Bit", evo: ["Skull Bit", "Jawling", "Mine Skull"] }
+    };
+    function beastForm(pet) {
+      const spec = BEASTS[pet.species];
+      const lvl = pet.lvl || 1;
+      return spec.evo[lvl >= 10 ? 2 : lvl >= 5 ? 1 : 0];
+    }
+    function beastDmg(pet) {
+      const bonus = 0.2 * ((pet.lvl || 1) - 1);
+      const lo = Math.max(1, Math.round((1 + bonus) * 10) / 10);
+      const hi = Math.max(lo, Math.round((2 + bonus) * 10) / 10);
+      return lo + Math.random() * (hi - lo);
+    }
+    function xpToNext(lvl) { return 100 * (lvl || 1); }
+    function grantPetXp(amount) {
+      if (!state.equippedPet || !amount) return;
+      const pet = (state.pets || []).find(function (p) { return p.id === state.equippedPet; });
+      if (!pet || (pet.lvl || 1) >= 100) return;
+      pet.xp = (pet.xp || 0) + amount;
+      while ((pet.lvl || 1) < 100 && pet.xp >= xpToNext(pet.lvl || 1)) {
+        pet.xp -= xpToNext(pet.lvl || 1);
+        pet.lvl = (pet.lvl || 1) + 1;
+        if (pet.lvl === 5 || pet.lvl === 10) toast(beastForm(pet) + " evolved");
+      }
+    }
+    function rollWildBeast(kind, lvl, boss) {
+      state.wildBeast = null;
+      const chapter = Math.ceil((lvl || 1) / 5);
+      if (boss || chapter !== 1 || lvl < 1 || lvl > 4) return;
+      if (Math.random() >= 0.5) return;
+      const pool = Object.keys(BEASTS).filter(function (id) { return BEASTS[id].zone === kind; });
+      state.wildBeast = pool[Math.floor(Math.random() * pool.length)];
+      state.seenBeasts = state.seenBeasts || {};
+      state.seenBeasts[state.wildBeast] = true;
+    }
+    function captureWildBeast() {
+      if (!state.wildBeast) return;
+      const id = state.wildBeast;
+      state.pets = state.pets || [];
+      state.capturedBeasts = state.capturedBeasts || {};
+      if (!state.capturedBeasts[id]) {
+        state.capturedBeasts[id] = true;
+        state.pets.push({ id: id + "-" + Date.now(), species: id, lvl: 1, xp: 0 });
+        toast(BEASTS[id].name + " captured");
+      } else toast(BEASTS[id].name + " already in the barn");
+      state.wildBeast = null;
+    }
+    function paintBestiary() {
+      const ul = document.getElementById("barn-list");
+      if (!ul) return;
+      Object.keys(BEASTS).forEach(function (id) {
+        const spec = BEASTS[id];
+        const seen = state.seenBeasts && state.seenBeasts[id];
+        const cap = state.capturedBeasts && state.capturedBeasts[id];
+        const li = document.createElement("li");
+        li.innerHTML = "<span>" + (seen ? spec.name : "???") + "</span><span>" + (cap ? "Captured" : seen ? spec.zone + " · 1-2 dmg" : "unseen") + "</span>";
+        ul.appendChild(li);
+      });
+      (state.pets || []).forEach(function (pet) {
+        const li = document.createElement("li");
+        li.innerHTML = "<span>" + beastForm(pet) + " lv" + (pet.lvl || 1) + "</span><span>" + (pet.xp || 0) + "/" + xpToNext(pet.lvl || 1) + " xp</span>";
+        ul.appendChild(li);
+      });
+    }
+    function bindPetSlot() {
+      document.querySelectorAll(".gear-slot[data-slot='pet']").forEach(function (el) {
+        const pet = (state.pets || []).find(function (p) { return p.id === state.equippedPet; });
+        const sm = el.querySelector("small");
+        if (sm) sm.textContent = pet ? beastForm(pet) : "empty";
+        el.onclick = function () {
+          const pets = state.pets || [];
+          if (!pets.length) { toast("No pet yet. Beat a wild beast."); return; }
+          const next = pets.findIndex(function (p) { return p.id === state.equippedPet; });
+          state.equippedPet = pets[(next + 1) % pets.length].id;
+          if (next === pets.length - 1 && state.equippedPet) {
+            // cycle, tap past last unequips on second full loop via empty sentinel
+          }
+          toast("Pet: " + beastForm(pets[(next + 1) % pets.length]));
+          save();
+          bindPetSlot();
+          render();
+        };
+      });
+    }
+
     function startFight() {
       cancelLootPop();
       if (fightTimer) { cancelAnimationFrame(fightTimer); fightTimer = 0; }
@@ -4181,6 +4273,8 @@ if (!state.demoSmithMats) {
       cancelLootPop();
       const lvl = state.mobLevel || 1;
       const boss = !!state.bossFight;
+      rollWildBeast(state.fightKind || "mine", lvl, boss);
+      state.petFightXp = 0;
       const box = document.getElementById("fight-box");
       const title = box && box.querySelector("h3");
       const chapter = Math.ceil(lvl / 5);
@@ -4215,6 +4309,7 @@ if (!state.demoSmithMats) {
       if (hc) hc.style.width = "100%";
       paintHp();
       if (st) st.textContent = boss ? (bossName + " blocks the way") : (state.fightKind === "forest" ? ("Level " + lvl + " forest beast!") : ("Level " + lvl + " creature!"));
+      if (state.wildBeast && title) title.textContent = "Wild " + BEASTS[state.wildBeast].name;
       if (hitLine) hitLine.textContent = "";
       const popMiner = document.getElementById("pop-miner");
       const popMob = document.getElementById("pop-mob");
@@ -4268,6 +4363,15 @@ if (!state.demoSmithMats) {
           const boosted = Math.max(1, Math.round(base * (1 + clanDmg / 100)));
           const hit = rollHit(boosted);
           c -= hit.dmg;
+          if (state.equippedPet && c > 0) {
+            const pet = (state.pets || []).find(function (p) { return p.id === state.equippedPet; });
+            if (pet) {
+              const pd = Math.max(1, Math.round(beastDmg(pet)));
+              c -= pd;
+              state.petFightXp = (state.petFightXp || 0) + pd;
+              if (po) po.textContent = (po.textContent || "") + " pet -" + pd;
+            }
+          }
           if (c < 0) c = 0;
           if (po) {
             po.textContent = (hit.crit ? "CRIT " : "") + "-" + hit.dmg;
@@ -4304,6 +4408,8 @@ if (!state.demoSmithMats) {
             const forest = state.fightKind === "forest";
             if (forest) state.forestWins = (state.forestWins || 0) + 1;
             else state.mineWins = (state.mineWins || 0) + 1;
+            captureWildBeast();
+            if (state.petFightXp) { grantPetXp(state.petFightXp); toast("Pet +" + state.petFightXp + " xp"); state.petFightXp = 0; }
             const clearKey = forest ? "forestClear" : "mineClear";
             const wonLevel = state.mobLevel || 1;
             if (wonLevel % 5 === 0) { if (state.bossFight) state[clearKey] = Math.max(state[clearKey] || 0, wonLevel); }
@@ -6194,6 +6300,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       (state.wells || []).forEach((w) => move(w, "well"));
     }
     function render() {
+      if (typeof bindPetSlot === 'function') bindPetSlot();
       tickCrops();
       unstickSilos();
       unstickAnimals();
