@@ -1461,6 +1461,18 @@
     #beast-inv li { display: flex; gap: 8px; align-items: center; justify-content: space-between; list-style: none; padding: 6px 0; }
     #beast-inv svg { width: 48px; height: 38px; }
 #beast-panel { display: none; position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 80; width: min(420px, 94vw); max-height: 86vh; overflow: auto; background: #1c140e; border: 1px solid #c9a227; border-radius: 14px; padding: 12px; }
+    #pet-card { display: none; position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 140; width: min(420px, 94vw); max-height: 88vh; overflow: auto; background: #1c140e; color: #f3e6c8; border: 1px solid #c9a227; border-radius: 14px; padding: 14px; }
+    #pet-card.open { display: block; }
+    body.in-adventure #pet-card.open { visibility: visible !important; z-index: 260; }
+    #pet-card h3 { margin: 0 0 6px; color: #e8c36a; }
+    .evo-row { display: flex; gap: 8px; margin: 12px 0; }
+    .evo-step { flex: 1; text-align: center; background: #12180f; border-radius: 10px; padding: 6px 4px; border: 1px solid #3a4a32; }
+    .evo-step.now { border-color: #c9a227; }
+    .evo-step svg { width: 100%; height: 64px; }
+    .evo-step.locked svg { filter: brightness(0); opacity: 0.42; }
+    .evo-step small { display: block; min-height: 2.4em; font-size: 11px; }
+    #beast-inv-list li { cursor: pointer; }
+
 
     #beast-panel { color: var(--cream); }
     #beast-panel h3 { color: var(--gold); }
@@ -1909,6 +1921,14 @@
         <ul id="beast-book"></ul>
         <button type="button" class="ghost" id="beast-close">Close</button>
       </div>
+      <div id="pet-card" aria-hidden="true">
+        <h3 id="pet-card-name">Pet</h3>
+        <p id="pet-card-stats"></p>
+        <p id="pet-card-when"></p>
+        <div class="evo-row" id="pet-card-evos"></div>
+        <button type="button" id="pet-card-bring">Bring</button>
+        <button type="button" class="ghost" id="pet-card-close">Close</button>
+      </div>
       <div id="mine-panel" aria-hidden="true">
         <h3>Mine</h3>
         <div id="mine-stage" class="mine-stage">
@@ -1924,7 +1944,6 @@
         <div class="mine-bar"><i id="mine-bar"></i></div>
         <p id="mine-status">Tap Start mining.</p>
         <div class="scene-actions">
-        <button type="button" id="btn-beasts-mine" class="btn-beasts" onclick="var b=document.getElementById('gear-box'); if(b){b.hidden=false;} if(window.paintBeastInventory) window.paintBeastInventory();">Beasts</button>
         <button type="button" id="btn-gear" class="btn-inv">Inventory</button>
         <button type="button" id="btn-mine">Start mining</button>
         <button type="button" id="btn-stats" class="btn-st">Stats</button>
@@ -1969,7 +1988,6 @@
     <div class="mine-bar"><i id="forest-bar"></i></div>
     <p id="forest-status">Tap Chop wood.</p>
     <div class="scene-actions">
-    <button type="button" id="btn-beasts-forest" class="btn-beasts" onclick="var b=document.getElementById('gear-box'); if(b){b.hidden=false;} if(window.paintBeastInventory) window.paintBeastInventory();">Beasts</button>
     <button type="button" class="btn-inv" id="btn-gear-forest">Inventory</button>
     <button type="button" id="btn-forest">Chop wood</button>
     <button type="button" class="btn-st" id="btn-stats-forest">Stats</button>
@@ -4017,6 +4035,8 @@ if (!state.demoSmithMats) {
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Oct 2 — Pet card opens on the adventure screen you are in, not back on the farm.",
+      "Oct 2 — No Beasts button on Mine or Forest. Tap a pet in Inventory for its card: stats, XP to evolve, three forms. Later forms are shadows.",
       "Oct 1 — Wild beasts in chapter 1 levels 1-4. Beat one to loot a pet.",
       "Oct 1 — Clan button opens the village. Tower, then Harvest, Forest, and Mine relics.",
       "Oct 1 — Update log is newest day first. Same-day lines stay in the order they shipped.",
@@ -4335,8 +4355,60 @@ if (!state.demoSmithMats) {
       return lo + "–" + hi;
     }
 
+    function xpUntilLevel(pet, target) {
+      let lvl = pet.lvl || 1;
+      let xp = pet.xp || 0;
+      if (lvl >= target) return 0;
+      let need = 0;
+      while (lvl < target) {
+        need += xpToNext(lvl) - xp;
+        xp = 0;
+        lvl += 1;
+      }
+      return need;
+    }
+    function openPetCard(id) {
+      const pet = (state.pets || []).find(function (p) { return p.id === id; });
+      const card = document.getElementById("pet-card");
+      if (!pet || !card) return;
+      document.body.appendChild(card);
+      card.style.zIndex = "260";
+      const spec = BEASTS[pet.species];
+      const lvl = pet.lvl || 1;
+      const stage = lvl >= 10 ? 2 : lvl >= 5 ? 1 : 0;
+      document.getElementById("pet-card-name").textContent = beastForm(pet);
+      document.getElementById("pet-card-stats").textContent = "Lv " + lvl + " · " + (pet.xp || 0) + "/" + xpToNext(lvl) + " xp · " + beastRange(pet) + " dmg · " + (spec.zone === "forest" ? "Forest" : "Mine");
+      const when = document.getElementById("pet-card-when");
+      if (stage >= 2) when.textContent = "Final form. No further evolution.";
+      else {
+        const gate = stage === 0 ? 5 : 10;
+        const left = xpUntilLevel(pet, gate);
+        when.textContent = left + " xp until " + spec.evo[stage + 1] + " (level " + gate + "). XP is the damage this pet lands in a fight.";
+      }
+      const row = document.getElementById("pet-card-evos");
+      row.innerHTML = "";
+      spec.evo.forEach(function (name, i) {
+        const step = document.createElement("div");
+        step.className = "evo-step" + (i === stage ? " now" : "") + (i > stage ? " locked" : "");
+        const showLvl = i === 0 ? 1 : i === 1 ? 5 : 10;
+        step.innerHTML = beastSkin(pet.species, showLvl) + "<small>" + (i > stage ? "Not yet" : name) + "</small>";
+        row.appendChild(step);
+      });
+      const bring = document.getElementById("pet-card-bring");
+      bring.textContent = state.equippedPet === pet.id ? "With you" : "Bring";
+      bring.onclick = function () {
+        state.equippedPet = pet.id;
+        save();
+        paintBeastInventory();
+        if (typeof paintFightPet === "function") paintFightPet();
+        if (typeof bindPetSlot === "function") bindPetSlot();
+        openPetCard(id);
+      };
+      card.classList.add("open");
+      card.setAttribute("aria-hidden", "false");
+    }
+    window.openPetCard = openPetCard;
     function paintBeastInventory() {
-
       const ul = document.getElementById("beast-inv-list");
       if (!ul) return;
       ul.innerHTML = "";
@@ -4347,19 +4419,8 @@ if (!state.demoSmithMats) {
       }
       pets.forEach(function (pet) {
         const li = document.createElement("li");
-        li.innerHTML = beastSkin(pet.species, pet.lvl || 1) + "<span><b>" + beastForm(pet) + "</b><br>Lv " + (pet.lvl || 1) + " · " + (pet.xp || 0) + "/" + xpToNext(pet.lvl || 1) + " xp · " + beastRange(pet) + " dmg</span>";
-        const b = document.createElement("button");
-        b.type = "button";
-        b.textContent = state.equippedPet === pet.id ? "With you" : "Bring";
-        b.onclick = function () {
-          state.equippedPet = pet.id;
-          save();
-          paintBeastInventory();
-          if (typeof paintBeastWindow === "function") paintBeastWindow();
-          if (typeof paintFightPet === "function") paintFightPet();
-          if (typeof bindPetSlot === "function") bindPetSlot();
-        };
-        li.appendChild(b);
+        li.innerHTML = beastSkin(pet.species, pet.lvl || 1) + "<span><b>" + beastForm(pet) + "</b><br>Lv " + (pet.lvl || 1) + " · tap for forms</span>";
+        li.onclick = function () { openPetCard(pet.id); };
         ul.appendChild(li);
       });
     }
@@ -7033,6 +7094,11 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     document.querySelectorAll(".btn-beasts").forEach(function (b) {
       b.onclick = function () { openBeastWindow(); };
     });
+    const petCardClose = document.getElementById("pet-card-close");
+    if (petCardClose) petCardClose.onclick = function () {
+      const card = document.getElementById("pet-card");
+      if (card) { card.classList.remove("open"); card.setAttribute("aria-hidden", "true"); }
+    };
     const beastClose = document.getElementById("beast-close");
     if (beastClose) beastClose.onclick = () => {
       const pan = document.getElementById("beast-panel");
