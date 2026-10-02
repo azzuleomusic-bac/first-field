@@ -2207,7 +2207,7 @@
     const FF = Object.assign({
       starterSats: 30, pack30Bonus: 20, wellMs: 2000, cornGrowMs: 10000, carrotGrowMs: 10000,
       cowMs: 12000, chickenMs: 12000, horseMs: 12000, sheepMs: 12000, pigMs: 12000, mineMs: 5000, wellMax: 10, canPerWell: 20,
-      cowFeed: { corn: 6, water: 4, milk: 3 },
+      cowFeed: { corn: 6, water: 4, milk: 3 }, babyChance: 0.6, calfFeeds: 2,
       chickenFeed: { corn: 2, water: 1, eggs: 2 },
       horseFeed: { carrots: 3, water: 4, hair: 2 },
       sheepFeed: { corn: 3, water: 2, wool: 3 },
@@ -3045,7 +3045,18 @@ if (!state.demoSmithMats) {
 
     function tickCow() {
       cows().forEach((c) => {
-        if (c.stage === "making" && now() >= c.readyAt) c.stage = "milk";
+        if (c.stage === "making" && now() >= c.readyAt) {
+          if (c.baby) {
+            c.feeds = (c.feeds || 0) + 1;
+            c.stage = "hungry";
+            c.readyAt = 0;
+            if (c.feeds >= (FF.calfFeeds || 2)) {
+              c.baby = false;
+              c.feeds = 0;
+              toast("Calf grew up");
+            }
+          } else c.stage = "milk";
+        }
       });
     }
 
@@ -3060,7 +3071,7 @@ if (!state.demoSmithMats) {
       const making = cows().filter((c) => c.stage === "making").length;
       const ready = cows().filter((c) => c.stage === "milk").length;
       const st = document.getElementById("shed-status");
-      if (st) st.textContent = cows().length + "/" + shedCap(state.shed) + " cows · shed lvl " + shedLvl(state.shed);
+      if (st) st.textContent = cows().length + "/" + shedCap(state.shed) + " cows · " + cows().filter((c) => c.baby).length + " calf · shed lvl " + shedLvl(state.shed);
       const up = document.getElementById("shed-up");
       const ul = document.getElementById("shed-up-label");
       if (up) up.disabled = shedLvl(state.shed) >= 2;
@@ -3074,7 +3085,7 @@ if (!state.demoSmithMats) {
       pan.setAttribute("aria-hidden", "true");
     }
 
-    function feedCow(openAfter) {
+    async function feedCow(openAfter) {
       tickCow();
       tickChicken();
       const hungry = cows().find((c) => c.stage === "hungry");
@@ -3088,7 +3099,24 @@ if (!state.demoSmithMats) {
       state.water -= FF.cowFeed.water;
       hungry.stage = "making";
       hungry.readyAt = now() + FF.cowMs;
-      toast("Cow fed — milk in 0:12");
+      if (hungry.baby) {
+        const left = (FF.calfFeeds || 2) - (hungry.feeds || 0);
+        toast("Calf fed — no milk · " + left + " feeds to grow");
+      } else {
+        toast("Cow fed — milk in 0:12");
+        if (Math.random() < (FF.babyChance || 0.6)) {
+          if (cows().length >= shedCap(state.shed)) {
+            toast("Pasture full — no room for a calf");
+            if (shedLvl(state.shed) < 3 && await askYes("A calf is ready, but the pasture is full.\nUpgrade the shed?")) {
+              await upgradeAnimalShed("shed");
+            }
+          }
+          if (cows().length < shedCap(state.shed)) {
+            state.shed.cows.push({ id: "calf" + Date.now().toString(36), stage: "hungry", readyAt: 0, baby: true, feeds: 0 });
+            toast("A calf was born");
+          }
+        }
+      }
       save();
       render();
     }
@@ -3098,7 +3126,7 @@ if (!state.demoSmithMats) {
       tickChicken();
       let n = 0;
       cows().forEach((c) => {
-        if (c.stage === "milk") {
+        if (c.stage === "milk" && !c.baby) {
           n += 1;
           c.stage = "hungry";
           c.readyAt = 0;
@@ -3125,11 +3153,33 @@ if (!state.demoSmithMats) {
 
 
     function chickens() { return (state.coop && state.coop.chickens) || []; }
-    function tickChicken() {
-      chickens().forEach((c) => {
-        if (c.stage === "making" && now() >= c.readyAt) c.stage = "eggs";
+
+    async function maybeBaby(list, building, kind, label) {
+      if (Math.random() >= (FF.babyChance || 0.6)) return;
+      if (list.length >= shedCap(building)) {
+        toast(label + " full — no room for a baby");
+        if (shedLvl(building) < 3 && await askYes("A baby is ready, but the " + label + " is full.\nUpgrade?")) {
+          await upgradeAnimalShed(kind);
+        }
+      }
+      if (list.length < shedCap(building)) {
+        list.push({ id: "baby" + Date.now().toString(36), stage: "hungry", readyAt: 0, baby: true, feeds: 0 });
+        toast("A baby was born");
+      }
+    }
+    function growBabies(list, readyStage) {
+      list.forEach((c) => {
+        if (c.stage === "making" && now() >= c.readyAt) {
+          if (c.baby) {
+            c.feeds = (c.feeds || 0) + 1;
+            c.stage = "hungry";
+            c.readyAt = 0;
+            if (c.feeds >= (FF.calfFeeds || 2)) { c.baby = false; c.feeds = 0; toast("Baby grew up"); }
+          } else c.stage = readyStage;
+        }
       });
     }
+    function tickChicken() { growBabies(chickens(), "eggs"); }
     function coopInner() {
       tickChicken();
       const n = chickens().length;
@@ -3139,8 +3189,9 @@ if (!state.demoSmithMats) {
         [12, 40], [24, 38], [36, 40], [46, 42],
         [16, 46], [28, 44], [40, 48]
       ];
-      function oneHen(x, y) {
-        return '<g class="hen-bod" transform="translate(' + x + ',' + y + ') scale(0.78)">' +
+      function oneHen(x, y, baby) {
+        const sc = baby ? 0.28 : 0.78;
+        return '<g class="hen-bod" data-calf="' + (baby ? "1" : "0") + '" transform="translate(' + x + ',' + y + ') scale(' + sc + ')">' +
           '<ellipse cx="7" cy="12" rx="2" ry="1" fill="#1a1208" opacity=".25"/>' +
           '<ellipse cx="6.5" cy="8" rx="5.2" ry="4" fill="#f2d8a0"/>' +
           '<ellipse cx="9.4" cy="6.6" rx="2.3" ry="2" fill="#e8c078"/>' +
@@ -3152,7 +3203,7 @@ if (!state.demoSmithMats) {
       let flock = "";
       const capN = shedCap(state.coop);
       const show = Math.max(0, Math.min(capN, n));
-      for (let i = 0; i < show; i++) flock += oneHen(spots[i][0], spots[i][1]);
+      for (let i = 0; i < show; i++) flock += oneHen(spots[i][0], spots[i][1], !!(chickens()[i] && chickens()[i].baby));
       const lv = shedLvl(state.coop);
       let yard;
       if (lv >= 2) {
@@ -3194,7 +3245,7 @@ if (!state.demoSmithMats) {
       save();
       render();
     }
-    function feedChicken() {
+    async function feedChicken() {
       tickChicken();
       const hungry = chickens().find((c) => c.stage === "hungry");
       if (!hungry) { toast(chickens().some((c) => c.stage === "eggs") ? "Collect eggs first" : "No hungry chicken"); return; }
@@ -3204,7 +3255,8 @@ if (!state.demoSmithMats) {
       state.water -= FF.chickenFeed.water;
       hungry.stage = "making";
       hungry.readyAt = now() + FF.chickenMs;
-      toast("Chicken fed — eggs in 0:12");
+      if (hungry.baby) toast("Chick fed — no eggs · " + ((FF.calfFeeds || 2) - (hungry.feeds || 0)) + " feeds to grow");
+      else { toast("Chicken fed — eggs in 0:12"); await maybeBaby(state.coop.chickens, state.coop, "coop", "coop"); }
       save();
       render();
     }
@@ -3262,11 +3314,7 @@ if (!state.demoSmithMats) {
       return '<svg class="hair-icon' + (sm ? ' sm' : '') + '" viewBox="0 0 32 32" aria-hidden="true"><path fill="#c4a574" d="M16 3c2 5 1 8-1 12 4-2 7-1 9 3-6 1-9 4-10 9 0-5-3-8-8-9 3-3 6-5 6-10 2 2 4 2 4-5z"/><path fill="#8b5a2b" d="M14 14c3 4 3 8 2 13-4-3-8-4-11-3 3-4 5-7 9-10z"/><path fill="#e8c36a" opacity=".7" d="M18 8c2 3 3 6 2 10-1-3-3-5-5-6 1-1 2-2 3-4z"/></svg>';
     }
     function horses() { return (state.horseShed && state.horseShed.horses) || []; }
-    function tickHorse() {
-      horses().forEach((h) => {
-        if (h.stage === "making" && now() >= h.readyAt) h.stage = "hair";
-      });
-    }
+    function tickHorse() { growBabies(horses(), "hair"); }
     function horseInner() {
       tickHorse();
       const n = horses().length;
@@ -3277,8 +3325,9 @@ if (!state.demoSmithMats) {
         [18, 34], [26, 32], [32, 34],
         [20, 20], [28, 26], [24, 34]
       ];
-      function oneHorse(x, y) {
-        return '<g class="horse-bod" transform="translate(' + x + ',' + y + ') scale(0.88)">' +
+      function oneHorse(x, y, baby) {
+        const sc = baby ? 0.32 : 0.88;
+        return '<g class="horse-bod" data-calf="' + (baby ? "1" : "0") + '" transform="translate(' + x + ',' + y + ') scale(' + sc + ')">' +
           '<ellipse cx="16" cy="26.4" rx="6" ry="1.15" fill="#1a1208" opacity=".28"/>' +
           '<path fill="#c17a3a" d="M11 10.2 C13.2 8.8, 19.4 8.6, 23.2 10.4 C24.6 11.2, 24.4 14.8, 23.6 16.8 C22.6 18.2, 19.2 18.8, 15.4 18.6 C12.2 18.4, 9.4 17.4, 8.6 16 C8 14.6, 8.8 12.2, 11 10.2 Z"/>' +
           '<path fill="#c17a3a" d="M11.2 10.6 C9.2 7.2, 7.4 4.6, 6.2 3.8 C5.4 3.4, 4.8 4.2, 5.2 5.4 C5.8 7.2, 7.4 10.2, 9.2 12.8 C10.2 14, 11.6 13.2, 11.2 10.6 Z"/>' +
@@ -3304,7 +3353,7 @@ if (!state.demoSmithMats) {
       let flock = "";
       const capN = shedCap(state.horseShed);
       const show = Math.max(0, Math.min(capN, n));
-      for (let i = 0; i < show; i++) flock += oneHorse(spots[i][0], spots[i][1]);
+      for (let i = 0; i < show; i++) flock += oneHorse(spots[i][0], spots[i][1], !!(horses()[i] && horses()[i].baby));
       const yard =
         '<rect x="1" y="1" width="62" height="62" rx="10" fill="#245018"/>' +
         '<rect x="3" y="3" width="58" height="58" rx="8" fill="#4f9a3a"/>' +
@@ -3345,7 +3394,7 @@ if (!state.demoSmithMats) {
       save();
       render();
     }
-    function feedHorse() {
+    async function feedHorse() {
       tickHorse();
       const hungry = horses().find((h) => h.stage === "hungry");
       if (!hungry) { toast(horses().some((h) => h.stage === "hair") ? "Collect horse hair first" : "No hungry horse"); return; }
@@ -3355,7 +3404,8 @@ if (!state.demoSmithMats) {
       state.water -= FF.horseFeed.water;
       hungry.stage = "making";
       hungry.readyAt = now() + (FF.horseMs || 20000);
-      toast("Horse fed — horse hair in 0:12");
+      if (hungry.baby) toast("Foal fed — no hair · " + ((FF.calfFeeds || 2) - (hungry.feeds || 0)) + " feeds to grow");
+      else { toast("Horse fed — horse hair in 0:12"); await maybeBaby(state.horseShed.horses, state.horseShed, "horse", "pasture"); }
       save();
       render();
     }
@@ -3369,11 +3419,7 @@ if (!state.demoSmithMats) {
     }
 
     function sheep() { return (state.sheepPen && state.sheepPen.sheep) || []; }
-    function tickSheep() {
-      sheep().forEach((s) => {
-        if (s.stage === "making" && now() >= s.readyAt) s.stage = "wool";
-      });
-    }
+    function tickSheep() { growBabies(sheep(), "wool"); }
     function sheepInner() {
       tickSheep();
       const n = sheep().length;
@@ -3383,8 +3429,9 @@ if (!state.demoSmithMats) {
         [10, 38], [22, 34], [34, 32], [46, 36],
         [16, 42], [28, 40], [40, 44]
       ];
-      function oneSheep(x, y) {
-        return '<g class="sheep-bod" transform="translate(' + x + ',' + y + ') scale(0.72)">' +
+      function oneSheep(x, y, baby) {
+        const sc = baby ? 0.26 : 0.72;
+        return '<g class="sheep-bod" data-calf="' + (baby ? "1" : "0") + '" transform="translate(' + x + ',' + y + ') scale(' + sc + ')">' +
           '<ellipse cx="9" cy="16.6" rx="2.2" ry="1.1" fill="#1a1208" opacity=".28"/>' +
           '<rect x="5.2" y="12.2" width="1.5" height="4.2" rx=".6" fill="#3a3228"/>' +
           '<rect x="11.4" y="12.2" width="1.5" height="4.2" rx=".6" fill="#3a3228"/>' +
@@ -3401,7 +3448,7 @@ if (!state.demoSmithMats) {
       let flock = "";
       const capN = shedCap(state.sheepPen);
       const show = Math.max(0, Math.min(capN, n));
-      for (let i = 0; i < show; i++) flock += oneSheep(spots[i][0], spots[i][1]);
+      for (let i = 0; i < show; i++) flock += oneSheep(spots[i][0], spots[i][1], !!(sheep()[i] && sheep()[i].baby));
       const lv = shedLvl(state.sheepPen);
       let yard;
       if (lv >= 2) {
@@ -3451,7 +3498,7 @@ if (!state.demoSmithMats) {
       save();
       render();
     }
-    function feedSheep() {
+    async function feedSheep() {
       tickSheep();
       const hungry = sheep().find((s) => s.stage === "hungry");
       if (!hungry) { toast(sheep().some((s) => s.stage === "wool") ? "Collect wool first" : "No hungry sheep"); return; }
@@ -3461,7 +3508,8 @@ if (!state.demoSmithMats) {
       state.water -= FF.sheepFeed.water;
       hungry.stage = "making";
       hungry.readyAt = now() + (FF.sheepMs || 22000);
-      toast("Sheep fed — wool in 0:12");
+      if (hungry.baby) toast("Lamb fed — no wool · " + ((FF.calfFeeds || 2) - (hungry.feeds || 0)) + " feeds to grow");
+      else { toast("Sheep fed — wool in 0:12"); await maybeBaby(state.sheepPen.sheep, state.sheepPen, "sheep", "pasture"); }
       save();
       render();
     }
@@ -3516,11 +3564,7 @@ if (!state.demoSmithMats) {
       openMarket(true);
     }
     function pigs() { return (state.pigPen && state.pigPen.pigs) || []; }
-    function tickPig() {
-      pigs().forEach((s) => {
-        if (s.stage === "making" && now() >= s.readyAt) s.stage = "truffle";
-      });
-    }
+    function tickPig() { growBabies(pigs(), "truffle"); }
     function pigInner() {
       tickPig();
       const n = pigs().length;
@@ -3530,8 +3574,9 @@ if (!state.demoSmithMats) {
         [12, 40], [26, 38], [40, 42], [50, 40],
         [18, 46], [32, 44], [44, 48]
       ];
-      function onePig(x, y) {
-        return '<g class="pig-bod" transform="translate(' + x + ',' + y + ') scale(0.7)">' +
+      function onePig(x, y, baby) {
+        const sc = baby ? 0.26 : 0.7;
+        return '<g class="pig-bod" data-calf="' + (baby ? "1" : "0") + '" transform="translate(' + x + ',' + y + ') scale(' + sc + ')">' +
           '<ellipse cx="10" cy="16" rx="2.2" ry="1" fill="#1a1208" opacity=".25"/>' +
           '<rect x="6" y="12" width="1.6" height="3.6" rx=".5" fill="#c45a74"/>' +
           '<rect x="13" y="12" width="1.6" height="3.6" rx=".5" fill="#c45a74"/>' +
@@ -3550,7 +3595,7 @@ if (!state.demoSmithMats) {
       let flock = "";
       const capN = shedCap(state.pigPen);
       const show = Math.max(0, Math.min(capN, n));
-      for (let i = 0; i < show; i++) flock += onePig(spots[i][0], spots[i][1]);
+      for (let i = 0; i < show; i++) flock += onePig(spots[i][0], spots[i][1], !!(pigs()[i] && pigs()[i].baby));
       const lv = shedLvl(state.pigPen);
       const yard =
         '<rect x="1" y="1" width="62" height="62" rx="12" fill="#4a2e1c"/>' +
@@ -3593,7 +3638,7 @@ if (!state.demoSmithMats) {
       save();
       render();
     }
-    function feedPig() {
+    async function feedPig() {
       tickPig();
       const hungry = pigs().find((s) => s.stage === "hungry");
       if (!hungry) { toast(pigs().some((s) => s.stage === "truffle") ? "Collect truffles first" : "No hungry pig"); return; }
@@ -3603,7 +3648,8 @@ if (!state.demoSmithMats) {
       state.water -= 4;
       hungry.stage = "making";
       hungry.readyAt = now() + (FF.pigMs || 12000);
-      toast("Pig fed — truffles in 0:12");
+      if (hungry.baby) toast("Piglet fed — no truffles · " + ((FF.calfFeeds || 2) - (hungry.feeds || 0)) + " feeds to grow");
+      else { toast("Pig fed — truffles in 0:12"); await maybeBaby(state.pigPen.pigs, state.pigPen, "pig", "shed"); }
       save();
       render();
     }
@@ -6411,8 +6457,9 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         [18, 34], [26, 32], [32, 34],
         [20, 20], [28, 26], [24, 34]
       ];
-      function oneCow(x, y) {
-        return '<g class="cow-bod" transform="translate(' + x + ',' + y + ') scale(0.72)">' +
+      function oneCow(x, y, baby) {
+        const sc = baby ? 0.26 : 0.72;
+        return '<g class="cow-bod" data-calf="' + (baby ? "1" : "0") + '" transform="translate(' + x + ',' + y + ') scale(' + sc + ')">' +
           '<ellipse cx="16" cy="21.2" rx="5.2" ry="1.15" fill="#1a1208" opacity=".25"/>' +
           '<rect x="9" y="15" width="1.7" height="6.2" rx=".35" fill="#3a3228"/>' +
           '<rect x="12.2" y="15" width="1.7" height="6.2" rx=".35" fill="#3a3228"/>' +
@@ -6440,7 +6487,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       let flock = "";
       const capN = shedCap(state.shed);
       const show = Math.max(0, Math.min(capN, n));
-      for (let i = 0; i < show; i++) flock += oneCow(spots[i][0], spots[i][1]);
+      for (let i = 0; i < show; i++) flock += oneCow(spots[i][0], spots[i][1], !!(cows()[i] && cows()[i].baby));
       const yard =
         '<rect x="1" y="1" width="62" height="62" rx="10" fill="#245018"/>' +
         '<rect x="3" y="3" width="58" height="58" rx="8" fill="#4f9a3a"/>' +
@@ -7942,7 +7989,8 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
             }
           }
           const face = (s.tx < s.x) ? 1 : -1;
-          g.setAttribute("transform", "translate(" + s.x.toFixed(2) + "," + s.y.toFixed(2) + ") scale(0.72) translate(8,8) scale(" + face + ",1) translate(-8,-8)");
+          const sc = g.getAttribute("data-calf") === "1" ? 0.26 : 0.72;
+          g.setAttribute("transform", "translate(" + s.x.toFixed(2) + "," + s.y.toFixed(2) + ") scale(" + sc + ") translate(8,8) scale(" + face + ",1) translate(-8,-8)");
         });
         requestAnimationFrame(step);
       }
@@ -7996,7 +8044,8 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
             }
           }
           const face = (s.tx < s.x) ? -1 : 1;
-          g.setAttribute("transform", "translate(" + s.x.toFixed(2) + "," + s.y.toFixed(2) + ") scale(0.78) translate(7,7) scale(" + face + ",1) translate(-7,-7)");
+          const sc = g.getAttribute("data-calf") === "1" ? 0.28 : 0.78;
+          g.setAttribute("transform", "translate(" + s.x.toFixed(2) + "," + s.y.toFixed(2) + ") scale(" + sc + ") translate(7,7) scale(" + face + ",1) translate(-7,-7)");
         });
         requestAnimationFrame(step);
       }
@@ -8072,7 +8121,8 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
             }
           }
           const face = (s.tx < s.x) ? 1 : -1;
-          g.setAttribute("transform", "translate(" + s.x.toFixed(2) + "," + s.y.toFixed(2) + ") scale(0.7) translate(10,8) scale(" + face + ",1) translate(-10,-8)");
+          const sc = g.getAttribute("data-calf") === "1" ? 0.26 : 0.7;
+          g.setAttribute("transform", "translate(" + s.x.toFixed(2) + "," + s.y.toFixed(2) + ") scale(" + sc + ") translate(10,8) scale(" + face + ",1) translate(-10,-8)");
         });
         requestAnimationFrame(step);
       }
@@ -8128,7 +8178,8 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
             }
           }
           clampBox(s);
-          g.setAttribute("transform", "translate(" + s.x.toFixed(2) + "," + s.y.toFixed(2) + ") scale(0.72) translate(14,12) scale(" + s.face + ",1) translate(-14,-12)");
+          const sc = g.getAttribute("data-calf") === "1" ? 0.26 : 0.72;
+          g.setAttribute("transform", "translate(" + s.x.toFixed(2) + "," + s.y.toFixed(2) + ") scale(" + sc + ") translate(14,12) scale(" + s.face + ",1) translate(-14,-12)");
         });
         requestAnimationFrame(step);
       }
@@ -8181,7 +8232,8 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
             }
           }
           clampBox(s);
-          g.setAttribute("transform", "translate(" + s.x.toFixed(2) + "," + s.y.toFixed(2) + ") scale(0.62) translate(14,14) scale(" + s.face + ",1) translate(-14,-14)");
+          const sc = g.getAttribute("data-calf") === "1" ? 0.24 : 0.62;
+          g.setAttribute("transform", "translate(" + s.x.toFixed(2) + "," + s.y.toFixed(2) + ") scale(" + sc + ") translate(14,14) scale(" + s.face + ",1) translate(-14,-14)");
         });
         requestAnimationFrame(step);
       }
