@@ -1461,9 +1461,12 @@
     #beast-inv li { display: flex; gap: 8px; align-items: center; justify-content: space-between; list-style: none; padding: 6px 0; }
     #beast-inv svg { width: 48px; height: 38px; }
 #beast-panel { display: none; position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 80; width: min(420px, 94vw); max-height: 86vh; overflow: auto; background: #1c140e; border: 1px solid #c9a227; border-radius: 14px; padding: 12px; }
+    .scene-pet { position: absolute; left: 86px; bottom: 16px; width: 56px; height: 46px; z-index: 4; pointer-events: none; }
+    .scene-pet svg { width: 56px; height: 46px; display: block; }
+    .mine-stage.on .scene-pet { animation: minerBob 0.42s ease-in-out infinite; }
     #pet-card { display: none; position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 140; width: min(420px, 94vw); max-height: 88vh; overflow: auto; background: #1c140e; color: #f3e6c8; border: 1px solid #c9a227; border-radius: 14px; padding: 14px; }
     #pet-card.open { display: block; }
-    body.in-adventure #pet-card.open { visibility: visible !important; z-index: 260; }
+    body.in-adventure #pet-card.open { visibility: visible !important; z-index: 600 !important; pointer-events: auto !important; }
     #pet-card h3 { margin: 0 0 6px; color: #e8c36a; }
     .evo-row { display: flex; gap: 8px; margin: 12px 0; }
     .evo-step { flex: 1; text-align: center; background: #12180f; border-radius: 10px; padding: 6px 4px; border: 1px solid #3a4a32; }
@@ -1485,18 +1488,33 @@
     #open-beasts, #tool-beasts { border-color: var(--gold); color: var(--gold); }
 
     body.in-adventure #app { visibility: hidden !important; }
-    body.in-adventure #fight-box.open { z-index: 240 !important; }
+    body.in-adventure #fight-box.open,
+    body.in-adventure #loot-box.open {
+      z-index: 800 !important;
+      display: flex !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+    }
+    body.in-adventure #fight-box:not(.open),
+    body.in-adventure #loot-box:not(.open),
+    body.in-adventure #adventure-panel:not(.open) {
+      display: none !important;
+      pointer-events: none !important;
+    }
     body.in-adventure #mine-panel.open,
     body.in-adventure #forest-panel.open {
       display: block !important;
       visibility: visible !important;
       position: fixed !important; inset: 0 !important; left: 0 !important; top: 0 !important;
       transform: none !important; width: 100% !important; max-height: none !important;
-      height: 100% !important; border-radius: 0 !important; z-index: 210 !important;
+      height: 100% !important; border-radius: 0 !important; z-index: 500 !important;
+      pointer-events: auto !important;
       overflow-y: auto; -webkit-overflow-scrolling: touch;
       padding: calc(var(--safe-top) + 16px) 16px calc(var(--safe-bot) + 24px);
       background: linear-gradient(180deg, #1a140c 0%, #0c1218 42%, #10160f 100%);
     }
+    body.in-adventure #mine-panel.open button,
+    body.in-adventure #forest-panel.open button { pointer-events: auto !important; position: relative; z-index: 2; }
     #adventure-panel {
       display: none; position: fixed; inset: 0; z-index: 200;
       overflow-y: auto; -webkit-overflow-scrolling: touch;
@@ -1932,6 +1950,7 @@
       <div id="mine-panel" aria-hidden="true">
         <h3>Mine</h3>
         <div id="mine-stage" class="mine-stage">
+          <div class="scene-pet" id="mine-scene-pet"></div>
           <div class="miner" id="miner">
             <div class="miner-head"></div>
             <div class="miner-torso"><div class="wear wear-shirt" id="miner-shirt"></div><div class="wear wear-gloves"></div></div>
@@ -1953,7 +1972,6 @@
           <ul id="miner-stats"></ul>
         </div>
         <div id="gear-box" hidden>
-          <div id="beast-inv"><h4>Wild beasts</h4><ul id="beast-inv-list"></ul></div>
           <p>Miner gear</p>
           <p id="set-banner" hidden></p>
           <button type="button" id="wear-cloth-set" hidden>Wear cloth set</button>
@@ -1976,6 +1994,7 @@
         <div id="forest-panel" aria-hidden="true">
     <h3>Forest</h3>
     <div id="forest-stage" class="mine-stage forest-stage">
+      <div class="scene-pet" id="forest-scene-pet"></div>
       <div class="miner" id="forest-miner">
         <div class="miner-head"></div>
         <div class="miner-torso"><div class="wear wear-shirt"></div><div class="wear wear-gloves"></div></div>
@@ -4035,6 +4054,11 @@ if (!state.demoSmithMats) {
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Oct 2 — Second tap on the pet you already chose opens its stats and evolution. Pets are not in Inventory.",
+      "Oct 2 — Fight shows on the Mine or Forest page when the job ends. Back no longer leaves a frozen fight on chapter select.",
+      "Oct 2 — Fight opens after mining or chopping. Selected pet stands on the scene before you start.",
+      "Oct 2 — Pet form card opens on the Mine or Forest page immediately, not back on chapter select.",
+      "Oct 2 — Mine and Forest taps stay on that page. Buttons no longer fall through to a dead layer.",
       "Oct 2 — Bird, Pebble, and Skull now have level 5 and level 10 skins, same game look as the mouse.",
       "Oct 2 — Pet card opens on the adventure screen you are in, not back on the farm.",
       "Oct 2 — No Beasts button on Mine or Forest. Tap a pet in Inventory for its card: stats, XP to evolve, three forms. Later forms are shadows.",
@@ -4377,7 +4401,8 @@ if (!state.demoSmithMats) {
       const card = document.getElementById("pet-card");
       if (!pet || !card) return;
       document.body.appendChild(card);
-      card.style.zIndex = "260";
+      card.style.zIndex = "600";
+      card.style.pointerEvents = "auto";
       const spec = BEASTS[pet.species];
       const lvl = pet.lvl || 1;
       const stage = lvl >= 10 ? 2 : lvl >= 5 ? 1 : 0;
@@ -4551,7 +4576,7 @@ if (!state.demoSmithMats) {
       }
       if (box) {
         if (box.parentElement !== document.body) document.body.appendChild(box);
-        box.style.zIndex = "250";
+        box.style.zIndex = "800";
         box.classList.add("open");
         box.style.display = "flex"; window.fightPhase = "you";
         box.setAttribute("aria-hidden", "false");
@@ -5433,6 +5458,17 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (s) host.insertBefore(s, close || null);
       if (g) host.insertBefore(g, close || null);
     }
+    function liftScene(pan) {
+      if (!pan) return;
+      document.body.appendChild(pan);
+      pan.style.zIndex = "500";
+      pan.style.pointerEvents = "auto";
+      ["fight-box", "loot-box", "adventure-panel", "beast-page"].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (!el || el.classList.contains("open")) return;
+        el.style.pointerEvents = "none";
+      });
+    }
     function openMine(force) {
       const pan = document.getElementById("mine-panel");
       const wasOpen = pan && pan.classList.contains("open");
@@ -5447,6 +5483,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (state.pendingFight) startFight();
       pan.classList.add("open");
       pan.setAttribute("aria-hidden", "false");
+      liftScene(pan);
       document.getElementById("app") && document.getElementById("app").classList.add("scene");
     }
     function openBarn(force) {
@@ -6631,14 +6668,28 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
           if (state.equippedPet === pet.id) b.style.outline = "2px solid #c9a227";
           b.onclick = function (ev) {
             ev.stopPropagation();
+            if (state.equippedPet === pet.id) {
+              if (window.openPetCard) window.openPetCard(pet.id);
+              return;
+            }
             state.equippedPet = pet.id;
             save();
             paintPetStrip();
+            paintScenePet();
             if (typeof paintFightPet === "function") paintFightPet();
             toast(beastForm(pet) + " with you");
           };
           ul.appendChild(b);
         });
+      });
+      paintScenePet();
+    }
+    function paintScenePet() {
+      const pet = (state.pets || []).find(function (p) { return p.id === state.equippedPet; });
+      ["mine-scene-pet", "forest-scene-pet"].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = pet ? beastSkin(pet.species, pet.lvl || 1) : "";
       });
     }
     function render() {
@@ -7183,6 +7234,14 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       else stopAdventureTune();
     }
     function backToAdventure() {
+      const fight = document.getElementById("fight-box");
+      if (fight && fight.classList.contains("open")) {
+        fight.classList.remove("open");
+        fight.style.display = "none";
+        fight.style.pointerEvents = "none";
+        state.pendingFight = false;
+        if (fightTimer) { cancelAnimationFrame(fightTimer); fightTimer = 0; }
+      }
       closeAllTabs();
       setAdventureWorld(true);
       const pan = document.getElementById("adventure-panel");
@@ -7383,6 +7442,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       pan.classList.add("open");
       if (state.pendingFight && state.fightKind === "forest") startFight();
       pan.setAttribute("aria-hidden", "false");
+      liftScene(pan);
       document.getElementById("app") && document.getElementById("app").classList.add("scene");
     }
     if (forestBtn) forestBtn.onclick = function () { state.mode = "farm"; state.tool = "forest"; openForest(); render(); };
@@ -7655,7 +7715,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     if (af) af.onclick = () => showAssetSide("farming");
     document.getElementById("market-close").onclick = closeMarket;
     wrap.addEventListener("pointerdown", (ev) => {
-      if (ev.target.closest("#loot-box, #fight-box, #ask-box, #gear-pick")) return;
+      if (ev.target.closest("#loot-box, #fight-box, #ask-box, #gear-pick, #pet-card")) return;
       const open = document.querySelector("#market-panel.open, #shed-panel.open, #log-panel.open, #craft-panel.open, #barn-panel.open, #silo-panel.open, #smith-panel.open, #worth-panel.open, #mine-panel.open, #forest-panel.open");
       if (!open) return;
       if (ev.target.closest("#market-panel, #shed-panel, #log-panel, #craft-panel, #barn-panel, #silo-panel, #smith-panel, #worth-panel, #mine-panel, #forest-panel, #boot-updates, #stat-worth, .tile.shed")) return;
