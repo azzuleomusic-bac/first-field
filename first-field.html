@@ -1297,6 +1297,10 @@
       box-shadow: 0 4px 10px rgba(0,0,0,.55);
     }
     #fight-box .fight-miner, #fight-pet, #fight-box .fight-mob { display: none !important; }
+    #roster-panel { display: none; position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 960; width: min(420px, 94vw); max-height: 86vh; overflow: auto; background: #1c140e; color: #f3e6c8; border: 1px solid #c9a227; border-radius: 14px; padding: 14px; }
+    #roster-panel.open { display: block; }
+    #roster-panel .row { display: flex; gap: 6px; align-items: center; margin: 8px 0; flex-wrap: wrap; }
+    #roster-panel select, #roster-panel button { font: inherit; }
     #pet-card .pet-paint { width: 100%; height: auto; max-height: none; object-fit: fill; background: transparent; border-radius: 10px; border: 1px solid #c9a227; margin: 0 0 8px; display: block; }
 
     #fight-box {
@@ -1969,6 +1973,12 @@
         <button type="button" class="ghost" id="barn-close">Close</button>
       </div>
 
+      <div id="roster-panel" aria-hidden="true">
+        <h3>Roster</h3>
+        <p>A forest pet keeps one crop plot. It stops when seeds or water run out.</p>
+        <div id="roster-list"></div>
+        <button type="button" class="ghost" id="roster-close">Close</button>
+      </div>
       <div id="beast-panel" aria-hidden="true">
         <h3>Wild beasts</h3>
         <p>Each chapter has its own capturable pair. Tap a chapter to fight one.</p>
@@ -2170,6 +2180,7 @@
       <div class="modes">
         <button type="button" id="tool-plant">Plant</button>
         <button type="button" id="tool-barn">Barn</button>
+        <button type="button" id="tool-roster">Roster</button>
       </div>
       <div class="tools" style="grid-template-columns:1fr 1fr 1fr">
         <button type="button" id="mode-farm" class="active">Farm</button>
@@ -2415,6 +2426,7 @@
         clan: state.clan || null,
         pets: state.pets || [],
         equippedPet: state.equippedPet || null,
+      roster: state.roster || [],
         seededBeastPack: !!state.seededBeastPack,
         seenBeasts: state.seenBeasts || {},
         capturedBeasts: state.capturedBeasts || {},
@@ -4054,7 +4066,140 @@ if (!state.demoSmithMats) {
       }
     }
     let lastAuto = 0;
-    function autoTick() {
+    
+    function forestPets() {
+      return (state.pets || []).filter(function (pet) {
+        return BEASTS[pet.species] && BEASTS[pet.species].zone === "forest";
+      });
+    }
+    function rosterTick() {
+      state.roster = state.roster || [];
+      let changed = false;
+      state.roster.forEach(function (job) {
+        const pet = (state.pets || []).find(function (p) { return p.id === job.petId; });
+        const plot = (state.plots || []).find(function (p) { return p.id === job.plotId; });
+        if (!pet || !plot || !BEASTS[pet.species] || BEASTS[pet.species].zone !== "forest") {
+          job.status = "Pet missing";
+          return;
+        }
+        const crop = CROPS[job.crop] || CROPS.corn;
+        const type = crop === CROPS.corn ? "corn" : "carrot";
+        if (plot.crop && (plot.crop.stage === "ready" || cropReady(plot))) {
+          const c = CROPS[plot.crop.type];
+          let y = c.yield || 1;
+          if (c.cropKey === "corn") {
+            const room = cornMax() - state.corn;
+            if (room <= 0) { job.status = "Silo full"; return; }
+            if (y > room) y = room;
+          }
+          state[c.cropKey] += y;
+          plot.crop = null;
+          job.status = "Harvested";
+          changed = true;
+          return;
+        }
+        if (plot.crop && plot.crop.stage === "dry") {
+          if (state.water < crop.waterCost) { job.status = "Stopped · no water"; return; }
+          state.water -= crop.waterCost;
+          plot.crop.stage = "growing";
+          plot.crop.readyAt = now() + clanGrowMs(crop.growMs);
+          job.status = "Watered";
+          changed = true;
+          return;
+        }
+        if (!plot.crop) {
+          if ((state[crop.seedKey] || 0) < 1) { job.status = "Stopped · no seeds"; return; }
+          state[crop.seedKey] -= 1;
+          plot.crop = { type: type, stage: "dry", plantedAt: now() };
+          job.status = "Planted";
+          changed = true;
+          return;
+        }
+        job.status = "Growing";
+      });
+      if (changed) save();
+    }
+    function paintRoster() {
+      const box = document.getElementById("roster-list");
+      if (!box) return;
+      const pets = forestPets();
+      if (!pets.length) {
+        box.innerHTML = "<p>No forest pet yet. Capture one, then assign it here.</p>";
+        return;
+      }
+      box.innerHTML = "";
+      pets.forEach(function (pet) {
+        const job = (state.roster || []).find(function (j) { return j.petId === pet.id; });
+        const row = document.createElement("div");
+        row.className = "row";
+        const plotSel = document.createElement("select");
+        (state.plots || []).forEach(function (plot, i) {
+          const opt = document.createElement("option");
+          opt.value = plot.id;
+          opt.textContent = "Plot " + (i + 1);
+          if (job && job.plotId === plot.id) opt.selected = true;
+          plotSel.appendChild(opt);
+        });
+        const cropSel = document.createElement("select");
+        ["corn", "carrot"].forEach(function (id) {
+          const opt = document.createElement("option");
+          opt.value = id;
+          opt.textContent = CROPS[id].label;
+          if (job && job.crop === id) opt.selected = true;
+          cropSel.appendChild(opt);
+        });
+        const go = document.createElement("button");
+        go.type = "button";
+        go.textContent = job ? "Update" : "Assign";
+        go.onclick = function () {
+          state.roster = (state.roster || []).filter(function (j) {
+            return j.petId !== pet.id && j.plotId !== plotSel.value;
+          });
+          state.roster.push({ petId: pet.id, plotId: plotSel.value, crop: cropSel.value, status: "Assigned" });
+          save();
+          paintRoster();
+          toast(beastForm(pet) + " on that plot");
+        };
+        const clear = document.createElement("button");
+        clear.type = "button";
+        clear.className = "ghost";
+        clear.textContent = "Clear";
+        clear.onclick = function () {
+          state.roster = (state.roster || []).filter(function (j) { return j.petId !== pet.id; });
+          save();
+          paintRoster();
+        };
+        const note = document.createElement("small");
+        note.textContent = job ? (job.status || "Working") : "Free";
+        row.appendChild(document.createTextNode(beastForm(pet)));
+        row.appendChild(plotSel);
+        row.appendChild(cropSel);
+        row.appendChild(go);
+        row.appendChild(clear);
+        row.appendChild(note);
+        box.appendChild(row);
+      });
+    }
+    function openRoster() {
+      const pan = document.getElementById("roster-panel");
+      if (!pan) return;
+      document.body.appendChild(pan);
+      paintRoster();
+      pan.classList.add("open");
+      pan.style.display = "block";
+      pan.style.pointerEvents = "auto";
+      pan.style.zIndex = "960";
+      pan.setAttribute("aria-hidden", "false");
+    }
+    function closeRoster() {
+      const pan = document.getElementById("roster-panel");
+      if (!pan) return;
+      pan.classList.remove("open");
+      pan.style.display = "none";
+      pan.setAttribute("aria-hidden", "true");
+    }
+
+function autoTick() {
       if (!autoOn()) { refreshAutoLabel(); return; }
       const tnow = now();
       refreshAutoLabel();
@@ -6904,7 +7049,9 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     }
     function plotInner(plot) {
       if (!plot.crop) {
-        return '<div class="label">empty plot</div>';
+        var job = (state.roster || []).find(function (j) { return j.plotId === plot.id; });
+        var mark = job ? " · pet" : "";
+        return '<div class="label">empty plot' + mark + '</div>';
       }
       if (plot.crop.stage === "dry") {
         return cornArt(0) + '<div class="label">needs water</div>';
@@ -7457,6 +7604,13 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     document.getElementById("tool-sell").onclick = () => { state.mode = "farm"; state.tool = "sell"; openMarket(); render(); };
     document.getElementById("tool-craft").onclick = () => { state.mode = "farm"; state.tool = "craft"; openCraft(); render(); };
     document.getElementById("tool-barn").onclick = () => { state.mode = "farm"; state.tool = "barn"; openBarn(); render(); };
+    const rosterBtn = document.getElementById("tool-roster");
+    if (rosterBtn) rosterBtn.onclick = function () { openRoster(); };
+    const rosterClose = document.getElementById("roster-close");
+    if (rosterClose) rosterClose.onclick = function (ev) {
+      if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+      closeRoster();
+    };
     document.querySelectorAll(".btn-beasts").forEach(function (b) {
       b.onclick = function () { openBeastWindow(); };
     });
@@ -8110,6 +8264,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       tickSheep();
       tickPig();
       if (autoOn()) autoTick();
+      if (typeof rosterTick === "function") rosterTick();
       if (state.miningUntil && state.miningUntil <= now()) finishMine();
       if (state.forestUntil && state.forestUntil <= now()) finishForest();
       const due = state.plots.some((p) => p.crop && p.crop.stage === "growing")
