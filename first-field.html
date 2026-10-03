@@ -852,6 +852,11 @@
     }
     #gear-pick-title { margin: 0 0 10px; color: var(--gold); font-weight: 700; }
     .gear-slot small { display:block; opacity:0.7; font-weight:500; }
+    .mine-stage.fishing .pick { width: 6px; height: 52px; background: #6a5030; border-radius: 3px; transform-origin: 50% 100%; animation: rodCast 1.3s ease-in-out infinite; }
+    .mine-stage.fishing .rock { width: 54px; height: 16px; border-radius: 50%; background: #1d4e5c; box-shadow: 0 0 0 6px rgba(127,208,200,0.25); animation: bobber 1.3s ease-in-out infinite; }
+    .mine-stage.fishing .miner-blade { opacity: 0; }
+    @keyframes rodCast { 0%, 100% { transform: rotate(-28deg); } 50% { transform: rotate(18deg); } }
+    @keyframes bobber { 0%, 100% { transform: translateY(0) scaleX(1); } 50% { transform: translateY(7px) scaleX(1.15); } }
     .mine-bar { height: 10px; background: rgba(0,0,0,0.35); border-radius: 99px; overflow: hidden; margin: 0 0 8px; }
     .mine-bar > i { display:block; height:100%; width:0%; background: linear-gradient(90deg,#c45c3e,#e8c36a); transition: width 0.2s linear; }
     .mine-stage {
@@ -2522,6 +2527,7 @@
       autoNext: "cow",
       mineClear: 0,
       forestClear: 0,
+      lakeClear: 0,
       advLevel: 1,
       bossFight: false,
       farmExpands: 0,
@@ -2638,6 +2644,8 @@
         seenBeasts: state.seenBeasts || {},
         capturedBeasts: state.capturedBeasts || {},
         forestClear: state.forestClear || 0,
+        lakeClear: state.lakeClear || 0,
+        fish: state.fish || 0,
         advLevel: state.advLevel || 1,
         bossFight: !!state.bossFight,
         farmExpands: state.farmExpands || 0,
@@ -2811,6 +2819,21 @@
     function ensureDemoAdventure() {
       state.mineClear = 25;
       state.forestClear = 25;
+      state.lakeClear = 25;
+      state.seenBeasts = state.seenBeasts || {};
+      state.capturedBeasts = state.capturedBeasts || {};
+      state.pets = state.pets || [];
+      ["lilynewt", "padturtle", "currenteel", "wavepike", "barnacle", "anchorskull", "moonkoi", "lakewarden"].forEach(function (id) {
+        state.pets = (state.pets || []).filter(function (pet) { return pet.id !== "lake-" + id; });
+        if (state.capturedBeasts) delete state.capturedBeasts[id];
+      });
+      ["reedminnow", "shorecrab"].forEach(function (id) {
+        state.seenBeasts[id] = true;
+        state.capturedBeasts[id] = true;
+        if (!state.pets.some(function (pet) { return pet.species === id; })) {
+          state.pets.push({ id: "lake-" + id, species: id, lvl: 1, xp: 0 });
+        }
+      });
     }
     function ensureDemoClothes() {
       const have = (state.pants || 0) + (state.shirts || 0) + (state.gearPants ? 1 : 0) + (state.gearShirt ? 1 : 0);
@@ -4351,7 +4374,29 @@ if (!state.demoSmithMats) {
       state.roster.forEach(function (job) {
         const pet = (state.pets || []).find(function (p) { return p.id === job.petId; });
         const plot = (state.plots || []).find(function (p) { return p.id === job.plotId; });
-        if (!pet || !plot || !BEASTS[pet.species] || BEASTS[pet.species].zone !== "forest") {
+        const spec = pet && BEASTS[pet.species];
+        if (spec && spec.zone === "lake" && job.wellId) {
+          const well = (state.wells || []).find(function (w) { return w.id === job.wellId; });
+          if (!pet || !well) { job.status = "Well missing"; return; }
+          const nowMs = now();
+          if (!job.fedAt) job.fedAt = nowMs;
+          if (nowMs - job.fedAt >= 5000) {
+            if ((state.carrots || 0) < 1) { job.status = "Stopped · no carrots"; return; }
+            state.carrots -= 1;
+            job.fedAt = nowMs;
+            changed = true;
+            const room = waterMax() - (state.water || 0);
+            const pool = well.water || 0;
+            if (room <= 0) { job.status = "Water can full"; return; }
+            if (pool <= 0) { job.status = "Well refilling"; return; }
+            const take = Math.min(1, room, pool);
+            well.water -= take;
+            state.water = (state.water || 0) + take;
+            job.status = "Drew " + take + " water";
+          } else job.status = "Fishing the well";
+          return;
+        }
+        if (!pet || !plot || !spec || spec.zone !== "forest") {
           job.status = "Pet missing";
           return;
         }
@@ -4410,11 +4455,52 @@ if (!state.demoSmithMats) {
       const box = document.getElementById("roster-list");
       if (!box) return;
       const pets = forestPets();
-      if (!pets.length) {
-        box.innerHTML = "<p>No forest pet yet. Capture one, then assign it here.</p>";
+      const waters = (state.pets || []).filter(function (pet) { return BEASTS[pet.species] && BEASTS[pet.species].zone === "lake"; });
+      if (!pets.length && !waters.length) {
+        box.innerHTML = "<p>No forest or lake pet yet. Capture one, then assign it here.</p>";
         return;
       }
       box.innerHTML = "";
+      waters.forEach(function (pet) {
+        const job = (state.roster || []).find(function (j) { return j.petId === pet.id; });
+        const row = document.createElement("div");
+        row.className = "row";
+        const wellSel = document.createElement("select");
+        (state.wells || []).forEach(function (well, i) {
+          const opt = document.createElement("option");
+          opt.value = well.id;
+          opt.textContent = "Well " + (i + 1);
+          if (job && job.wellId === well.id) opt.selected = true;
+          wellSel.appendChild(opt);
+        });
+        const go = document.createElement("button");
+        go.type = "button";
+        go.textContent = job ? "Update" : "Assign";
+        go.onclick = function () {
+          state.roster = (state.roster || []).filter(function (j) { return j.petId !== pet.id && j.wellId !== wellSel.value; });
+          state.roster.push({ petId: pet.id, wellId: wellSel.value, status: "Assigned", fedAt: now() });
+          save();
+          paintRoster();
+          toast(beastForm(pet) + " on that well");
+        };
+        const clear = document.createElement("button");
+        clear.type = "button";
+        clear.className = "ghost";
+        clear.textContent = "Clear";
+        clear.onclick = function () {
+          state.roster = (state.roster || []).filter(function (j) { return j.petId !== pet.id; });
+          save();
+          paintRoster();
+        };
+        const note = document.createElement("small");
+        note.textContent = (job ? job.status : "Eats 1 carrot / 5s, draws well water") ;
+        row.appendChild(document.createTextNode(beastForm(pet) + " "));
+        row.appendChild(wellSel);
+        row.appendChild(go);
+        row.appendChild(clear);
+        row.appendChild(note);
+        box.appendChild(row);
+      });
       pets.forEach(function (pet) {
         const job = (state.roster || []).find(function (j) { return j.petId === pet.id; });
         const row = document.createElement("div");
@@ -4577,6 +4663,8 @@ function autoTick() {
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Oct 3 — Lake job is fishing. Only lake beasts show up. Minnow and crab can work a well.",
+      "Oct 3 — Adventure Lake: Reed & Ruin. Five chapters, two water beasts each.",
       "Oct 2 — Job, loot, and pet buttons have a wider tap area so a near miss still counts.",
       "Oct 2 — Inventory and Stats work again. Taking loot stays on the Mine or Forest page.",
       "Oct 2 — Loot, Stats, and Inventory fire on the first tap.",
@@ -4818,6 +4906,16 @@ function autoTick() {
       beetle: { zone: "forest", chapter: 1, wild: true, name: "Bark Beetle", evo: ["Bark Beetle", "Bark Beetle", "Bark Beetle"] },
       grub: { zone: "mine", chapter: 1, wild: true, name: "Lamp Grub", evo: ["Lamp Grub", "Lamp Grub", "Lamp Grub"] },
       imp: { zone: "mine", chapter: 1, wild: true, name: "Coal Imp", evo: ["Coal Imp", "Coal Imp", "Coal Imp"] },
+      reedminnow: { zone: "lake", chapter: 1, wild: true, element: "water", name: "Reed Minnow", evo: ["Reed Minnow", "Reed School", "Reed King"] },
+      shorecrab: { zone: "lake", chapter: 1, wild: true, element: "water", name: "Shore Crab", evo: ["Shore Crab", "Shelf Crab", "Pier Crab"] },
+      lilynewt: { zone: "lake", chapter: 2, wild: true, element: "water", name: "Lily Newt", evo: ["Lily Newt", "Pad Newt", "Lily Lord"] },
+      padturtle: { zone: "lake", chapter: 2, wild: true, element: "water", name: "Pad Turtle", evo: ["Pad Turtle", "Shelf Turtle", "Lily Shell"] },
+      currenteel: { zone: "lake", chapter: 3, wild: true, element: "water", name: "Current Eel", evo: ["Current Eel", "Black Eel", "Current Lord"] },
+      wavepike: { zone: "lake", chapter: 3, wild: true, element: "water", name: "Wave Pike", evo: ["Wave Pike", "Cut Pike", "Wave Tyrant"] },
+      barnacle: { zone: "lake", chapter: 4, wild: true, element: "water", name: "Barnacle Imp", evo: ["Barnacle Imp", "Hull Imp", "Wreck Imp"] },
+      anchorskull: { zone: "lake", chapter: 4, wild: true, element: "water", name: "Anchor Skull", evo: ["Anchor Skull", "Chain Skull", "Wreck Skull"] },
+      moonkoi: { zone: "lake", chapter: 5, wild: true, element: "water", name: "Moon Koi", evo: ["Moon Koi", "Still Koi", "Moon Lord"] },
+      lakewarden: { zone: "lake", chapter: 5, wild: true, element: "water", name: "Lake Warden", evo: ["Lake Warden", "Heart Warden", "Still Heart"] },
       toad: { zone: "forest", chapter: 2, wild: true, name: "Moss Toad", evo: ["Moss Toad", "Moss Toad", "Moss Toad"] },
       lizard: { zone: "forest", chapter: 2, wild: true, name: "Vine Lizard", evo: ["Vine Lizard", "Vine Lizard", "Vine Lizard"] },
       newt: { zone: "mine", chapter: 2, wild: true, name: "Crystal Newt", evo: ["Crystal Newt", "Crystal Newt", "Crystal Newt"] },
@@ -4855,7 +4953,17 @@ function autoTick() {
       seed: '<svg viewBox="0 0 120 96"><ellipse cx="60" cy="50" rx="14" ry="18" fill="#8a6230"/><circle cx="54" cy="46" r="2" fill="#f0c84a"/><circle cx="66" cy="46" r="2" fill="#f0c84a"/><path d="M46 64 L36 80 M74 64 L84 80" stroke="#6a5030" stroke-width="3"/></svg>',
       rootlamp: '<svg viewBox="0 0 120 96"><circle cx="60" cy="48" r="16" fill="#e6dcc4"/><circle cx="60" cy="48" r="7" fill="#f0c84a"/><path d="M48 62 Q40 80 30 88 M72 62 Q80 80 92 86" stroke="#d8cbb0" fill="none" stroke-width="3"/></svg>',
       maw: '<svg viewBox="0 0 120 96"><ellipse cx="66" cy="58" rx="28" ry="16" fill="#f3e6c8"/><path d="M36 52 L52 46 L52 64 Z" fill="#6a6864"/><path d="M40 54 L48 58 L40 62" stroke="#1c140e" fill="none"/></svg>',
-      jaw: '<svg viewBox="0 0 120 96"><rect x="40" y="28" width="40" height="36" rx="6" fill="#4a4844"/><path d="M46 48 L52 58 L58 46 L64 58 L70 46 L76 58" stroke="#f0c84a" fill="none" stroke-width="3"/><path d="M52 66 L48 82 M68 66 L74 82" stroke="#3a322c" stroke-width="4"/></svg>'
+      jaw: '<svg viewBox="0 0 120 96"><rect x="40" y="28" width="40" height="36" rx="6" fill="#4a4844"/><path d="M46 48 L52 58 L58 46 L64 58 L70 46 L76 58" stroke="#f0c84a" fill="none" stroke-width="3"/><path d="M52 66 L48 82 M68 66 L74 82" stroke="#3a322c" stroke-width="4"/></svg>',
+      reedminnow: '<svg viewBox="0 0 120 96"><ellipse cx="62" cy="52" rx="28" ry="12" fill="#3f8f9a"/><polygon points="34,52 18,40 18,64" fill="#2f6f78"/><circle cx="78" cy="48" r="2.4" fill="#102018"/><path d="M70 40 Q84 28 78 48" fill="#7fd0c8"/></svg>',
+      shorecrab: '<svg viewBox="0 0 120 96"><ellipse cx="60" cy="54" rx="22" ry="14" fill="#c45c3e"/><circle cx="50" cy="48" r="3" fill="#1c140e"/><circle cx="70" cy="48" r="3" fill="#1c140e"/><path d="M38 50 Q24 36 30 58 M82 50 Q96 36 90 58" stroke="#8a3c28" fill="none" stroke-width="3"/></svg>',
+      lilynewt: '<svg viewBox="0 0 120 96"><ellipse cx="58" cy="58" rx="26" ry="12" fill="#3d8f62"/><circle cx="34" cy="50" r="8" fill="#2f6f4c"/><circle cx="31" cy="48" r="2" fill="#f0c84a"/><ellipse cx="78" cy="40" rx="10" ry="6" fill="#dfe8c8"/></svg>',
+      padturtle: '<svg viewBox="0 0 120 96"><ellipse cx="60" cy="56" rx="24" ry="16" fill="#2f6a48"/><ellipse cx="60" cy="54" rx="14" ry="10" fill="#6aaa58"/><circle cx="36" cy="50" r="7" fill="#3d8f62"/><circle cx="33" cy="48" r="2" fill="#1c140e"/></svg>',
+      currenteel: '<svg viewBox="0 0 120 96"><path d="M18 58 Q40 36 62 54 Q84 72 104 46" stroke="#1d4e5c" stroke-width="10" fill="none"/><circle cx="96" cy="44" r="3" fill="#f0c84a"/></svg>',
+      wavepike: '<svg viewBox="0 0 120 96"><polygon points="20,52 70,40 98,52 70,64" fill="#4a6a88"/><polygon points="70,40 86,28 78,52" fill="#7fd0c8"/><circle cx="40" cy="50" r="2.2" fill="#102018"/></svg>',
+      barnacle: '<svg viewBox="0 0 120 96"><ellipse cx="60" cy="62" rx="20" ry="14" fill="#6d6256"/><path d="M48 58 L44 40 M60 54 L60 34 M72 58 L78 40" stroke="#cbbfa6" stroke-width="3"/><circle cx="52" cy="60" r="2" fill="#f0c84a"/><circle cx="68" cy="60" r="2" fill="#f0c84a"/></svg>',
+      anchorskull: '<svg viewBox="0 0 120 96"><ellipse cx="60" cy="42" rx="16" ry="14" fill="#e6dcc4"/><circle cx="54" cy="40" r="3" fill="#1c140e"/><circle cx="66" cy="40" r="3" fill="#1c140e"/><path d="M60 56 L60 78 M44 70 L76 70" stroke="#6a5030" stroke-width="4"/></svg>',
+      moonkoi: '<svg viewBox="0 0 120 96"><ellipse cx="62" cy="52" rx="30" ry="14" fill="#e8c36a"/><circle cx="78" cy="48" r="3" fill="#1c140e"/><path d="M32 52 L16 38 L16 66 Z" fill="#c9a227"/><circle cx="92" cy="28" r="8" fill="#f3e6c8" opacity="0.8"/></svg>',
+      lakewarden: '<svg viewBox="0 0 120 96"><ellipse cx="60" cy="58" rx="28" ry="18" fill="#1d4e5c"/><path d="M40 40 L60 18 L80 40" fill="#7fd0c8"/><circle cx="50" cy="54" r="3" fill="#f0c84a"/><circle cx="70" cy="54" r="3" fill="#f0c84a"/><path d="M48 66 Q60 74 72 66" stroke="#e8c36a" fill="none" stroke-width="2"/></svg>'
     };
 
     function beastSkin(species, lvl) {
@@ -5014,11 +5122,26 @@ function autoTick() {
       try {
         if (paint) {
           const art = (typeof PET_PAINT !== "undefined" && PET_PAINT[pet.species]) || "";
-          paint.style.display = "block";
-          paint.src = art;
+          if (art) {
+            paint.style.display = "block";
+            paint.src = art;
+          } else {
+            paint.style.display = "none";
+            paint.removeAttribute("src");
+          }
+          let skin = document.getElementById("pet-card-skin");
+          if (!skin) {
+            skin = document.createElement("div");
+            skin.id = "pet-card-skin";
+            skin.style.cssText = "width:140px;margin:8px auto";
+            paint.insertAdjacentElement("afterend", skin);
+          }
+          skin.innerHTML = art ? "" : beastSkin(pet.species, lvl);
+          skin.style.display = art ? "none" : "block";
         }
       } catch (err) {}
-      document.getElementById("pet-card-stats").textContent = "Lv " + lvl + " · " + (pet.xp || 0) + "/" + xpToNext(lvl) + " xp · " + beastRange(pet) + " dmg · " + (spec.zone === "forest" ? "Forest" : "Mine");
+      const zoneName = spec.zone === "forest" ? "Forest" : spec.zone === "lake" ? "Lake · water" : "Mine";
+      document.getElementById("pet-card-stats").textContent = "Lv " + lvl + " · " + (pet.xp || 0) + "/" + xpToNext(lvl) + " xp · " + beastRange(pet) + " dmg · " + zoneName;
       const when = document.getElementById("pet-card-when");
       if (stage >= 2) when.textContent = "Final form. No further evolution.";
       else {
@@ -5296,9 +5419,9 @@ function autoTick() {
       const box = document.getElementById("fight-box");
       const title = box && box.querySelector("h3");
       const chapter = Math.ceil(lvl / 5);
-      const bossNames = state.fightKind === "forest" ? ["Root Warden", "Moss Stag", "Thorn Mother", "Owl King", "Grove Warden"] : ["Vein Tyrant", "Lamp Wight", "Flood King", "Iron Maw", "Deep Tyrant"];
+      const bossNames = state.fightKind === "forest" ? ["Root Warden", "Moss Stag", "Thorn Mother", "Owl King", "Grove Warden"] : state.fightKind === "lake" ? ["Reed Maw", "Lily Queen", "Current King", "Wreck Lord", "Still Heart"] : ["Vein Tyrant", "Lamp Wight", "Flood King", "Iron Maw", "Deep Tyrant"];
       const bossName = bossNames[Math.min(4, chapter - 1)];
-      if (title) title.textContent = boss ? bossName : (((state.fightKind === "forest") ? "Forest fight" : "Mine fight") + " — lv " + lvl);
+      if (title) title.textContent = boss ? bossName : ((state.fightKind === "forest" ? "Forest fight" : state.fightKind === "lake" ? "Lake fight" : "Mine fight") + " — lv " + lvl);
       const mobEl0 = box && box.querySelector(".fight-mob");
       if (mobEl0) {
         mobEl0.classList.toggle("boss", boss);
@@ -5445,12 +5568,14 @@ function autoTick() {
           if (st) st.textContent = win ? "Creature down." : "Miner is down.";
           if (win) {
             const forest = state.fightKind === "forest";
+            const lake = state.fightKind === "lake";
             if (forest) state.forestWins = (state.forestWins || 0) + 1;
+            else if (lake) state.lakeWins = (state.lakeWins || 0) + 1;
             else state.mineWins = (state.mineWins || 0) + 1;
             try { captureWildBeast(); } catch (e) {}
             try { save(); } catch (e) {}
             if (state.petFightXp) { grantPetXp(state.petFightXp); toast("Pet +" + state.petFightXp + " xp"); state.petFightXp = 0; }
-            const clearKey = forest ? "forestClear" : "mineClear";
+            const clearKey = forest ? "forestClear" : lake ? "lakeClear" : "mineClear";
             const wonLevel = state.mobLevel || 1;
             if (wonLevel % 5 === 0) { if (state.bossFight) state[clearKey] = Math.max(state[clearKey] || 0, wonLevel); }
             else state[clearKey] = Math.max(state[clearKey] || 0, wonLevel);
@@ -5463,6 +5588,9 @@ function autoTick() {
             if (forest) {
               state.lumber = (state.lumber || 0) + n;
               if (n) parts.push({ kind: "lumber", n: n, label: n + " lumber" });
+            } else if (lake) {
+              state.fish = (state.fish || 0) + n;
+              if (n) parts.push({ kind: "fish", n: n, label: n + " lake fish" });
             } else {
               state.rocks = (state.rocks || 0) + n;
               if (n) parts.push({ kind: "rocks", n: n, label: n + " rock" + (n === 1 ? "" : "s") });
@@ -5480,6 +5608,7 @@ function autoTick() {
             state.pendingLoot = parts.length ? ("You found " + parts.map(function (x) { return x.label; }).join(", ") + ".") : "No loot this time.";
           } else {
             if (state.fightKind === "forest") state.forestLosses = (state.forestLosses || 0) + 1;
+            else if (state.fightKind === "lake") state.lakeLosses = (state.lakeLosses || 0) + 1;
             else state.mineLosses = (state.mineLosses || 0) + 1;
             state.pendingLootN = 0;
             state.lootParts = [];
@@ -5508,7 +5637,7 @@ function autoTick() {
       const pan = document.getElementById("mine-panel");
       if (!pan || !pan.classList.contains("open")) state.mineReady = true;
       state.pendingFight = true;
-      state.fightKind = "mine";
+      if (!(state.inAdventure && state.fightKind === "lake")) state.fightKind = "mine";
       state.mobLevel = state.advLevel || 1;
       state.bossFight = state.mobLevel % 5 === 0;
       state.pendingLoot = "";
@@ -6079,13 +6208,17 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (on) {
         const left = Math.max(0, state.miningUntil - now());
         pct = Math.min(100, Math.round((1 - left / total) * 100));
-        if (st) st.textContent = "Mining " + fmtLeft(left);
-        if (btn) { btn.disabled = true; btn.textContent = "Mining " + fmtLeft(left); }
+        const fishing = state.inAdventure && state.fightKind === "lake";
+        if (stage) stage.classList.toggle("fishing", fishing);
+        if (st) st.textContent = (fishing ? "Fishing " : "Mining ") + fmtLeft(left);
+        if (btn) { btn.disabled = true; btn.textContent = (fishing ? "Fishing " : "Mining ") + fmtLeft(left); }
       } else {
         pct = 0;
+        const fishing = state.inAdventure && state.fightKind === "lake";
+        if (stage) stage.classList.toggle("fishing", fishing);
         if (st && !state.mineReady) st.textContent = "Tap Start mining.";
         if (st && state.mineReady) st.textContent = "Last run finished.";
-        if (btn) { btn.disabled = false; btn.textContent = "Start mining"; }
+        if (btn) { btn.disabled = false; btn.textContent = (state.inAdventure && state.fightKind === "lake") ? "Start fishing" : "Start mining"; }
       }
       if (bar) bar.style.width = pct + "%";
       const mineBtn = document.getElementById("tool-mine");
@@ -6100,7 +6233,8 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       const total = FF.mineMs || 20000;
       state.miningStarted = now();
       state.miningUntil = now() + total;
-      toast("Mining " + fmtLeft(FF.mineMs || 5000));
+      const fishing = state.inAdventure && state.fightKind === "lake";
+      toast((fishing ? "Fishing " : "Mining ") + fmtLeft(FF.mineMs || 5000));
       save();
       paintMine();
     }
@@ -8091,13 +8225,17 @@ async function buySilo() {
     if (mineBtn) mineBtn.onclick = () => { state.mode = "farm"; state.tool = "mine"; openMine(); render(); };
     function paintAdventure() {
       const kind = state.advWorld || "mine";
-      const clear = kind === "forest" ? (state.forestClear || 0) : (state.mineClear || 0);
+      const clear = kind === "forest" ? (state.forestClear || 0) : kind === "lake" ? (state.lakeClear || 0) : (state.mineClear || 0);
       const mineTab = document.getElementById("adv-tab-mine");
       const forestTab = document.getElementById("adv-tab-forest");
-      if (mineTab) mineTab.classList.toggle("on", kind !== "forest");
+      const lakeTab = document.getElementById("adv-tab-lake");
+      if (mineTab) mineTab.classList.toggle("on", kind === "mine");
       if (forestTab) forestTab.classList.toggle("on", kind === "forest");
+      if (lakeTab) lakeTab.classList.toggle("on", kind === "lake");
       const names = kind === "forest"
         ? ["First Trees", "Moss Path", "Thorn Break", "Owl Dark", "Warden Grove"]
+        : kind === "lake"
+        ? ["Reed Mouth", "Lily Cut", "Black Current", "Wreck Shelf", "Still Heart"]
         : ["Vein Mouth", "Lamp Road", "Flooded Cut", "Iron Throat", "Tyrant Deep"];
       const world = document.getElementById("adv-world");
       if (!world) return;
@@ -8108,7 +8246,8 @@ async function buySilo() {
         const h = document.createElement("h4");
         h.textContent = "Chapter " + ch + " · " + names[ch - 1];
         const p = document.createElement("p");
-        p.textContent = "Levels " + ((ch - 1) * 5 + 1) + "–" + (ch * 5) + ". Level " + (ch * 5) + " is the chapter boss.";
+        const pairs = { lake: ["Reed Minnow · Shore Crab", "Lily Newt · Pad Turtle", "Current Eel · Wave Pike", "Barnacle Imp · Anchor Skull", "Moon Koi · Lake Warden"] };
+        p.textContent = (kind === "lake" ? pairs.lake[ch - 1] + ". " : "") + "Levels " + ((ch - 1) * 5 + 1) + "–" + (ch * 5) + ". Level " + (ch * 5) + " is the chapter boss.";
         const row = document.createElement("div");
         row.className = "adv-row";
         for (let n = 1; n <= 5; n++) {
@@ -8129,7 +8268,7 @@ async function buySilo() {
       }
     }
     function startAdventure(kind, lvl) {
-      const clear = kind === "forest" ? (state.forestClear || 0) : (state.mineClear || 0);
+      const clear = kind === "forest" ? (state.forestClear || 0) : kind === "lake" ? (state.lakeClear || 0) : (state.mineClear || 0);
       if (lvl > clear + 1) { toast("Clear level " + (lvl - 1) + " first"); return; }
       state.advLevel = lvl;
       state.bossFight = false;
@@ -8143,7 +8282,8 @@ async function buySilo() {
       setAdventureWorld(true);
       const h = document.querySelector(kind === "forest" ? "#forest-panel h3" : "#mine-panel h3");
       const ch = Math.ceil(lvl / 5);
-      if (h) h.textContent = (kind === "forest" ? "Forest" : "Mine") + " · ch " + ch + " · lv " + lvl + (lvl % 5 === 0 ? " · boss after" : "");
+      const worldName = kind === "forest" ? "Forest" : kind === "lake" ? "Lake" : "Mine";
+      if (h) h.textContent = worldName + " · ch " + ch + " · lv " + lvl + (lvl % 5 === 0 ? " · boss after" : "");
     }
     function bindAdventure() {
       const advClose = document.getElementById("adventure-close");
@@ -8152,6 +8292,8 @@ async function buySilo() {
       const advForest = document.getElementById("adv-tab-forest");
       if (advMine) advMine.onclick = function () { state.advWorld = "mine"; paintAdventure(); };
       if (advForest) advForest.onclick = function () { state.advWorld = "forest"; paintAdventure(); };
+      const advLake = document.getElementById("adv-tab-lake");
+      if (advLake) advLake.onclick = function () { state.advWorld = "lake"; paintAdventure(); };
     }
     function setAdventureWorld(on) {
       state.inAdventure = !!on;
@@ -9438,6 +9580,7 @@ async function buySilo() {
         <div class="adv-switch">
           <button type="button" id="adv-tab-mine" class="on">Mine</button>
           <button type="button" id="adv-tab-forest">Forest</button>
+          <button type="button" id="adv-tab-lake">Lake</button>
         </div>
         <div id="adv-world"></div>
         <button type="button" class="ghost" id="adventure-close">Back to farm</button>
