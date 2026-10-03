@@ -325,6 +325,18 @@
       z-index: 6;
     }
     .tile.plot .roster-chip.off { color: #f3e6c8; background: rgba(18, 16, 12, 0.72); }
+    .tile.plot .plot-pet { position: absolute; right: 2px; bottom: 20px; width: 28px; height: 28px; z-index: 7; pointer-events: none; }
+    .tile.plot .plot-pet i { display: block; width: 16px; height: 14px; margin: 10px auto 0; border-radius: 50% 50% 42% 42%; background: #7d9a4a; box-shadow: 0 3px 0 #3d4a22; position: relative; }
+    .tile.plot .plot-pet i::before, .tile.plot .plot-pet i::after { content: ""; position: absolute; top: -7px; width: 5px; height: 9px; background: #7d9a4a; border-radius: 4px 4px 1px 1px; }
+    .tile.plot .plot-pet i::before { left: 2px; transform: rotate(-12deg); }
+    .tile.plot .plot-pet i::after { right: 2px; transform: rotate(12deg); }
+    .tile.plot .plot-pet.hop { animation: petHop 0.5s ease-in-out infinite; }
+    .tile.plot .plot-pet.sleep { animation: none; }
+    .tile.plot .plot-pet.sleep i { background: #6a645c; box-shadow: 0 2px 0 #2a261f; }
+    .tile.plot .plot-pet.sleep i::before, .tile.plot .plot-pet.sleep i::after { background: #6a645c; top: -4px; height: 6px; }
+    .tile.plot .plot-pet .zzz { position: absolute; left: 14px; top: -6px; font-size: 12px; font-weight: 800; color: #f3e6c8; letter-spacing: 1px; text-shadow: 0 1px 2px #000; }
+    @keyframes petHop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } }
+    @keyframes zzzFloat { 0%, 100% { opacity: 0.45; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-4px); } }
     .tile.plot .timer, .tile.plot .label {
       position: absolute;
       left: 0; right: 0; top: 2px;
@@ -7173,8 +7185,17 @@ async function buySilo() {
         var pet = (state.pets || []).find(function (p) { return p.id === job.petId; });
         var spec = pet && BEASTS[pet.species];
         var name = spec ? spec.name : "Pet";
-        var off = job.status && job.status.indexOf("Stopped") === 0;
-        return '<div class="roster-chip' + (off ? " off" : "") + '">' + name + '</div>';
+        var hungry = (state.carrots || 0) < 1 || (job.status && job.status.indexOf("no carrots") !== -1);
+        var off = hungry || (job.status && job.status.indexOf("Stopped") === 0);
+        var hop = 0;
+        var squash = 1;
+        if (!hungry) {
+          var phase = (Date.now() % 520) / 520;
+          hop = Math.round(-16 * Math.sin(phase * Math.PI));
+          squash = phase < 0.15 || phase > 0.85 ? 0.82 : 1;
+        }
+        var petEl = '<div class="plot-pet' + (hungry ? " sleep" : " hop") + '" style="transform:translateY(' + hop + 'px) scaleY(' + squash + ')"><i></i>' + (hungry ? '<span class="zzz">z z z</span>' : "") + '</div>';
+        return petEl + '<div class="roster-chip' + (off ? " off" : "") + '">' + name + '</div>';
       }
       if (!plot.crop) {
         return '<div class="label">empty plot</div>' + rosterChip(plot);
@@ -8416,7 +8437,7 @@ async function buySilo() {
       if (typeof rosterTick === "function") rosterTick();
       if (state.miningUntil && state.miningUntil <= now()) finishMine();
       if (state.forestUntil && state.forestUntil <= now()) finishForest();
-      const due = state.plots.some((p) => p.crop && p.crop.stage === "growing")
+      const due = state.plots.some((p) => p.crop && p.crop.stage === "growing") || (state.roster || []).length
         || cows().some((c) => c.stage === "making") || chickens().some((c) => c.stage === "making" || c.stage === "eggs") || horses().some((h) => h.stage === "making" || h.stage === "hair") || sheep().some((s) => s.stage === "making" || s.stage === "wool") || pigs().some((s) => s.stage === "making" || s.stage === "truffle") || mineOn() || forestOn();
       const afterWell = state.wells.reduce((n, w) => n + w.water, 0);
       if (afterWell !== beforeWell || due || t - lastPaint > 400) {
