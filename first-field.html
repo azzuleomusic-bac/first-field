@@ -48,28 +48,49 @@
     }
     header {
       flex: 0 0 auto;
-      padding: calc(var(--safe-top) + 8px) 14px 10px;
+      padding: calc(var(--safe-top) + 8px) 10px 10px;
       background: var(--hud);
       display: grid;
       grid-template-columns: 1fr auto;
+      grid-template-areas: "brand tools" "stats stats";
       gap: 8px;
       z-index: 5;
       border-bottom: 1px solid rgba(232, 195, 106, 0.15);
     }
     .brand {
+      grid-area: brand;
       font-weight: 700;
       letter-spacing: 0.04em;
-      font-size: 15px;
+      font-size: 13px;
+      line-height: 1.1;
     }
-    .brand span { color: var(--gold); font-weight: 500; font-size: 12px; display: block; }
+    .brand span { color: var(--gold); font-weight: 500; font-size: 10px; display: block; }
+    .head-tools { grid-area: tools; display: flex; gap: 6px; align-items: center; }
     .stats {
-      display: flex;
+      grid-area: stats;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
       gap: 6px;
-      align-items: center;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      max-width: 68%;
+      max-width: none;
+      align-items: stretch;
     }
+    .stats .pill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 8px 4px;
+      font-size: 18px;
+      font-weight: 800;
+      border-radius: 14px;
+      background: rgba(0,0,0,0.55);
+      border: 2px solid rgba(232,195,106,0.7);
+      text-shadow: 0 1px 0 #000;
+    }
+    #stat-water { color: #b7ecff; background: rgba(40,110,150,0.55); border-color: #7ec8e8; }
+    #stat-corn-top { color: #ffe38a; background: rgba(120,90,20,0.55); border-color: #e8c36a; }
+    #stat-carrot-top { color: #ffc08a; background: rgba(140,70,24,0.55); border-color: #e09050; }
+    #stat-sats { color: #fff4cc; background: rgba(160,120,30,0.7); border-color: #ffe7a8; }
     .pill {
       background: rgba(255,255,255,0.08);
       border: 1px solid rgba(255,255,255,0.1);
@@ -88,7 +109,7 @@
       cursor: pointer;
       color: var(--cream);
     }
-    #btn-set {
+    #btn-set, #btn-bar {
       min-width: 36px;
       padding: 5px 8px;
       font-size: 16px;
@@ -96,6 +117,7 @@
       cursor: pointer;
       color: var(--cream);
     }
+    #app.bars-off footer { display: none; }
     #set-panel {
       display: none;
       position: fixed;
@@ -118,7 +140,10 @@
       flex: 1 1 auto;
       position: relative;
       overflow: auto;
-      -webkit-overflow-scrolling: touch;
+      -webkit-overflow-scrolling: auto;
+      touch-action: pan-x pan-y;
+      overflow-anchor: none;
+      overscroll-behavior: none;
       background: #5a8a3a;
     }
     #field-wrap::before,
@@ -157,6 +182,46 @@
       overflow: visible;
     }
     .tile.smith svg { width: 100%; height: 100%; pointer-events: none; }
+
+    .tile.kitchen, .tile.tailor {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      width: calc(var(--tile) * 1.15);
+      height: calc(var(--tile) * 1.15);
+      z-index: 3;
+      overflow: visible;
+    }
+    .tile.kitchen svg, .tile.tailor svg { width: 100%; height: 100%; pointer-events: none; }
+    #kitchen-panel, #tailor-panel {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      left: 10px;
+      right: 10px;
+      top: calc(env(safe-area-inset-top, 12px) + 62px);
+      bottom: calc(env(safe-area-inset-bottom, 10px) + 188px);
+      width: auto;
+      max-height: none;
+      transform: none;
+      overflow: hidden;
+      background: #12180f;
+      border: 1px solid rgba(232,195,106,0.45);
+      border-radius: 16px;
+      padding: 12px 12px 10px;
+      color: var(--cream);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.55);
+    }
+    #kitchen-panel.open, #tailor-panel.open { display: flex; flex-direction: column; }
+    #kitchen-panel h3, #tailor-panel h3 { margin: 0 0 4px; font-size: 16px; color: var(--gold); flex: 0 0 auto; }
+    #kitchen-panel p, #tailor-panel p { margin: 0 0 8px; font-size: 12px; opacity: 0.8; flex: 0 0 auto; }
+    #kitchen-panel .sheet-rows, #tailor-panel .sheet-rows { overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1 1 auto; min-height: 0; }
+    #kitchen-panel .row, #tailor-panel .row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; font-size: 13px; }
+    #kitchen-panel .row span, #tailor-panel .row span { line-height: 1.35; }
+    #kitchen-panel button, #tailor-panel button { min-height: 40px; }
+    #kitchen-panel .ghost, #tailor-panel .ghost { flex: 0 0 auto; margin-top: 8px; }
+    #kitchen-panel svg, #tailor-panel svg { display: inline-block; width: 22px; height: 18px; vertical-align: middle; }
+
     #smith-panel {
       display: none;
       position: fixed;
@@ -325,19 +390,39 @@
       z-index: 6;
     }
     .tile.plot .roster-chip.off { color: #f3e6c8; background: rgba(18, 16, 12, 0.72); }
-    .tile.plot .plot-face { position: absolute; inset: 0; pointer-events: none; }
-    .tile.plot .plot-pet { position: absolute; right: 4px; bottom: 18px; width: 34px; height: 34px; z-index: 8; pointer-events: none; }
-    .tile.plot .plot-pet i { display: block; width: 18px; height: 14px; margin: 12px auto 0; border-radius: 50% 50% 42% 42%; background: #7d9a4a; box-shadow: 0 3px 0 #3d4a22; position: relative; }
-    .tile.plot .plot-pet i::before, .tile.plot .plot-pet i::after { content: ""; position: absolute; top: -9px; width: 5px; height: 11px; background: #7d9a4a; border-radius: 4px 4px 1px 1px; }
-    .tile.plot .plot-pet i::before { left: 2px; transform: rotate(-14deg); }
-    .tile.plot .plot-pet i::after { right: 2px; transform: rotate(14deg); }
-    .tile.plot .plot-pet.hop, .tile.plot .plot-pet.sleep { animation: none; }
+    .tile.plot .plot-pet { position: absolute; right: 2px; bottom: 20px; width: 28px; height: 28px; z-index: 7; pointer-events: none; }
+    .tile.plot .plot-pet i { display: block; width: 16px; height: 14px; margin: 10px auto 0; border-radius: 50% 50% 42% 42%; background: #7d9a4a; box-shadow: 0 3px 0 #3d4a22; position: relative; }
+    .tile.plot .plot-pet i::before, .tile.plot .plot-pet i::after { content: ""; position: absolute; top: -7px; width: 5px; height: 9px; background: #7d9a4a; border-radius: 4px 4px 1px 1px; }
+    .tile.plot .plot-pet i::before { left: 2px; transform: rotate(-12deg); }
+    .tile.plot .plot-pet i::after { right: 2px; transform: rotate(12deg); }
+    #farm-stage { position: relative; }
+    #pet-hop-layer { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; z-index: 40; overflow: visible; }
+    #pet-hop-layer .plot-pet { position: absolute; width: 40px; height: 40px; z-index: 40; }
+    #pet-hop-layer .plot-pet i {
+      display: block; width: 20px; height: 16px; margin: 14px auto 0;
+      border-radius: 50% 50% 42% 42%; background: #8fbf3a;
+      box-shadow: 0 3px 0 #3d4a22, 0 0 0 2px rgba(0,0,0,0.35);
+      position: relative; will-change: transform;
+    }
+    #pet-hop-layer .plot-pet i::before, #pet-hop-layer .plot-pet i::after {
+      content: ""; position: absolute; top: -9px; width: 7px; height: 11px;
+      background: #8fbf3a; border-radius: 5px 5px 1px 1px;
+    }
+    #pet-hop-layer .plot-pet i::before { left: 1px; transform: rotate(-16deg); }
+    #pet-hop-layer .plot-pet i::after { right: 1px; transform: rotate(16deg); }
+    #pet-hop-layer .plot-pet.sleep i { background: #6a645c; box-shadow: 0 2px 0 #2a261f; }
+    #pet-hop-layer .plot-pet.sleep i::before, #pet-hop-layer .plot-pet.sleep i::after { background: #6a645c; top: -4px; height: 6px; }
+    #pet-hop-layer .plot-pet .zzz {
+      position: absolute; left: 18px; top: 0; font-size: 13px; font-weight: 800;
+      color: #f3e6c8; letter-spacing: 1px; text-shadow: 0 1px 2px #000; display: none;
+    }
+    .tile.plot .plot-pet { display: none !important; }
+    .tile.plot .plot-pet.sleep { animation: none; }
     .tile.plot .plot-pet.sleep i { background: #6a645c; box-shadow: 0 2px 0 #2a261f; }
-    .tile.plot .plot-pet.sleep i::before, .tile.plot .plot-pet.sleep i::after { background: #6a645c; top: -3px; height: 5px; }
-    .tile.plot .plot-pet .zzz { position: absolute; left: 16px; top: -8px; font-size: 11px; font-weight: 800; color: #f3e6c8; letter-spacing: 1px; text-shadow: 0 1px 2px #000; animation: zzzFloat 1.4s ease-in-out infinite; }
-    @keyframes petHop { 0%, 100% { transform: translateY(0) scaleY(1); } 35% { transform: translateY(-14px) scaleY(1.05); } 55% { transform: translateY(0) scaleY(0.82); } }
-    @keyframes petSleep { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(1px) rotate(-6deg); } }
-    @keyframes zzzFloat { 0%, 100% { opacity: 0.4; transform: translate(0, 0); } 50% { opacity: 1; transform: translate(3px, -6px); } }
+    .tile.plot .plot-pet.sleep i::before, .tile.plot .plot-pet.sleep i::after { background: #6a645c; top: -4px; height: 6px; }
+    .tile.plot .plot-pet .zzz { position: absolute; left: 14px; top: -6px; font-size: 12px; font-weight: 800; color: #f3e6c8; letter-spacing: 1px; text-shadow: 0 1px 2px #000; }
+    @keyframes petHop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } }
+    @keyframes zzzFloat { 0%, 100% { opacity: 0.45; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-4px); } }
     .tile.plot .timer, .tile.plot .label {
       position: absolute;
       left: 0; right: 0; top: 2px;
@@ -1090,6 +1175,7 @@
       position: relative;
       z-index: 4;
     }
+    footer { position: relative; z-index: 2100; }
     footer {
       flex: 0 0 auto;
       background: var(--hud);
@@ -1183,11 +1269,13 @@
 
     header { min-height: 0; }
     .stats {
-      max-width: 100%;
-      overflow-x: auto;
-      flex-wrap: nowrap;
-      -webkit-overflow-scrolling: touch;
+      max-width: none;
+      flex: 1;
+      overflow: visible;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
+    .brand { max-width: none; }
     
     #mine-panel, #forest-panel { z-index: 40; }
     .scene-actions {
@@ -1222,6 +1310,7 @@
       .brand { font-size: 13px; }
       .brand span { font-size: 10px; }
       .pill { padding: 3px 7px; font-size: 11px; }
+      .stats .pill { font-size: 17px; min-height: 44px; padding: 8px 4px; }
       footer { padding: 6px 8px calc(var(--safe-bot) + 6px); }
       button { min-height: 40px; font-size: 12px; border-radius: 10px; }
       button.ghost { min-height: 28px; font-size: 11px; }
@@ -1243,19 +1332,54 @@
     .toast.show { opacity: 1; }
     .menu-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
     #stat-worth {
-      position: absolute;
-      top: 10px;
-      left: 8px;
-      z-index: 12;
-      pointer-events: auto;
+      display: block;
+      width: fit-content;
+      margin: 0 auto 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 2px solid #fff4cc;
+      background: #e8c36a;
+      font-size: 13px;
+      font-weight: 800;
+      color: #1c140e;
       cursor: pointer;
-      padding: 5px 8px;
-      border-radius: 10px;
-      font-size: 11px;
-      background: rgba(14,22,12,0.82);
-      border: 1px solid rgba(232,195,106,0.3);
-      color: var(--gold);
+      white-space: nowrap;
+      box-shadow: 0 3px 0 #8a6844;
     }
+    #app.bars-off #stat-worth {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: calc(env(safe-area-inset-bottom, 10px) + 12px);
+      z-index: 40;
+      margin: 0;
+    }
+    #worth-panel.open {
+      display: flex !important;
+      flex-direction: column;
+      position: fixed !important;
+      z-index: 2000 !important;
+      left: 10px !important;
+      right: 10px !important;
+      top: calc(env(safe-area-inset-top, 12px) + 108px) !important;
+      bottom: calc(env(safe-area-inset-bottom, 10px) + 16px) !important;
+      width: auto !important;
+      max-height: none !important;
+      transform: none !important;
+      overflow: hidden !important;
+      background: #12180f;
+      touch-action: pan-y;
+    }
+    #worth-panel #worth-list {
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch;
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: calc(100svh - 230px);
+      touch-action: pan-y;
+      overscroll-behavior: contain;
+    }
+    #worth-panel .ghost { flex: 0 0 auto; margin-top: 8px; }
     #boot-bottom {
       position: absolute;
       left: 0;
@@ -1765,6 +1889,27 @@
       width: min(340px, calc(100% - 16px));
       z-index: 16;
     }
+
+    #csilo-panel {
+      display: none;
+      position: fixed !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      top: calc(var(--safe-top) + 72px) !important;
+      bottom: auto !important;
+      width: min(340px, calc(100% - 16px));
+      z-index: 40;
+      background: rgba(14,22,12,0.96);
+      border: 1px solid rgba(232,195,106,0.35);
+      border-radius: 14px;
+      padding: 12px;
+      color: var(--cream);
+    }
+    #csilo-panel.open { display: block; }
+    #csilo-panel h3 { margin: 0 0 8px; font-size: 14px; color: var(--gold); }
+    #csilo-panel .row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; font-size: 13px; }
+    #csilo-close { display: block; width: 100%; min-height: 48px; margin-top: 12px; }
+
     #silo-close {
       display: block;
       width: 100%;
@@ -1897,13 +2042,16 @@
           </div>
   <div id="app">
     <header>
-      <div class="brand">FIRST FIELD<span>test farm · offline</span></div>
+      <div class="brand">FIRST FIELD<span>test farm</span></div>
+      <div class="head-tools">
+        <button type="button" class="pill" id="btn-bar" aria-label="Toggle buttons">≡</button>
+        <button type="button" class="pill" id="btn-set" aria-label="Settings">⚙️</button>
+      </div>
       <div class="stats">
         <div class="pill water" id="stat-water">💧 0/30</div>
         <div class="pill" id="stat-corn-top">🌽 0/50</div>
         <div class="pill" id="stat-carrot-top">🥕 0/20</div>
         <div class="pill" id="stat-sats">⚡ 0 sats</div>
-        <button type="button" class="pill" id="btn-set" aria-label="Settings">⚙️</button>
       </div>
     </header>
     <div id="set-panel" aria-hidden="true">
@@ -1920,8 +2068,8 @@
     <div id="field-wrap">
       <div id="farm-stage">
       <div id="grid"></div>
+      <div id="pet-hop-layer"></div>
       </div>
-      <div class="pill" id="stat-worth">Farm worth 0 sats</div>
       <div id="worth-panel" aria-hidden="true">
         <h3>Farm worth</h3>
         <ul id="worth-list"></ul>
@@ -2003,6 +2151,8 @@
             <div class="row"><span>25 ⚡ sats → grain silo</span><button type="button" id="buy-silo">Buy silo</button></div>
             <div class="row"><span>25 ⚡ sats → carrot silo</span><button type="button" id="buy-csilo">Buy carrot silo</button></div>
             <div class="row"><span>20 ⚡ sats → blacksmith</span><button type="button" id="buy-smith">Buy blacksmith</button></div>
+            <div class="row"><span>18 ⚡ sats → kitchen</span><button type="button" id="buy-kitchen">Buy kitchen</button></div>
+            <div class="row"><span>18 ⚡ sats → tailor</span><button type="button" id="buy-tailor">Buy tailor</button></div>
           </div>
           <div id="asset-farming-list" hidden>
             <div class="row"><span>5 ⚡ sats → apple tree</span><button type="button" id="buy-tree">Buy tree</button></div>
@@ -2113,24 +2263,25 @@
 
         <button type="button" class="ghost" id="btn-forest-close">Close</button>
   </div>"
-      <div id="craft-panel" aria-hidden="true">
-        <h3>Craft</h3>
-        <p>Combine farm goods.</p>
-        <div class="modes" id="craft-tabs" style="margin-bottom:8px">
-          <button type="button" id="ctab-kitchen" class="active">Kitchen</button>
-          <button type="button" id="ctab-armory">Tailor</button>
+      <div id="kitchen-panel" aria-hidden="true">
+        <h3>Kitchen</h3>
+        <p>Cook farm goods.</p>
+        <div class="sheet-rows">
+        <div class="row"><span id="craft-pudding-label">4 🥛 + 3 🥚 → 1 🍮</span><button type="button" id="craft-pudding">Make pudding</button></div>
         </div>
-        <div id="csec-kitchen">
-          <div class="row"><span>4 🥛 + 3 🥚 → 1 🍮</span><button type="button" id="craft-pudding">Make pudding</button></div>
+        <button type="button" class="ghost" id="kitchen-close">Close</button>
+      </div>
+      <div id="tailor-panel" aria-hidden="true">
+        <h3>Tailor</h3>
+        <p>Cloth gear from wool and horse hair.</p>
+        <div class="sheet-rows">
+        <div class="row"><span id="craft-pants-label">6 wool + 3 horse hair → 1 pants</span><button type="button" id="craft-pants">Make pants</button></div>
+        <div class="row"><span id="craft-shirt-label">8 wool → 1 shirt</span><button type="button" id="craft-shirt">Make shirt</button></div>
+        <div class="row"><span id="craft-beanie-label">7 wool → 1 beanie</span><button type="button" id="craft-beanie">Make beanie</button></div>
+        <div class="row"><span id="craft-gloves-label">5 wool → 1 cloth gloves</span><button type="button" id="craft-gloves">Make gloves</button></div>
+        <div class="row"><span id="craft-boots-label">6 wool + 2 horse hair → 1 cloth boots</span><button type="button" id="craft-boots">Make boots</button></div>
         </div>
-        <div id="csec-armory" hidden>
-          <div class="row"><span id="craft-pants-label">6 wool + 3 horse hair → 1 pants</span><button type="button" id="craft-pants">Make pants</button></div>
-          <div class="row"><span id="craft-shirt-label">8 wool → 1 shirt</span><button type="button" id="craft-shirt">Make shirt</button></div>
-          <div class="row"><span id="craft-beanie-label">7 wool → 1 beanie</span><button type="button" id="craft-beanie">Make beanie</button></div>
-          <div class="row"><span id="craft-gloves-label">5 wool → 1 cloth gloves</span><button type="button" id="craft-gloves">Make gloves</button></div>
-          <div class="row"><span id="craft-boots-label">6 wool + 2 horse hair → 1 cloth boots</span><button type="button" id="craft-boots">Make boots</button></div>
-        </div>
-        <button type="button" class="ghost" id="craft-close">Close</button>
+        <button type="button" class="ghost" id="tailor-close">Close</button>
       </div>
       <div id="smith-panel" aria-hidden="true">
         <h3>Blacksmith</h3>
@@ -2219,21 +2370,17 @@
       </div>
     </div>
     <footer>
+      <div id="stat-worth">Farm worth 0 sats</div>
       <div class="menu-row">
         <button class="ghost" id="btn-tidy" type="button">Clean farm</button>
-        <button class="ghost" id="btn-save" type="button">Auto-save on</button>
         <button class="ghost" id="btn-auto" type="button">Automate 2m</button>
         <button class="ghost" id="buy-expand" type="button">Expand farm</button>
-<div class="pill" id="stat-saved">not saved yet</div>
       </div>
-      <div class="modes" style="margin-bottom:8px">
-        <button type="button" id="tool-craft">Craft</button>
-        <button type="button" id="tool-sell">Market</button>
-      </div>
-      <div class="modes">
+      <div class="modes" style="grid-template-columns:1fr 1fr 1fr 1fr">
         <button type="button" id="tool-plant">Plant</button>
         <button type="button" id="tool-barn">Barn</button>
         <button type="button" id="tool-roster">Roster</button>
+        <button type="button" id="tool-sell">Market</button>
       </div>
       <div class="tools" style="grid-template-columns:1fr 1fr 1fr">
         <button type="button" id="mode-farm" class="active">Farm</button>
@@ -2810,9 +2957,17 @@ if (!state.demoSmithMats) {
       const z = g.zoom || 1;
       const stage = document.getElementById("farm-stage");
       const grid = document.getElementById("grid");
+      const keepLeft = wrap ? wrap.scrollLeft : 0;
+      const keepTop = wrap ? wrap.scrollTop : 0;
       if (stage) {
         stage.style.width = Math.max(w, wrap.clientWidth) + "px";
         stage.style.height = Math.max(h, wrap.clientHeight) + "px";
+      }
+      if (wrap) {
+        const maxX = Math.max(0, wrap.scrollWidth - wrap.clientWidth);
+        const maxY = Math.max(0, wrap.scrollHeight - wrap.clientHeight);
+        wrap.scrollLeft = Math.max(0, Math.min(maxX, keepLeft));
+        wrap.scrollTop = Math.max(0, Math.min(maxY, keepTop));
       }
       if (grid) {
         grid.style.width = w + "px";
@@ -2828,6 +2983,37 @@ if (!state.demoSmithMats) {
       } else if (grid && fg && fg.parentNode !== grid) grid.appendChild(fg);
       const bar = document.getElementById("zoom-bar");
       if (bar && (state.farmExpands || 0) < 1) bar.classList.remove("on");
+    }
+    function clampFarmCamera() {
+      if (!wrap) return;
+      const maxX = Math.max(0, wrap.scrollWidth - wrap.clientWidth);
+      const maxY = Math.max(0, wrap.scrollHeight - wrap.clientHeight);
+      if (wrap.scrollLeft < 0 || wrap.scrollLeft > maxX) wrap.scrollLeft = Math.max(0, Math.min(maxX, wrap.scrollLeft));
+      if (wrap.scrollTop < 0 || wrap.scrollTop > maxY) wrap.scrollTop = Math.max(0, Math.min(maxY, wrap.scrollTop));
+    }
+    if (wrap && !wrap.dataset.wall) {
+      wrap.dataset.wall = "1";
+      let wallX = 0, wallY = 0, wallL = 0, wallT = 0;
+      wrap.addEventListener("scroll", clampFarmCamera, { passive: true });
+      wrap.addEventListener("touchstart", function (ev) {
+        if (ev.touches.length !== 1) return;
+        wallX = ev.touches[0].clientX;
+        wallY = ev.touches[0].clientY;
+        wallL = wrap.scrollLeft;
+        wallT = wrap.scrollTop;
+      }, { passive: true });
+      wrap.addEventListener("touchmove", function (ev) {
+        if (ev.touches.length !== 1) return;
+        const maxX = Math.max(0, wrap.scrollWidth - wrap.clientWidth);
+        const maxY = Math.max(0, wrap.scrollHeight - wrap.clientHeight);
+        const nx = wallL + (wallX - ev.touches[0].clientX);
+        const ny = wallT + (wallY - ev.touches[0].clientY);
+        if (nx < 0 || nx > maxX || ny < 0 || ny > maxY) {
+          ev.preventDefault();
+          wrap.scrollLeft = Math.max(0, Math.min(maxX, nx));
+          wrap.scrollTop = Math.max(0, Math.min(maxY, ny));
+        }
+      }, { passive: false });
     }
     let zoomChromeTimer = 0;
     function showZoomChrome() {
@@ -2904,6 +3090,8 @@ if (!state.demoSmithMats) {
         .concat((state.silos || []).map((s) => ({ id: s.id, kind: "silo", x: s.x, y: s.y, scale: pieceScale(s), upgrades: s.upgrades })))
         .concat((state.carrotSilos || []).map((s) => ({ id: s.id, kind: "csilo", x: s.x, y: s.y, scale: pieceScale(s), upgrades: s.upgrades })))
         .concat((state.smiths || []).map((s) => ({ id: s.id, kind: "smith", x: s.x, y: s.y, scale: 1 })))
+        .concat((state.kitchens || []).map((s) => ({ id: s.id, kind: "kitchen", x: s.x, y: s.y, scale: 1 })))
+        .concat((state.tailors || []).map((s) => ({ id: s.id, kind: "tailor", x: s.x, y: s.y, scale: 1 })))
         .concat([{ id: "shed", kind: "shed", x: state.shed.x, y: state.shed.y, scale: 1.22, level: state.shed.level }])
         .concat(chickens().length && state.coop && typeof state.coop.x === "number" ? [{ id: "coop", kind: "coop", x: state.coop.x, y: state.coop.y, scale: 1.15, level: state.coop.level }] : [])
         .concat(horses().length && state.horseShed && typeof state.horseShed.x === "number" ? [{ id: "horse", kind: "horse", x: state.horseShed.x, y: state.horseShed.y, scale: 1.15, level: state.horseShed.level }] : [])
@@ -2915,7 +3103,7 @@ if (!state.demoSmithMats) {
 
     function posOf(kind, plot) {
       if (kind === "well") return plot;
-      if (kind === "silo") return plot;
+      if (kind === "silo" || kind === "csilo" || kind === "smith" || kind === "kitchen" || kind === "tailor") return plot;
       if (kind === "shed") return state.shed;
       if (kind === "coop") return state.coop;
       if (kind === "horse") return state.horseShed;
@@ -2945,6 +3133,12 @@ if (!state.demoSmithMats) {
       }
       if (kind === "smith") {
         return (state.smiths || []).filter((p) => p.id !== skipId).map((p) => ({ id: p.id, x: p.x, y: p.y }));
+      }
+      if (kind === "kitchen") {
+        return (state.kitchens || []).filter((p) => p.id !== skipId).map((p) => ({ id: p.id, x: p.x, y: p.y }));
+      }
+      if (kind === "tailor") {
+        return (state.tailors || []).filter((p) => p.id !== skipId).map((p) => ({ id: p.id, x: p.x, y: p.y }));
       }
       if (kind === "shed") {
         return [{ id: "shed", x: state.shed.x, y: state.shed.y }].filter((p) => p.id !== skipId);
@@ -3874,6 +4068,10 @@ if (!state.demoSmithMats) {
       if (sw) sw.hidden = state.craftTab !== "weapons";
     }
     function fillCraftLabels() {
+      const pud = document.getElementById("craft-pudding-label");
+      if (pud) {
+        pud.innerHTML = '4 <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#f4f1ea" d="M10 8 h12 v4 H10z"/><path fill="#e8e4dc" d="M11 12 h10 v12 H11z"/><path fill="#d8e6f2" d="M12 16 h8 v6 H12z"/></svg> milk + 3 <svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="18" rx="7" ry="8" fill="#f3ead0"/><path fill="#e7d7b0" d="M12 16 h8 v2 h-8z"/></svg> eggs → 1 <svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="18" rx="9" ry="7" fill="#c48a3a"/><ellipse cx="16" cy="16" rx="6" ry="3" fill="#f0d090"/></svg> pudding';
+      }
       const el = document.getElementById("craft-pants-label");
       if (el && typeof hairMark === "function" && typeof pantsArt === "function") {
         const nWool = (FF.pants && FF.pants.wool) || 6;
@@ -3897,17 +4095,27 @@ if (!state.demoSmithMats) {
         sw.innerHTML = "15 " + rockArt() + " rocks + 7 " + lumberArt() + " lumber → 1 " + swordArt() + " stone sword";
       }
     }
-    function openCraft(force) {
-      const pan = document.getElementById("craft-panel");
+    function openShop(id, force) {
+      const pan = document.getElementById(id);
       const wasOpen = pan && pan.classList.contains("open");
       closeAllTabs();
       if (wasOpen && !force) return;
       if (!pan) return;
-      fillCraftLabels();
-      showCraftTab(state.craftTab || "kitchen");
+      if (typeof fillCraftLabels === "function") fillCraftLabels();
+      if (pan.parentNode !== document.body) document.body.appendChild(pan);
       pan.classList.add("open");
+      pan.style.display = "flex";
+      pan.style.zIndex = "2000";
       pan.setAttribute("aria-hidden", "false");
+      const list = document.getElementById("worth-list");
+      if (list && !list.dataset.scroll) {
+        list.dataset.scroll = "1";
+        list.addEventListener("touchmove", function (ev) { ev.stopPropagation(); }, { passive: true });
+      }
     }
+    function openKitchen(force) { openShop("kitchen-panel", force); }
+    function openTailor(force) { openShop("tailor-panel", force); }
+    function openCraft(force) { openKitchen(force); }
     async function craftPudding() {
       if (!(await askYes("Craft 1 pudding from 4 milk and 3 eggs?"))) return;
       if (state.milk < FF.pudding.milk) { toast("Need 4 milk"); return; }
@@ -4362,7 +4570,10 @@ function autoTick() {
       if (wasOpen && !force) return;
       if (!pan) return;
       fillWorth();
+      if (pan.parentNode !== document.body) document.body.appendChild(pan);
       pan.classList.add("open");
+      pan.style.display = "flex";
+      pan.style.zIndex = "2000";
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
@@ -4422,7 +4633,6 @@ function autoTick() {
       "Oct 1 — Pigs use the same upgrade path as sheep: Lvl 2 = 3×3 / 10, Lvl 3 = 15 sats + 25 wood + 25 rocks → 4×4 / 15.",
       "Oct 1 — Start button stays pressed while you hold it, pops back on release, then the splash fades into the farm.",
       "Oct 1 — Corn grows as a live field (seed → stalks → cobs). Timer sits on top of the plot.",
-      "Oct 2 — Plot bunny hops while the job runs, sleeps with zzz when carrots, seeds, or water stop it.",
       "Oct 1 — Sheep and chickens wander their yards. Heads face the walk direction.",
       "Oct 1 — Sheep / chicken Lvl 3: 15 sats + 25 wood + 25 rocks, 4×4, cap 15. Upgrade slides to free space.",
       "Oct 1 — Market animals listed expensive first: horse, cow, pig, sheep, chicken.",
@@ -6036,17 +6246,21 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       pan.setAttribute("aria-hidden", "false");
     }
     function closeAllTabs() {
+      const craftEl = document.getElementById("craft-panel");
       const marketWas = document.getElementById("market-panel").classList.contains("open")
-        || document.getElementById("craft-panel").classList.contains("open")
+        || (craftEl && craftEl.classList.contains("open"))
+        || (document.getElementById("kitchen-panel") && document.getElementById("kitchen-panel").classList.contains("open"))
+        || (document.getElementById("tailor-panel") && document.getElementById("tailor-panel").classList.contains("open"))
         || (document.getElementById("barn-panel") && document.getElementById("barn-panel").classList.contains("open"));
       const wrap = document.getElementById("app");
       if (wrap) wrap.classList.remove("scene");
       state.inClan = false;
       document.body.classList.remove("in-clan");
-      ["market-panel", "shed-panel", "log-panel", "craft-panel", "barn-panel", "silo-panel", "smith-panel", "worth-panel", "mine-panel", "forest-panel", "adventure-panel", "clan-panel", "set-panel"].forEach((id) => {
+      ["market-panel", "shed-panel", "log-panel", "craft-panel", "kitchen-panel", "tailor-panel", "barn-panel", "silo-panel", "csilo-panel", "smith-panel", "worth-panel", "mine-panel", "forest-panel", "adventure-panel", "clan-panel", "set-panel"].forEach((id) => {
         const el = document.getElementById(id);
         if (!el) return;
         el.classList.remove("open");
+        el.style.display = "";
         el.setAttribute("aria-hidden", "true");
       });
       syncPickHits(false);
@@ -6364,7 +6578,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         const u = Math.min(3, (item && item.upgrades) || 0);
         return { w: 2 + (u >= 2 ? 1 : 0), h: 3 + u };
       }
-      if (kind === "smith") return { w: 3, h: 3 };
+      if (kind === "smith" || kind === "kitchen" || kind === "tailor") return { w: 3, h: 3 };
       if (kind === "shed" || kind === "coop" || kind === "horse" || kind === "sheep" || kind === "pig") {
         const b = item || animalBuilding(kind);
         if (kind === "shed" || kind === "horse") {
@@ -6493,6 +6707,10 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (sheep().length) queue.push([state.sheepPen, "sheep"]);
       if (chickens().length) queue.push([state.coop, "coop"]);
       (state.silos || []).forEach((p) => queue.push([p, "silo"]));
+      (state.carrotSilos || []).forEach((p) => queue.push([p, "csilo"]));
+      (state.smiths || []).forEach((p) => queue.push([p, "smith"]));
+      (state.kitchens || []).forEach((p) => queue.push([p, "kitchen"]));
+      (state.tailors || []).forEach((p) => queue.push([p, "tailor"]));
       (state.wells || []).forEach((p) => queue.push([p, "well"]));
       (state.trees || []).forEach((p) => queue.push([p, "tree"]));
       let col = 0, row = 0, band = 0;
@@ -6663,6 +6881,58 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     }
     function ingotArt() {
       return '<svg viewBox="0 0 64 48" aria-hidden="true"><path d="M10 30 L18 16 h28 l8 14z" fill="#8d97a3"/><path d="M14 30 L20 18 h24 l6 12z" fill="#d5dee8"/><path d="M10 30 h44 v6 H10z" fill="#5c6773"/></svg>';
+    }
+
+    function kitchenArt() {
+      return '<svg viewBox="0 0 64 64" aria-hidden="true">' +
+        '<rect x="8" y="28" width="48" height="26" fill="#6b4a32"/>' +
+        '<path d="M6 30 L32 10 L58 30z" fill="#8d3b2a"/>' +
+        '<rect x="36" y="14" width="8" height="14" fill="#4a4038"/>' +
+        '<path d="M38 12 q2-6 4 0" fill="#e07a2f"/>' +
+        '<rect x="16" y="36" width="14" height="14" fill="#2a221c"/>' +
+        '<ellipse cx="44" cy="44" rx="8" ry="5" fill="#5a5e66"/>' +
+        '<ellipse cx="44" cy="42" rx="6" ry="3" fill="#c48a3a"/>' +
+        '<rect x="42" y="34" width="4" height="6" fill="#8a9098"/>' +
+        '</svg><div class="label">Kitchen</div>';
+    }
+    function tailorArt() {
+      return '<svg viewBox="0 0 64 64" aria-hidden="true">' +
+        '<rect x="8" y="26" width="48" height="28" fill="#3d4a73"/>' +
+        '<path d="M6 28 L32 8 L58 28z" fill="#6b4a32"/>' +
+        '<rect x="18" y="34" width="16" height="16" fill="#f4ead4"/>' +
+        '<path d="M18 42 h16" stroke="#c44b3a" stroke-width="2"/>' +
+        '<path d="M40 36 l10 4 -8 10 -4-2z" fill="#c0c6d0"/>' +
+        '<circle cx="48" cy="38" r="3" fill="#e8c36a"/>' +
+        '<circle cx="44" cy="48" r="3" fill="#e8c36a"/>' +
+        '</svg><div class="label">Tailor</div>';
+    }
+    async function buyKitchen() {
+      const cost = 18;
+      if (!(await askYes("Buy a kitchen for " + cost + " sats?"))) return;
+      if (state.sats < cost) { toast("Need " + cost + " sats"); return; }
+      let spot = findSpot("kitchen");
+      if (!spot) spot = await needSpace("kitchen");
+      if (!spot) return;
+      state.sats -= cost;
+      state.kitchens = state.kitchens || [];
+      state.kitchens.push({ id: "k" + Date.now().toString(36), x: spot.x, y: spot.y });
+      toast("Kitchen placed");
+      save();
+      render();
+    }
+    async function buyTailor() {
+      const cost = 18;
+      if (!(await askYes("Buy a tailor for " + cost + " sats?"))) return;
+      if (state.sats < cost) { toast("Need " + cost + " sats"); return; }
+      let spot = findSpot("tailor");
+      if (!spot) spot = await needSpace("tailor");
+      if (!spot) return;
+      state.sats -= cost;
+      state.tailors = state.tailors || [];
+      state.tailors.push({ id: "t" + Date.now().toString(36), x: spot.x, y: spot.y });
+      toast("Tailor placed");
+      save();
+      render();
     }
     function smithArt() {
       return '<svg viewBox="0 0 64 64" aria-hidden="true">' +
@@ -7180,61 +7450,25 @@ async function buySilo() {
         cornStalk(Math.max(0, t - 0.02), 24) +
         '</svg>';
     }
-    function plotPetInfo(plot) {
-      var job = (state.roster || []).find(function (j) { return j.plotId === plot.id; });
-      if (!job) return null;
-      var pet = (state.pets || []).find(function (p) { return p.id === job.petId; });
-      var spec = pet && BEASTS[pet.species];
-      var name = spec ? spec.name : "Pet";
-      var status = job.status || "";
-      var sleep = (state.carrots || 0) < 1 || status.indexOf("Stopped") === 0 || status.indexOf("full") !== -1 || status.indexOf("missing") !== -1;
-      return { name: name, sleep: sleep, off: sleep };
-    }
-    function ensurePlotPet(el, plot) {
-      var info = plotPetInfo(plot);
-      var pet = el.querySelector(".plot-pet");
-      var chip = el.querySelector(".roster-chip");
-      if (!info) {
-        if (pet) pet.remove();
-        if (chip) chip.remove();
-        return;
-      }
-      var mode = info.sleep ? "sleep" : "hop";
-      if (!pet) {
-        pet = document.createElement("div");
-        pet.className = "plot-pet " + mode;
-        pet.innerHTML = info.sleep ? "<i></i><span class=\"zzz\">z z z</span>" : "<i></i>";
-        el.appendChild(pet);
-      } else if (!pet.classList.contains(mode)) {
-        pet.className = "plot-pet " + mode;
-        pet.innerHTML = info.sleep ? "<i></i><span class=\"zzz\">z z z</span>" : "<i></i>";
-      }
-      if (!chip) {
-        chip = document.createElement("div");
-        chip.className = "roster-chip" + (info.off ? " off" : "");
-        chip.textContent = info.name;
-        el.appendChild(chip);
-      } else {
-        chip.textContent = info.name;
-        chip.classList.toggle("off", info.off);
-      }
-    }
-    function tickPlotPets() {
-      var t = Date.now();
-      document.querySelectorAll(".tile.plot .plot-pet").forEach(function (pet) {
-        if (pet.classList.contains("sleep")) {
-          var s = Math.sin(t / 380);
-          pet.style.transform = "translateY(" + (s > 0 ? 1 : 0) + "px) rotate(" + (s * -7).toFixed(1) + "deg)";
-          return;
-        }
-        var phase = (t % 520) / 520;
-        var y = Math.round(-22 * Math.sin(phase * Math.PI));
-        var squash = (phase < 0.14 || phase > 0.84) ? 0.74 : 1;
-        pet.style.transform = "translateY(" + y + "px) scale(" + (1 + (y < -8 ? 0.06 : 0)) + "," + squash + ")";
-      });
-    }
     function plotInner(plot) {
-      function rosterChip() { return ""; }
+      function rosterChip(plot) {
+        var job = (state.roster || []).find(function (j) { return j.plotId === plot.id; });
+        if (!job) return "";
+        var pet = (state.pets || []).find(function (p) { return p.id === job.petId; });
+        var spec = pet && BEASTS[pet.species];
+        var name = spec ? spec.name : "Pet";
+        var hungry = (state.carrots || 0) < 1 || (job.status && job.status.indexOf("no carrots") !== -1);
+        var off = hungry || (job.status && job.status.indexOf("Stopped") === 0);
+        var hop = 0;
+        var squash = 1;
+        if (!hungry) {
+          var phase = (Date.now() % 520) / 520;
+          hop = Math.round(-16 * Math.sin(phase * Math.PI));
+          squash = phase < 0.15 || phase > 0.85 ? 0.82 : 1;
+        }
+        var petEl = '<div class="plot-pet' + (hungry ? " sleep" : " hop") + '"><i></i>' + (hungry ? '<span class="zzz">z z z</span>' : "") + '</div>';
+        return petEl + '<div class="roster-chip' + (off ? " off" : "") + '">' + name + '</div>';
+      }
       if (!plot.crop) {
         return '<div class="label">empty plot</div>' + rosterChip(plot);
       }
@@ -7400,17 +7634,15 @@ async function buySilo() {
       if (keepShed) keepShed.remove();
       const keepHorse = grid.querySelector(".tile.horse");
       if (keepHorse) keepHorse.remove();
-      const keptPlots = {};
-      grid.querySelectorAll(".tile.plot").forEach(function (node) {
-        if (node.dataset.id) keptPlots[node.dataset.id] = node;
-      });
+      const camLeft = wrap ? wrap.scrollLeft : 0;
+      const camTop = wrap ? wrap.scrollTop : 0;
       grid.innerHTML = "";
+      if (wrap) { wrap.scrollLeft = camLeft; wrap.scrollTop = camTop; }
 
       state.plots.forEach((plot) => {
-        const el = keptPlots[plot.id] || document.createElement("div");
-        const fresh = !keptPlots[plot.id];
-        el.dataset.id = plot.id;
+        const el = document.createElement("div");
         el.className = "tile plot";
+        el.dataset.id = plot.id;
         if ((state.roster || []).some(function (j) { return j.plotId === plot.id; })) el.classList.add("tended");
         if (plot.crop && plot.crop.stage === "dry") el.classList.add("needs-water");
         if (plot.crop && plot.crop.stage === "crush") el.classList.add("crush");
@@ -7419,29 +7651,8 @@ async function buySilo() {
           el.classList.add("growing-crop");
         }
         placeEl(el, plot.x, plot.y, 1, "plot");
-        var face = el.querySelector(".plot-face");
-        var faceHtml = plotInner(plot);
-        var faceSig = (plot.crop ? plot.crop.type + ":" + plot.crop.stage : "empty") + ":" + (cropReady(plot) ? "ready" : "work");
-        if (!face || face.dataset.sig !== faceSig) {
-          var holder = document.createElement("div");
-          holder.className = "plot-face";
-          holder.dataset.sig = faceSig;
-          holder.innerHTML = faceHtml;
-          if (face) face.replaceWith(holder);
-          else el.insertBefore(holder, el.firstChild);
-        } else {
-          var nextLab = faceHtml.match(/class="timer">([^<]*)</);
-          var timer = face.querySelector(".timer");
-          if (timer && nextLab) timer.textContent = nextLab[1];
-          var nextBar = faceHtml.match(/crop-grow"><i style="width:(\d+)%/);
-          var bar = face.querySelector(".crop-grow i");
-          if (bar && nextBar) bar.style.width = nextBar[1] + "%";
-        }
-        ensurePlotPet(el, plot);
-        if (fresh || !el.dataset.bound) {
-          el.dataset.bound = "1";
-          bindTile(el, "plot", plot);
-        }
+        el.innerHTML = plotInner(plot);
+        bindTile(el, "plot", plot);
         grid.appendChild(el);
       });
 
@@ -7502,6 +7713,22 @@ async function buySilo() {
         el.innerHTML = smithArt();
         placeEl(el, s.x, s.y, 1, "smith", s);
         bindTile(el, "smith", s);
+        grid.appendChild(el);
+      });
+      (state.kitchens || []).forEach((s) => {
+        const el = document.createElement("div");
+        el.className = "tile kitchen";
+        el.innerHTML = kitchenArt();
+        placeEl(el, s.x, s.y, 1, "kitchen", s);
+        bindTile(el, "kitchen", s);
+        grid.appendChild(el);
+      });
+      (state.tailors || []).forEach((s) => {
+        const el = document.createElement("div");
+        el.className = "tile tailor";
+        el.innerHTML = tailorArt();
+        placeEl(el, s.x, s.y, 1, "tailor", s);
+        bindTile(el, "tailor", s);
         grid.appendChild(el);
       });
 
@@ -7652,6 +7879,8 @@ async function buySilo() {
         else if (kind === "silo") openSilo(plot);
         else if (kind === "csilo") openCarrotSilo(plot);
         else if (kind === "smith") openSmith(plot);
+        else if (kind === "kitchen") openKitchen();
+        else if (kind === "tailor") openTailor();
         else if (kind === "tree") onTreeTap(plot);
         else onPlotTap(plot);
       }
@@ -7828,7 +8057,6 @@ async function buySilo() {
       render();
     };
     document.getElementById("tool-sell").onclick = () => { state.mode = "farm"; state.tool = "sell"; openMarket(); render(); };
-    document.getElementById("tool-craft").onclick = () => { state.mode = "farm"; state.tool = "craft"; openCraft(); render(); };
     document.getElementById("tool-barn").onclick = () => { state.mode = "farm"; state.tool = "barn"; openBarn(); render(); };
     const rosterBtn = document.getElementById("tool-roster");
     if (rosterBtn) rosterBtn.onclick = function () { openRoster(); };
@@ -8360,7 +8588,7 @@ async function buySilo() {
     document.getElementById("sell-pudding").onclick = sellPudding;
     const sws = document.getElementById("sell-sword");
     if (sws) sws.onclick = sellSword;
-    document.getElementById("craft-close").onclick = closeAllTabs;
+    const craftClose = document.getElementById("craft-close"); if (craftClose) craftClose.onclick = closeAllTabs;
     document.getElementById("sell-milk").onclick = sellMilk;
     document.getElementById("sell-water").onclick = sellWater;
     const bw = document.getElementById("buy-water");
@@ -8383,6 +8611,14 @@ async function buySilo() {
     if (buySiloBtn) buySiloBtn.onclick = buySilo;
     const buySmithBtn = document.getElementById("buy-smith");
     if (buySmithBtn) buySmithBtn.onclick = buySmith;
+    const buyKitchenBtn = document.getElementById("buy-kitchen");
+    if (buyKitchenBtn) buyKitchenBtn.onclick = buyKitchen;
+    const buyTailorBtn = document.getElementById("buy-tailor");
+    if (buyTailorBtn) buyTailorBtn.onclick = buyTailor;
+    const kitchenClose = document.getElementById("kitchen-close");
+    if (kitchenClose) kitchenClose.onclick = closeAllTabs;
+    const tailorClose = document.getElementById("tailor-close");
+    if (tailorClose) tailorClose.onclick = closeAllTabs;
     const craftLeatherBtn = document.getElementById("craft-leather");
     if (craftLeatherBtn) craftLeatherBtn.onclick = craftLeatherSheet;
     const craftIngotBtn = document.getElementById("craft-ingot");
@@ -8434,9 +8670,9 @@ async function buySilo() {
     wrap.addEventListener("pointerdown", (ev) => {
       if (ev.target.closest("button")) return;
       if (ev.target.closest("#loot-box, #fight-box, #ask-box, #gear-pick, #pet-card")) return;
-      const open = document.querySelector("#market-panel.open, #shed-panel.open, #log-panel.open, #craft-panel.open, #barn-panel.open, #silo-panel.open, #smith-panel.open, #worth-panel.open, #mine-panel.open, #forest-panel.open");
+      const open = document.querySelector("#market-panel.open, #shed-panel.open, #log-panel.open, #craft-panel.open, #kitchen-panel.open, #tailor-panel.open, #barn-panel.open, #silo-panel.open, #smith-panel.open, #worth-panel.open, #mine-panel.open, #forest-panel.open");
       if (!open) return;
-      if (ev.target.closest("#market-panel, #shed-panel, #log-panel, #craft-panel, #barn-panel, #silo-panel, #smith-panel, #worth-panel, #mine-panel, #forest-panel, #boot-updates, #stat-worth, .tile.shed")) return;
+      if (ev.target.closest("#market-panel, #shed-panel, #log-panel, #craft-panel, #kitchen-panel, #tailor-panel, #barn-panel, #silo-panel, #smith-panel, #worth-panel, #mine-panel, #forest-panel, #boot-updates, #stat-worth, .tile.shed, .tile.kitchen, .tile.tailor")) return;
       closeAllTabs();
     });
     document.addEventListener("pointerdown", (ev) => {
@@ -8478,10 +8714,94 @@ async function buySilo() {
     document.getElementById("btn-tidy").onclick = tidyFarm;
     const autoBtn = document.getElementById("btn-auto");
     if (autoBtn) autoBtn.onclick = buyAuto;
-    document.getElementById("btn-save").onclick = () => {
-      save();
-      toast("Auto-save is on — farm stored");
-    };
+
+    
+    function relToStage(el, stage) {
+      let x = 0, y = 0, n = el;
+      while (n && n !== stage) {
+        x += n.offsetLeft;
+        y += n.offsetTop;
+        n = n.offsetParent;
+      }
+      return { x: x, y: y };
+    }
+    function syncHopLayer() {
+      const layer = document.getElementById("pet-hop-layer");
+      const stage = document.getElementById("farm-stage");
+      if (!layer || !stage) return;
+      const keep = {};
+      (state.roster || []).forEach(function (job) {
+        const tile = document.querySelector('.tile.plot[data-id="' + job.plotId + '"]');
+        if (!tile) return;
+        const hungry = (state.carrots || 0) < 1 || (job.status && String(job.status).indexOf("no carrots") !== -1);
+        let el = layer.querySelector('[data-job="' + job.petId + '"]');
+        if (!el) {
+          el = document.createElement("div");
+          el.className = "plot-pet hop";
+          el.dataset.job = job.petId;
+          el.innerHTML = '<i></i><span class="zzz">z z z</span>';
+          layer.appendChild(el);
+        }
+        el.classList.toggle("hop", !hungry);
+        el.classList.toggle("sleep", !!hungry);
+        const z = el.querySelector(".zzz");
+        if (z) z.style.display = hungry ? "block" : "none";
+        const pos = relToStage(tile, stage);
+        el.style.left = (pos.x + tile.offsetWidth - 42) + "px";
+        el.style.top = (pos.y + 2) + "px";
+        keep[job.petId] = true;
+      });
+      layer.querySelectorAll(".plot-pet").forEach(function (el) {
+        if (!keep[el.dataset.job]) el.remove();
+      });
+      const t = (window.performance && performance.now) ? performance.now() : Date.now();
+      layer.querySelectorAll(".plot-pet.hop i").forEach(function (body) {
+        const phase = (t % 560) / 560;
+        const y = phase < 0.45 ? -32 * Math.sin((phase / 0.45) * Math.PI) : 0;
+        const squash = phase < 0.45 ? 1 : (phase < 0.58 ? 0.72 : 1);
+        body.style.transform = "translateY(" + y.toFixed(1) + "px) scaleY(" + squash + ")";
+      });
+      layer.querySelectorAll(".plot-pet.sleep i").forEach(function (body) {
+        body.style.transform = "translateY(8px)";
+      });
+    }
+    function clampFarmCam() {
+      if (!wrap) return;
+      const maxX = Math.max(0, wrap.scrollWidth - wrap.clientWidth);
+      const maxY = Math.max(0, wrap.scrollHeight - wrap.clientHeight);
+      if (wrap.scrollLeft < 0) wrap.scrollLeft = 0;
+      if (wrap.scrollTop < 0) wrap.scrollTop = 0;
+      if (wrap.scrollLeft > maxX) wrap.scrollLeft = maxX;
+      if (wrap.scrollTop > maxY) wrap.scrollTop = maxY;
+    }
+    if (wrap && !wrap.dataset.camBound) {
+      wrap.dataset.camBound = "1";
+      let lx = 0, ly = 0;
+      wrap.addEventListener("touchstart", function (ev) {
+        if (!ev.touches[0]) return;
+        lx = ev.touches[0].clientX;
+        ly = ev.touches[0].clientY;
+      }, { passive: true });
+      wrap.addEventListener("touchmove", function (ev) {
+        if (!ev.touches[0] || ev.touches.length > 1) return;
+        const t = ev.touches[0];
+        const dx = t.clientX - lx;
+        const dy = t.clientY - ly;
+        lx = t.clientX;
+        ly = t.clientY;
+        const maxX = Math.max(0, wrap.scrollWidth - wrap.clientWidth - 1);
+        const maxY = Math.max(0, wrap.scrollHeight - wrap.clientHeight - 1);
+        const hitX = (wrap.scrollLeft <= 0 && dx > 0) || (wrap.scrollLeft >= maxX && dx < 0);
+        const hitY = (wrap.scrollTop <= 0 && dy > 0) || (wrap.scrollTop >= maxY && dy < 0);
+        if (hitX && Math.abs(dx) >= Math.abs(dy)) ev.preventDefault();
+        else if (hitY && Math.abs(dy) > Math.abs(dx)) ev.preventDefault();
+      }, { passive: false });
+      wrap.addEventListener("scroll", clampFarmCam, { passive: true });
+    }
+    function hopPlotPets() {
+      syncHopLayer();
+    }
+    setInterval(hopPlotPets, 50);
     let last = now();
     let lastPaint = 0;
     let started = false;
@@ -8502,7 +8822,7 @@ async function buySilo() {
       if (typeof rosterTick === "function") rosterTick();
       if (state.miningUntil && state.miningUntil <= now()) finishMine();
       if (state.forestUntil && state.forestUntil <= now()) finishForest();
-      const due = state.plots.some((p) => p.crop && p.crop.stage === "growing") || (state.roster || []).length
+      const due = state.plots.some((p) => p.crop && p.crop.stage === "growing")
         || cows().some((c) => c.stage === "making") || chickens().some((c) => c.stage === "making" || c.stage === "eggs") || horses().some((h) => h.stage === "making" || h.stage === "hair") || sheep().some((s) => s.stage === "making" || s.stage === "wool") || pigs().some((s) => s.stage === "making" || s.stage === "truffle") || mineOn() || forestOn();
       const afterWell = state.wells.reduce((n, w) => n + w.water, 0);
       if (afterWell !== beforeWell || due || t - lastPaint > 400) {
@@ -8514,7 +8834,7 @@ async function buySilo() {
           fillBarn();
         }
       }
-      if (typeof tickPlotPets === "function") tickPlotPets();
+      hopPlotPets();
       requestAnimationFrame(loop);
     }
 
@@ -9034,6 +9354,21 @@ async function buySilo() {
       ev.stopPropagation();
       toggleMusicOff();
     };
+    function applyBars() {
+      const app = document.getElementById("app");
+      if (app) app.classList.toggle("bars-off", !!state.barsOff);
+      const b = document.getElementById("btn-bar");
+      if (b) b.textContent = state.barsOff ? "≡" : "▾";
+      if (typeof layout === "function") layout();
+    }
+    const barBtn = document.getElementById("btn-bar");
+    if (barBtn) barBtn.onclick = function () {
+      state.barsOff = !state.barsOff;
+      applyBars();
+      if (typeof layout === "function") layout();
+      save();
+    };
+    applyBars();
     const setBtn = document.getElementById("btn-set");
     if (setBtn) setBtn.onclick = function (ev) { ev.stopPropagation(); toggleSet(); };
     const sl = document.getElementById("set-vol");
