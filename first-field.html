@@ -325,18 +325,19 @@
       z-index: 6;
     }
     .tile.plot .roster-chip.off { color: #f3e6c8; background: rgba(18, 16, 12, 0.72); }
-    .tile.plot .plot-pet { position: absolute; right: 2px; bottom: 20px; width: 28px; height: 28px; z-index: 7; pointer-events: none; }
-    .tile.plot .plot-pet i { display: block; width: 16px; height: 14px; margin: 10px auto 0; border-radius: 50% 50% 42% 42%; background: #7d9a4a; box-shadow: 0 3px 0 #3d4a22; position: relative; }
-    .tile.plot .plot-pet i::before, .tile.plot .plot-pet i::after { content: ""; position: absolute; top: -7px; width: 5px; height: 9px; background: #7d9a4a; border-radius: 4px 4px 1px 1px; }
-    .tile.plot .plot-pet i::before { left: 2px; transform: rotate(-12deg); }
-    .tile.plot .plot-pet i::after { right: 2px; transform: rotate(12deg); }
-    .tile.plot .plot-pet.hop { animation: petHop 0.5s ease-in-out infinite; }
-    .tile.plot .plot-pet.sleep { animation: none; }
+    .tile.plot .plot-face { position: absolute; inset: 0; pointer-events: none; }
+    .tile.plot .plot-pet { position: absolute; right: 4px; bottom: 18px; width: 34px; height: 34px; z-index: 8; pointer-events: none; }
+    .tile.plot .plot-pet i { display: block; width: 18px; height: 14px; margin: 12px auto 0; border-radius: 50% 50% 42% 42%; background: #7d9a4a; box-shadow: 0 3px 0 #3d4a22; position: relative; }
+    .tile.plot .plot-pet i::before, .tile.plot .plot-pet i::after { content: ""; position: absolute; top: -9px; width: 5px; height: 11px; background: #7d9a4a; border-radius: 4px 4px 1px 1px; }
+    .tile.plot .plot-pet i::before { left: 2px; transform: rotate(-14deg); }
+    .tile.plot .plot-pet i::after { right: 2px; transform: rotate(14deg); }
+    .tile.plot .plot-pet.hop, .tile.plot .plot-pet.sleep { animation: none; }
     .tile.plot .plot-pet.sleep i { background: #6a645c; box-shadow: 0 2px 0 #2a261f; }
-    .tile.plot .plot-pet.sleep i::before, .tile.plot .plot-pet.sleep i::after { background: #6a645c; top: -4px; height: 6px; }
-    .tile.plot .plot-pet .zzz { position: absolute; left: 14px; top: -6px; font-size: 12px; font-weight: 800; color: #f3e6c8; letter-spacing: 1px; text-shadow: 0 1px 2px #000; }
-    @keyframes petHop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } }
-    @keyframes zzzFloat { 0%, 100% { opacity: 0.45; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-4px); } }
+    .tile.plot .plot-pet.sleep i::before, .tile.plot .plot-pet.sleep i::after { background: #6a645c; top: -3px; height: 5px; }
+    .tile.plot .plot-pet .zzz { position: absolute; left: 16px; top: -8px; font-size: 11px; font-weight: 800; color: #f3e6c8; letter-spacing: 1px; text-shadow: 0 1px 2px #000; animation: zzzFloat 1.4s ease-in-out infinite; }
+    @keyframes petHop { 0%, 100% { transform: translateY(0) scaleY(1); } 35% { transform: translateY(-14px) scaleY(1.05); } 55% { transform: translateY(0) scaleY(0.82); } }
+    @keyframes petSleep { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(1px) rotate(-6deg); } }
+    @keyframes zzzFloat { 0%, 100% { opacity: 0.4; transform: translate(0, 0); } 50% { opacity: 1; transform: translate(3px, -6px); } }
     .tile.plot .timer, .tile.plot .label {
       position: absolute;
       left: 0; right: 0; top: 2px;
@@ -4421,6 +4422,7 @@ function autoTick() {
       "Oct 1 — Pigs use the same upgrade path as sheep: Lvl 2 = 3×3 / 10, Lvl 3 = 15 sats + 25 wood + 25 rocks → 4×4 / 15.",
       "Oct 1 — Start button stays pressed while you hold it, pops back on release, then the splash fades into the farm.",
       "Oct 1 — Corn grows as a live field (seed → stalks → cobs). Timer sits on top of the plot.",
+      "Oct 2 — Plot bunny hops while the job runs, sleeps with zzz when carrots, seeds, or water stop it.",
       "Oct 1 — Sheep and chickens wander their yards. Heads face the walk direction.",
       "Oct 1 — Sheep / chicken Lvl 3: 15 sats + 25 wood + 25 rocks, 4×4, cap 15. Upgrade slides to free space.",
       "Oct 1 — Market animals listed expensive first: horse, cow, pig, sheep, chicken.",
@@ -7178,25 +7180,61 @@ async function buySilo() {
         cornStalk(Math.max(0, t - 0.02), 24) +
         '</svg>';
     }
-    function plotInner(plot) {
-      function rosterChip(plot) {
-        var job = (state.roster || []).find(function (j) { return j.plotId === plot.id; });
-        if (!job) return "";
-        var pet = (state.pets || []).find(function (p) { return p.id === job.petId; });
-        var spec = pet && BEASTS[pet.species];
-        var name = spec ? spec.name : "Pet";
-        var hungry = (state.carrots || 0) < 1 || (job.status && job.status.indexOf("no carrots") !== -1);
-        var off = hungry || (job.status && job.status.indexOf("Stopped") === 0);
-        var hop = 0;
-        var squash = 1;
-        if (!hungry) {
-          var phase = (Date.now() % 520) / 520;
-          hop = Math.round(-16 * Math.sin(phase * Math.PI));
-          squash = phase < 0.15 || phase > 0.85 ? 0.82 : 1;
-        }
-        var petEl = '<div class="plot-pet' + (hungry ? " sleep" : " hop") + '" style="transform:translateY(' + hop + 'px) scaleY(' + squash + ')"><i></i>' + (hungry ? '<span class="zzz">z z z</span>' : "") + '</div>';
-        return petEl + '<div class="roster-chip' + (off ? " off" : "") + '">' + name + '</div>';
+    function plotPetInfo(plot) {
+      var job = (state.roster || []).find(function (j) { return j.plotId === plot.id; });
+      if (!job) return null;
+      var pet = (state.pets || []).find(function (p) { return p.id === job.petId; });
+      var spec = pet && BEASTS[pet.species];
+      var name = spec ? spec.name : "Pet";
+      var status = job.status || "";
+      var sleep = (state.carrots || 0) < 1 || status.indexOf("Stopped") === 0 || status.indexOf("full") !== -1 || status.indexOf("missing") !== -1;
+      return { name: name, sleep: sleep, off: sleep };
+    }
+    function ensurePlotPet(el, plot) {
+      var info = plotPetInfo(plot);
+      var pet = el.querySelector(".plot-pet");
+      var chip = el.querySelector(".roster-chip");
+      if (!info) {
+        if (pet) pet.remove();
+        if (chip) chip.remove();
+        return;
       }
+      var mode = info.sleep ? "sleep" : "hop";
+      if (!pet) {
+        pet = document.createElement("div");
+        pet.className = "plot-pet " + mode;
+        pet.innerHTML = info.sleep ? "<i></i><span class=\"zzz\">z z z</span>" : "<i></i>";
+        el.appendChild(pet);
+      } else if (!pet.classList.contains(mode)) {
+        pet.className = "plot-pet " + mode;
+        pet.innerHTML = info.sleep ? "<i></i><span class=\"zzz\">z z z</span>" : "<i></i>";
+      }
+      if (!chip) {
+        chip = document.createElement("div");
+        chip.className = "roster-chip" + (info.off ? " off" : "");
+        chip.textContent = info.name;
+        el.appendChild(chip);
+      } else {
+        chip.textContent = info.name;
+        chip.classList.toggle("off", info.off);
+      }
+    }
+    function tickPlotPets() {
+      var t = Date.now();
+      document.querySelectorAll(".tile.plot .plot-pet").forEach(function (pet) {
+        if (pet.classList.contains("sleep")) {
+          var s = Math.sin(t / 380);
+          pet.style.transform = "translateY(" + (s > 0 ? 1 : 0) + "px) rotate(" + (s * -7).toFixed(1) + "deg)";
+          return;
+        }
+        var phase = (t % 520) / 520;
+        var y = Math.round(-22 * Math.sin(phase * Math.PI));
+        var squash = (phase < 0.14 || phase > 0.84) ? 0.74 : 1;
+        pet.style.transform = "translateY(" + y + "px) scale(" + (1 + (y < -8 ? 0.06 : 0)) + "," + squash + ")";
+      });
+    }
+    function plotInner(plot) {
+      function rosterChip() { return ""; }
       if (!plot.crop) {
         return '<div class="label">empty plot</div>' + rosterChip(plot);
       }
@@ -7362,10 +7400,16 @@ async function buySilo() {
       if (keepShed) keepShed.remove();
       const keepHorse = grid.querySelector(".tile.horse");
       if (keepHorse) keepHorse.remove();
+      const keptPlots = {};
+      grid.querySelectorAll(".tile.plot").forEach(function (node) {
+        if (node.dataset.id) keptPlots[node.dataset.id] = node;
+      });
       grid.innerHTML = "";
 
       state.plots.forEach((plot) => {
-        const el = document.createElement("div");
+        const el = keptPlots[plot.id] || document.createElement("div");
+        const fresh = !keptPlots[plot.id];
+        el.dataset.id = plot.id;
         el.className = "tile plot";
         if ((state.roster || []).some(function (j) { return j.plotId === plot.id; })) el.classList.add("tended");
         if (plot.crop && plot.crop.stage === "dry") el.classList.add("needs-water");
@@ -7375,8 +7419,29 @@ async function buySilo() {
           el.classList.add("growing-crop");
         }
         placeEl(el, plot.x, plot.y, 1, "plot");
-        el.innerHTML = plotInner(plot);
-        bindTile(el, "plot", plot);
+        var face = el.querySelector(".plot-face");
+        var faceHtml = plotInner(plot);
+        var faceSig = (plot.crop ? plot.crop.type + ":" + plot.crop.stage : "empty") + ":" + (cropReady(plot) ? "ready" : "work");
+        if (!face || face.dataset.sig !== faceSig) {
+          var holder = document.createElement("div");
+          holder.className = "plot-face";
+          holder.dataset.sig = faceSig;
+          holder.innerHTML = faceHtml;
+          if (face) face.replaceWith(holder);
+          else el.insertBefore(holder, el.firstChild);
+        } else {
+          var nextLab = faceHtml.match(/class="timer">([^<]*)</);
+          var timer = face.querySelector(".timer");
+          if (timer && nextLab) timer.textContent = nextLab[1];
+          var nextBar = faceHtml.match(/crop-grow"><i style="width:(\d+)%/);
+          var bar = face.querySelector(".crop-grow i");
+          if (bar && nextBar) bar.style.width = nextBar[1] + "%";
+        }
+        ensurePlotPet(el, plot);
+        if (fresh || !el.dataset.bound) {
+          el.dataset.bound = "1";
+          bindTile(el, "plot", plot);
+        }
         grid.appendChild(el);
       });
 
@@ -8449,6 +8514,7 @@ async function buySilo() {
           fillBarn();
         }
       }
+      if (typeof tickPlotPets === "function") tickPlotPets();
       requestAnimationFrame(loop);
     }
 
