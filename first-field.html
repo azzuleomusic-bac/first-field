@@ -66,6 +66,9 @@
     }
     .brand span { color: var(--gold); font-weight: 500; font-size: 10px; display: block; }
     .head-tools { grid-area: tools; display: flex; gap: 6px; align-items: center; }
+    #xp-bar { grid-column: 1 / -1; position: relative; height: 16px; margin-top: 6px; border-radius: 99px; background: rgba(0,0,0,0.35); overflow: hidden; }
+    #xp-fill { display: block; height: 100%; width: 0; background: #e8c36a; }
+    #xp-label { position: absolute; inset: 0; text-align: center; font-size: 10px; line-height: 16px; color: #1c140e; font-weight: 700; }
     .stats {
       grid-area: stats;
       display: grid;
@@ -450,6 +453,30 @@
       18% { transform: rotate(-12deg) translate(2%, 2%); }
       100% { transform: rotate(-82deg) translate(18%, 22%); opacity: 0.15; }
     }
+    .tile.house { background: transparent; border: 0; box-shadow: none; z-index: 4; }
+    .house-shack .house-wall { height: 42%; background: #8a7a62; }
+    .house-shack .house-roof { background: #5a4030; }
+    .house-cabin .house-wall { height: 52%; background: #cbbfa6; }
+    .house-cabin .house-roof { background: #8a3c28; }
+    .house-farmhouse .house-wall { left: 12%; right: 12%; height: 60%; background: #e6dcc4; }
+    .house-farmhouse .house-roof { background: #6a3030; }
+    .house-farmhouse .house-win { position: absolute; left: 22%; top: 48%; width: 14%; height: 16%; background: #7fd0c8; }
+    .house-manor .house-wall { left: 10%; right: 10%; height: 64%; background: #efe6cf; border-color: #c9a227; }
+    .house-manor .house-roof { background: #4a3038; }
+    .house-manor .house-win { position: absolute; left: 62%; top: 46%; width: 14%; height: 16%; background: #e8c36a; }
+    .house-mansion .house-wall { left: 6%; right: 6%; height: 70%; background: #f3e6c8; border-color: #e8c36a; }
+    .house-mansion .house-roof { left: 2%; right: 2%; background: #2a2420; }
+    .house-mansion .house-door { background: #c9a227; }
+    .house-mansion .house-win { position: absolute; left: 18%; top: 42%; width: 16%; height: 18%; background: #7fd0c8; box-shadow: 28px 0 0 #7fd0c8; }
+    .house-art { width: 100%; height: 78%; position: relative; }
+    .house-wall { position: absolute; left: 18%; right: 18%; bottom: 0; height: 58%; background: #cbbfa6; border: 2px solid #6a5030; }
+    .house-roof { position: absolute; left: 8%; right: 8%; top: 8%; height: 42%; background: #8a3c28; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+    .house-door { position: absolute; left: 38%; width: 24%; bottom: 0; height: 46%; background: #6a5030; }
+    #house-panel { display: none; position: fixed; inset: 0; z-index: 940; overflow-y: auto; padding: calc(var(--safe-top) + 16px) 16px calc(var(--safe-bot) + 24px); color: #efe6cf; background: #14241a; }
+    #house-panel.open { display: block; }
+    #house-panel .house-xp { position: relative; height: 18px; margin: 8px 0 12px; border-radius: 99px; background: rgba(0,0,0,0.35); overflow: hidden; }
+    #house-xp-fill { display: block; height: 100%; width: 0; background: #e8c36a; }
+    #house-xp-label { position: absolute; inset: 0; text-align: center; font-size: 11px; line-height: 18px; color: #1c140e; font-weight: 700; }
     .tile.well {
       background: transparent;
       border: 0;
@@ -1647,7 +1674,11 @@
       padding: 12px;
       color: var(--cream);
     }
-    #market-panel.open, #craft-panel.open, #barn-panel.open, #silo-panel.open, #worth-panel.open, #mine-panel.open, #forest-panel.open, #adventure-panel.open, #clan-panel.open { display: block; }
+    #market-panel.open, #craft-panel.open, #barn-panel.open, #silo-panel.open, #worth-panel.open, #mine-panel.open, #forest-panel.open, #adventure-panel.open, #clan-panel.open, #rank-panel.open, #visit-panel.open { display: block; }
+    #rank-panel, #visit-panel { display: none; position: fixed; inset: 0; z-index: 940; overflow-y: auto; padding: calc(var(--safe-top) + 16px) 16px calc(var(--safe-bot) + 24px); color: #efe6cf; background: #14241a; }
+    #rank-panel.open, #visit-panel.open { display: block; }
+    #visit-map { position: relative; height: 220px; margin: 8px 0; border-radius: 14px; background: #1c3a28; border: 1px solid rgba(232,195,106,0.35); }
+    #visit-map i { position: absolute; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 8px; display: grid; place-items: center; font-style: normal; background: #14241a; }
     #beast-panel.open { display: block; }
     #fight-pet { width: 64px; height: 52px; margin: 0 auto 4px; }
     #fight-pet svg { width: 64px; height: 52px; display: block; transform: scaleX(-1); }
@@ -2058,6 +2089,7 @@
         <div class="pill" id="stat-carrot-top">🥕 0/20</div>
         <div class="pill" id="stat-sats">⚡ 0 sats</div>
       </div>
+      <div id="xp-bar" aria-label="Farm level"><i id="xp-fill"></i><span id="xp-label">Lv 1</span></div>
     </header>
     <div id="set-panel" aria-hidden="true">
       <h3>Sound</h3>
@@ -2075,6 +2107,21 @@
       <div id="grid"></div>
       <div id="pet-hop-layer"></div>
       </div>
+      <div id="rank-panel" aria-hidden="true">
+        <h3>Rank</h3>
+        <p class="adv-kicker">World board by farm worth. Visit only people on this list.</p>
+        <p id="rank-you"></p>
+        <ul id="rank-list"></ul>
+        <button type="button" id="rank-share">Share farm</button>
+        <button type="button" class="ghost" id="rank-close">Close</button>
+      </div>
+      <div id="visit-panel" aria-hidden="true">
+        <h3 id="visit-name">Visit</h3>
+        <p id="visit-note"></p>
+        <div id="visit-map"></div>
+        <ul id="visit-list"></ul>
+        <button type="button" class="ghost" id="visit-close">Leave</button>
+      </div>
       <div id="worth-panel" aria-hidden="true">
         <h3>Farm worth</h3>
         <ul id="worth-list"></ul>
@@ -2083,6 +2130,15 @@
       <div id="market-panel" aria-hidden="true">
         <h3>Market</h3>
         <p class="disclaimer">Demo market to simulate the future online market. Prices shown do not reflect future value. Visual sats only — no real Bitcoin yet.</p>
+        <p id="player-level"></p>
+        <div class="adv-row" id="level-shop"></div>
+      <div id="house-panel" aria-hidden="true">
+        <h3>House</h3>
+        <p id="house-level"></p>
+        <div class="house-xp"><i id="house-xp-fill"></i><span id="house-xp-label">Lv 1</span></div>
+        <ul id="house-unlocks"></ul>
+        <button type="button" class="ghost" id="house-close">Close</button>
+      </div>
         <div class="modes three" id="market-tabs" style="margin-bottom:8px">
           <button type="button" id="mtab-resources">Sell</button>
           <button type="button" id="mtab-seeds">Seeds</button>
@@ -2390,6 +2446,7 @@
       <div class="tools" style="grid-template-columns:1fr 1fr 1fr">
         <button type="button" id="mode-farm" class="active">Farm</button>
         <button type="button" id="tool-adventure">Adventure</button>
+        <button type="button" id="tool-rank">Rank</button>
         <button type="button" id="tool-clan">Clan</button>
       </div>
       <div class="hint" id="hint">Tap a plot to plant. Tap the well to fill your can.</div>
@@ -2478,6 +2535,7 @@
       wellAcc: 0,
       well: { x: 0.14, y: 0.14 },
       wells: [{ id: "w1", x: 0.14, y: 0.14, water: 3, acc: 0 }],
+      house: { x: 0.16, y: 0.58 },
       marketTab: "resources",
       resSide: "buy",
       tidyCorner: 0,
@@ -2520,6 +2578,8 @@
       apples: 0,
       trees: [],
       sats: FF.starterSats,
+      playerXp: 0,
+      unlocks: {},
       starterSats: true,
       hideZero: false,
       autoUntil: 0,
@@ -2623,6 +2683,8 @@
         coop: state.coop,
         silos: state.silos,
         sats: state.sats,
+        playerXp: state.playerXp || 0,
+        unlocks: state.unlocks || {},
         starterSats: !!state.starterSats,
         pack30: !!state.pack30,
         testVeg20: !!state.testVeg20,
@@ -4663,6 +4725,12 @@ function autoTick() {
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Oct 3 — House skin follows level. Shack, cabin, farmhouse, manor, mansion.",
+      "Oct 3 — Player house. Tap it for level, the XP bar, and every unlock.",
+      "Oct 3 — Farm level from harvest and the well. Level 2, 3, and 5 unlock market buys.",
+      "Oct 3 — Clan offerings. Rank is who gave the most. Carrot, egg, milk, lumber, rock.",
+      "Oct 3 — Visit is a server card. Share farm writes the public copy. Leave does not touch your save.",
+      "Oct 3 — Rank board is farm worth. Biggest farm, virtual sats, not cash.",
       "Oct 3 — Lake job is fishing. Only lake beasts show up. Minnow and crab can work a well.",
       "Oct 3 — Adventure Lake: Reed & Ruin. Five chapters, two water beasts each.",
       "Oct 2 — Job, loot, and pet buttons have a wider tap area so a near miss still counts.",
@@ -6390,7 +6458,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (wrap) wrap.classList.remove("scene");
       state.inClan = false;
       document.body.classList.remove("in-clan");
-      ["market-panel", "shed-panel", "log-panel", "craft-panel", "kitchen-panel", "tailor-panel", "barn-panel", "silo-panel", "csilo-panel", "smith-panel", "worth-panel", "mine-panel", "forest-panel", "adventure-panel", "clan-panel", "set-panel"].forEach((id) => {
+      ["market-panel", "shed-panel", "log-panel", "craft-panel", "kitchen-panel", "tailor-panel", "barn-panel", "silo-panel", "csilo-panel", "smith-panel", "worth-panel", "mine-panel", "forest-panel", "adventure-panel", "clan-panel", "set-panel", "rank-panel", "visit-panel", "house-panel"].forEach((id) => {
         const el = document.getElementById(id);
         if (!el) return;
         el.classList.remove("open");
@@ -6498,12 +6566,103 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         el.textContent = "You have " + n + " " + (names[k] || k);
       });
     }
+    function playerLevel() { return 1 + Math.floor((state.playerXp || 0) / 20); }
+    function houseStage() {
+      const lvl = playerLevel();
+      if (lvl >= 10) return { id: "mansion", name: "Mansion" };
+      if (lvl >= 7) return { id: "manor", name: "Manor" };
+      if (lvl >= 5) return { id: "farmhouse", name: "Farmhouse" };
+      if (lvl >= 3) return { id: "cabin", name: "Cabin" };
+      return { id: "shack", name: "Shack" };
+    }
+    function addFarmXp(n, why) {
+      const before = playerLevel();
+      state.playerXp = (state.playerXp || 0) + n;
+      const after = playerLevel();
+      if (after > before) toast("Farm level " + after);
+      paintXpBar();
+    }
+    function paintXpBar() {
+      const fill = document.getElementById("xp-fill");
+      const label = document.getElementById("xp-label");
+      if (!fill || !label) return;
+      const into = (state.playerXp || 0) % 20;
+      fill.style.width = Math.round(into / 20 * 100) + "%";
+      label.textContent = "Lv " + playerLevel() + " · " + into + "/20";
+    }
+    const LEVEL_SHOP = [
+      { id: "seeds", lvl: 2, cost: 30, label: "Seed sack" },
+      { id: "scarecrow", lvl: 3, cost: 60, label: "Scarecrow" },
+      { id: "bell", lvl: 5, cost: 100, label: "Barn bell" },
+      { id: "well2", lvl: 7, cost: 0, label: "Second well", later: true },
+      { id: "apple", lvl: 9, cost: 0, label: "Apple tree", later: true },
+      { id: "skiff", lvl: 12, cost: 0, label: "Fishing skiff", later: true }
+    ];
+    function paintLevelShop() {
+      const line = document.getElementById("player-level");
+      const box = document.getElementById("level-shop");
+      if (!line || !box) return;
+      const lvl = playerLevel();
+      const into = (state.playerXp || 0) % 20;
+      line.textContent = "Farm level " + lvl + " · " + into + "/20 to next. Harvest and the well raise it.";
+      state.unlocks = state.unlocks || {};
+      box.innerHTML = "";
+      LEVEL_SHOP.forEach(function (item) {
+        const b = document.createElement("button");
+        b.type = "button";
+        const owned = !!state.unlocks[item.id];
+        b.textContent = owned ? item.label + " owned" : item.label + " · lvl " + item.lvl + " · " + item.cost;
+        b.disabled = owned || lvl < item.lvl;
+        b.onclick = function () {
+          if (playerLevel() < item.lvl) { toast("Level " + item.lvl + " unlocks this"); return; }
+          if ((state.sats || 0) < item.cost) { toast("Not enough sats"); return; }
+          state.sats -= item.cost;
+          state.unlocks[item.id] = true;
+          if (item.id === "seeds") state.carrotSeeds = (state.carrotSeeds || 0) + 5;
+          save();
+          toast(item.label + " bought");
+          paintLevelShop();
+          render();
+        };
+        box.appendChild(b);
+      });
+    }
+    function openHouse() {
+      closeAllTabs();
+      const pan = document.getElementById("house-panel");
+      if (!pan) return;
+      if (pan.parentElement !== document.body) document.body.appendChild(pan);
+      const lvl = playerLevel();
+      const into = (state.playerXp || 0) % 20;
+      document.getElementById("house-level").textContent = "Level " + lvl + " · " + houseStage().name + " · " + (state.playerXp || 0) + " xp · " + into + "/20 to next";
+      const fill = document.getElementById("house-xp-fill");
+      const lab = document.getElementById("house-xp-label");
+      if (fill) fill.style.width = Math.round(into / 20 * 100) + "%";
+      if (lab) lab.textContent = "Lv " + lvl + " · " + into + "/20";
+      state.unlocks = state.unlocks || {};
+      const list = document.getElementById("house-unlocks");
+      list.innerHTML = "";
+      LEVEL_SHOP.forEach(function (item) {
+        const li = document.createElement("li");
+        const owned = !!state.unlocks[item.id];
+        const open = lvl >= item.lvl;
+        li.textContent = "Lv " + item.lvl + " · " + item.label + (item.later ? " · later" : " · " + item.cost + " sats") + (owned ? " · unlocked" : open ? " · ready" : " · locked");
+        if (owned) li.style.color = "#e8c36a";
+        list.appendChild(li);
+      });
+      pan.classList.add("open");
+      pan.style.display = "block";
+      pan.setAttribute("aria-hidden", "false");
+      const closer = document.getElementById("house-close");
+      if (closer) closer.onclick = function () { pan.classList.remove("open"); pan.style.display = "none"; };
+    }
     function openMarket(force) {
       const pan = document.getElementById("market-panel");
       const wasOpen = pan && pan.classList.contains("open");
       closeAllTabs();
       if (wasOpen && !force) return;
       showMarketTab(state.marketTab || "resources");
+      paintLevelShop();
       showResCat(state.resCat || "feed");
       showCraftSell(state.craftSell || "food");
       showAssetSide(state.assetSide || "animals");
@@ -7444,6 +7603,7 @@ async function buySilo() {
         floatGain(well.x, well.y, "💧 +" + take);
       }
       toast("+" + take + " water");
+      addFarmXp(2, "Well");
       save();
       render();
     }
@@ -7505,6 +7665,7 @@ async function buySilo() {
       const icon = c.cropKey === "corn" ? "🌽" : "🥕";
       floatGain(plot.x, plot.y, icon + " +" + y);
       toast("Harvest +" + y + " " + c.label);
+      addFarmXp(4, "Harvest");
       save();
       render();
       setTimeout(function () {
@@ -7712,6 +7873,7 @@ async function buySilo() {
       fixNums();
       paintMine();
       paintForest();
+      if (typeof paintXpBar === "function") paintXpBar();
       const sw = document.getElementById("stat-water");
       if (sw) sw.textContent = "💧 " + state.water + "/" + waterMax();
       const sc = document.getElementById("stat-corn-top");
@@ -7819,6 +7981,15 @@ async function buySilo() {
         bindTile(well, "well", w);
         grid.appendChild(well);
       });
+      if (!state.house) state.house = { x: 0.16, y: 0.58 };
+      const house = document.createElement("div");
+      house.className = "tile house";
+      placeEl(house, state.house.x, state.house.y, 1, "house");
+      const stage = houseStage();
+      house.className = "tile house house-" + stage.id;
+      house.innerHTML = '<div class="house-art"><div class="house-roof"></div><div class="house-wall"></div><div class="house-door"></div><div class="house-win"></div></div><div class="label">' + stage.name + "</div>";
+      house.onclick = function (ev) { ev.preventDefault(); ev.stopPropagation(); openHouse(); };
+      grid.appendChild(house);
 
       (state.carrotSilos || []).forEach((s) => {
         const el = document.createElement("div");
@@ -8327,6 +8498,109 @@ async function buySilo() {
       pan.style.pointerEvents = "auto";
       pan.setAttribute("aria-hidden", "false");
     }
+    const PUBLIC_KEY = "first-field-public";
+    function rivalCards() {
+      return [
+        { id: "reed", name: "Reed Camp", worth: 8400, plots: 8, wells: 2, barns: 3, animals: 12, pins: [{ x: 0.3, y: 0.3, mark: "🌾" }, { x: 0.62, y: 0.22, mark: "💧" }, { x: 0.4, y: 0.7, mark: "🐄" }] },
+        { id: "pier", name: "Pier Row", worth: 5100, plots: 6, wells: 1, barns: 2, animals: 7, pins: [{ x: 0.22, y: 0.4, mark: "🌾" }, { x: 0.7, y: 0.55, mark: "💧" }] },
+        { id: "still", name: "Still Net", worth: 2600, plots: 4, wells: 1, barns: 1, animals: 3, pins: [{ x: 0.5, y: 0.45, mark: "🌾" }, { x: 0.28, y: 0.72, mark: "💧" }] }
+      ];
+    }
+    function publicCard() {
+      return {
+        id: "you",
+        name: "You",
+        worth: farmWorth(),
+        plots: (state.plots || []).length,
+        wells: (state.wells || []).length,
+        barns: (state.shed ? 1 : 0) + (state.coop ? 1 : 0) + (state.horseShed ? 1 : 0) + (state.sheepPen ? 1 : 0) + (state.pigPen ? 1 : 0),
+        animals: (state.shed && state.shed.cows ? state.shed.cows.length : 0),
+        pins: (state.plots || []).slice(0, 6).map(function (plot) { return { x: plot.x, y: plot.y, mark: "🌾" }; }).concat((state.wells || []).slice(0, 2).map(function (well) { return { x: well.x, y: well.y, mark: "💧" }; }))
+      };
+    }
+    function boardRows() {
+      const mine = loadPublic();
+      return rivalCards().concat([Object.assign({ you: true, onBoard: true }, mine)]).sort(function (a, b) { return b.worth - a.worth; });
+    }
+    function sharePublic() {
+      const card = Object.assign({ onBoard: true }, publicCard());
+      try { localStorage.setItem(PUBLIC_KEY, JSON.stringify(card)); } catch (e) {}
+      toast("You are on the board. People can visit this card.");
+      paintRank();
+    }
+    function loadPublic() {
+      try {
+        const raw = localStorage.getItem(PUBLIC_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+      return publicCard();
+    }
+    function openVisit(card) {
+      closeAllTabs();
+      const pan = document.getElementById("visit-panel");
+      if (!pan || !card) return;
+      if (pan.parentElement !== document.body) document.body.appendChild(pan);
+      document.getElementById("visit-name").textContent = card.name;
+      document.getElementById("visit-note").textContent = "Ranked farm · read only · worth " + card.worth + " · your save stays put";
+      const map = document.getElementById("visit-map");
+      map.innerHTML = "";
+      (card.pins || []).forEach(function (pin) {
+        const dot = document.createElement("i");
+        dot.textContent = pin.mark;
+        dot.style.left = Math.round(pin.x * 100) + "%";
+        dot.style.top = Math.round(pin.y * 100) + "%";
+        map.appendChild(dot);
+      });
+      document.getElementById("visit-list").innerHTML = "<li>" + card.plots + " plots</li><li>" + card.wells + " wells</li><li>" + card.barns + " barns</li><li>" + card.animals + " animals</li>";
+      pan.classList.add("open");
+      pan.style.display = "block";
+      pan.style.zIndex = "920";
+      pan.style.pointerEvents = "auto";
+      pan.setAttribute("aria-hidden", "false");
+      const closer = document.getElementById("visit-close");
+      if (closer) closer.onclick = function () { pan.classList.remove("open"); pan.style.display = "none"; openRank(); };
+    }
+    function paintRank() {
+      const you = document.getElementById("rank-you");
+      const list = document.getElementById("rank-list");
+      if (!list) return;
+      const rows = boardRows();
+      const mine = rows.filter(function (row) { return row.you; })[0];
+      const place = rows.findIndex(function (row) { return row.you; }) + 1;
+      if (you) you.textContent = "You are #" + place + " · " + mine.worth + " sats. Visit is only for a ranked farm.";
+      list.innerHTML = "";
+      rows.forEach(function (row, i) {
+        const li = document.createElement("li");
+        li.textContent = (i + 1) + ". " + row.name + " · " + row.worth + " ";
+        if (row.you) li.style.color = "#e8c36a";
+        const go = document.createElement("button");
+        go.type = "button";
+        go.textContent = "Visit";
+        go.onclick = function () {
+          const card = row.you ? loadPublic() : row;
+          if (!card || !card.id) { toast("Not on the board"); return; }
+          openVisit(card);
+        };
+        li.appendChild(go);
+        list.appendChild(li);
+      });
+    }
+    function openRank() {
+      closeAllTabs();
+      const pan = document.getElementById("rank-panel");
+      if (!pan) return;
+      if (pan.parentElement !== document.body) document.body.appendChild(pan);
+      try { paintRank(); } catch (e) { pan.insertAdjacentHTML("beforeend", "<p>Board failed to paint.</p>"); }
+      pan.classList.add("open");
+      pan.style.display = "block";
+      pan.style.zIndex = "940";
+      pan.style.pointerEvents = "auto";
+      pan.setAttribute("aria-hidden", "false");
+      const closer = document.getElementById("rank-close");
+      if (closer) closer.onclick = function () { pan.classList.remove("open"); pan.style.display = "none"; };
+      const share = document.getElementById("rank-share");
+      if (share) share.onclick = sharePublic;
+    }
     function openAdventure() {
       closeAllTabs();
       setAdventureWorld(true);
@@ -8388,13 +8662,49 @@ async function buySilo() {
       }
       if (title) title.textContent = state.clan.name || "CLAN";
       const sheet = state.clan.sheet || "tower";
-      world.innerHTML = "<div class=\"clan-scene\"><button type=\"button\" class=\"clan-tower\" id=\"clan-tower\"><div class=\"clan-stone\"><div class=\"clan-win\"></div></div><small>Tower lvl " + state.clan.tower + "</small></button><div class=\"clan-relics\"><button type=\"button\" data-relic=\"harvest\">Harvest +" + state.clan.relics.harvest + "%</button><button type=\"button\" data-relic=\"forest\">Forest +" + state.clan.relics.forest + "%</button><button type=\"button\" data-relic=\"mine\">Mine +" + state.clan.relics.mine + "%</button></div></div><div class=\"clan-sheet\" id=\"clan-sheet\"></div>";
+      world.innerHTML = "<div class=\"clan-scene\"><button type=\"button\" class=\"clan-tower\" id=\"clan-tower\"><div class=\"clan-stone\"><div class=\"clan-win\"></div></div><small>Tower lvl " + state.clan.tower + "</small></button><div class=\"clan-relics\"><button type=\"button\" data-relic=\"offerings\">Offerings</button><button type=\"button\" data-relic=\"harvest\">Harvest +" + state.clan.relics.harvest + "%</button><button type=\"button\" data-relic=\"forest\">Forest +" + state.clan.relics.forest + "%</button><button type=\"button\" data-relic=\"mine\">Mine +" + state.clan.relics.mine + "%</button></div></div><div class=\"clan-sheet\" id=\"clan-sheet\"></div>";
       document.getElementById("clan-tower").onclick = function () { state.clan.sheet = "tower"; paintClan(); };
       world.querySelectorAll("[data-relic]").forEach(function (b) {
         b.onclick = function () { state.clan.sheet = b.dataset.relic; paintClan(); };
       });
       if (sheet === "tower") paintClanTower();
+      else if (sheet === "offerings") paintClanOfferings();
       else paintClanRelic(sheet);
+    }
+    function giveOffering(kind) {
+      ensureClan();
+      const points = { carrot: 2, milk: 4, egg: 3, lumber: 1, rock: 1 }[kind];
+      const key = { carrot: "carrots", milk: "milk", egg: "eggs", lumber: "lumber", rock: "rocks" }[kind];
+      if ((state[key] || 0) < 1) { toast("Not enough " + kind); return; }
+      state[key] -= 1;
+      state.clan.offerScore = (state.clan.offerScore || 0) + points;
+      save();
+      paintClan();
+      render();
+      toast("Offering +" + points);
+    }
+    function paintClanOfferings() {
+      ensureClan();
+      const you = state.clan.offerScore || 0;
+      const rows = [
+        { name: "Reed Camp", score: 48 },
+        { name: "Pier Row", score: 27 },
+        { name: "Still Net", score: 11 },
+        { name: "You", score: you, you: true }
+      ].sort(function (a, b) { return b.score - a.score; });
+      const sheet = document.getElementById("clan-sheet");
+      const place = rows.findIndex(function (row) { return row.you; }) + 1;
+      sheet.innerHTML = "<h4>Offerings</h4><p>You are #" + place + " · " + you + " given. Carrot 2, egg 3, milk 4, lumber or rock 1. Stand-in members until the clan is online.</p><div class=\"adv-row\"><button type=\"button\" data-give=\"carrot\">Give carrot</button><button type=\"button\" data-give=\"egg\">Give egg</button><button type=\"button\" data-give=\"milk\">Give milk</button><button type=\"button\" data-give=\"lumber\">Give lumber</button><button type=\"button\" data-give=\"rock\">Give rock</button></div><ul id=\"offer-list\"></ul>";
+      sheet.querySelectorAll("[data-give]").forEach(function (b) {
+        b.onclick = function () { giveOffering(b.dataset.give); };
+      });
+      const list = document.getElementById("offer-list");
+      rows.forEach(function (row, i) {
+        const li = document.createElement("li");
+        li.textContent = (i + 1) + ". " + row.name + " · " + row.score;
+        if (row.you) li.style.color = "#e8c36a";
+        list.appendChild(li);
+      });
     }
     function paintClanTower() {
       ensureClan();
@@ -8501,6 +8811,8 @@ async function buySilo() {
       pan.setAttribute("aria-hidden", "true");
     }
 
+    const rankBtn = document.getElementById("tool-rank");
+    if (rankBtn) rankBtn.onclick = function () { openRank(); };
     const advBtn = document.getElementById("tool-adventure");
     if (advBtn) advBtn.onclick = () => { state.mode = "farm"; openAdventure(); render(); };
     const clanBtn = document.getElementById("tool-clan");
