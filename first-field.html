@@ -2140,6 +2140,7 @@
         <button type="button" id="pond-add">Put fish in</button>
         <button type="button" id="pond-feed">Feed</button>
         <button type="button" id="pond-take">Collect</button>
+        <button type="button" id="pond-up">Upgrade</button>
         <button type="button" class="ghost" id="pond-close">Close</button>
       </div>
       <div id="petbed-panel" aria-hidden="true">
@@ -6943,7 +6944,13 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         return { w: 2 + (u >= 2 ? 1 : 0), h: 3 + u };
       }
       if (kind === "smith" || kind === "kitchen" || kind === "tailor") return { w: 3, h: 3 };
-      if (kind === "petbed" || kind === "house" || kind === "pond") return { w: 2, h: 2 };
+      if (kind === "petbed" || kind === "house") return { w: 2, h: 2 };
+      if (kind === "pond") {
+        const lvl = Math.max(1, (item && item.level) || 1);
+        if (lvl >= 3) return { w: 4, h: 4 };
+        if (lvl >= 2) return { w: 3, h: 3 };
+        return { w: 2, h: 2 };
+      }
       if (kind === "shed" || kind === "coop" || kind === "horse" || kind === "sheep" || kind === "pig") {
         const b = item || animalBuilding(kind);
         if (kind === "shed" || kind === "horse") {
@@ -7493,12 +7500,12 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       const n = pond.count || 0;
       const left = pond.stage === "working" && pond.readyAt ? Math.max(0, pond.readyAt - now()) : 0;
       if (note) {
-        note.textContent = n
+        note.textContent = "Lvl " + Math.max(1, pond.level || 1) + " · " + (n
           ? (n + "/" + cap + " fish · bag " + (state.fish || 0) + " · corn " + (state.corn || 0) + ". " +
             (left
               ? ("Fed · " + fmtLeft(left) + " for " + (pond.pending || n) + " extra. Collect now takes the " + n + " and cancels the extras.")
               : ("Feed spends " + n + " corn for " + n + " extra. Collect takes all whenever.")))
-          : "Empty. Put lake fish in, up to " + cap + ". Bag " + (state.fish || 0) + ".";
+          : "empty. Bag " + (state.fish || 0) + ". Cap " + cap + ".");
       }
       const add = document.getElementById("pond-add");
       const feed = document.getElementById("pond-feed");
@@ -7550,6 +7557,40 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
           pond.stage = "empty";
           pond.readyAt = 0;
           toast("Collected " + have + " fish");
+          save();
+          render();
+          openPond(pond);
+        };
+      }
+      const up = document.getElementById("pond-up");
+      if (up) {
+        const lvl = Math.max(1, pond.level || 1);
+        up.textContent = lvl >= 3 ? "Max" : (lvl === 1 ? "Upgrade · 5⚡ + 10🪵" : "Upgrade · 15⚡ + 25🪵 + 25🪨");
+        up.disabled = lvl >= 3;
+        up.onclick = async function () {
+          const nowLvl = Math.max(1, pond.level || 1);
+          if (nowLvl >= 3) { toast("Pond is max"); return; }
+          const next = nowLvl + 1;
+          const cost = next === 2
+            ? { sats: 5, lumber: 10, rocks: 0, cap: 10, size: "3×3" }
+            : { sats: 15, lumber: 25, rocks: 25, cap: 15, size: "4×4" };
+          const bits = [cost.sats + " sats", cost.lumber + " lumber"];
+          if (cost.rocks) bits.push(cost.rocks + " rocks");
+          if (!(await askYes("Upgrade pond to level " + next + "?\n" + bits.join(" + ") + ".\nSize " + (next === 2 ? "2×2 → 3×3" : "3×3 → 4×4") + ".\nCap " + pondCap(pond) + " → " + cost.cap + "."))) return;
+          if ((state.sats || 0) < cost.sats) { toast("Need " + cost.sats + " sats"); return; }
+          if ((state.lumber || 0) < cost.lumber) { toast("Need " + cost.lumber + " lumber"); return; }
+          if (cost.rocks && (state.rocks || 0) < cost.rocks) { toast("Need " + cost.rocks + " rocks"); return; }
+          const ghost = Object.assign({}, pond, { level: next });
+          if (!roomFor("pond", ghost)) {
+            if (!(await askExpandFor("pond level " + next))) return;
+            if (!roomFor("pond", ghost)) { toast("Still no room. Expand again"); return; }
+          }
+          state.sats -= cost.sats;
+          state.lumber -= cost.lumber;
+          if (cost.rocks) state.rocks -= cost.rocks;
+          pond.level = next;
+          settleGrown("pond", pond);
+          toast("Pond lvl " + next + " · " + cost.size + " · " + cost.cap + " fish");
           save();
           render();
           openPond(pond);
