@@ -188,7 +188,9 @@
 
     .tile.petbed { background: #6a4a28; border-color: #e8c36a; }
     .tile.petbed svg { width: 100%; height: 100%; }
-    #petbed-panel { display: none; position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 960; background: #1c140e; color: #efe6cf; border: 1px solid #e8c36a; border-radius: 14px; padding: 12px; }
+    #petbed-panel, #pond-panel { display: none; position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 960; background: #1c140e; color: #efe6cf; border: 1px solid #e8c36a; border-radius: 14px; padding: 12px; }
+    #pond-panel.open { display: block; }
+    .tile.pond { background: #1d4e5c; border-color: #7fd0c8; }
     #petbed-panel.open { display: block; }
     #petbed-panel li { display: flex; justify-content: space-between; gap: 8px; margin: 6px 0; font-size: 13px; }
     .tile.kitchen, .tile.tailor {
@@ -2132,6 +2134,14 @@
         <ul id="worth-list"></ul>
         <button type="button" class="ghost" id="worth-close">Close</button>
       </div>
+      <div id="pond-panel" aria-hidden="true">
+        <h3>Fish pond</h3>
+        <p id="pond-note">Stock it with lake fish.</p>
+        <button type="button" id="pond-add">Put fish in</button>
+        <button type="button" id="pond-feed">Feed</button>
+        <button type="button" id="pond-take">Collect</button>
+        <button type="button" class="ghost" id="pond-close">Close</button>
+      </div>
       <div id="petbed-panel" aria-hidden="true">
         <h3>Pet bed</h3>
         <p id="petbed-note">Choose a pet to rest.</p>
@@ -2226,6 +2236,7 @@
           <div id="asset-farming-list" hidden>
             <div class="row"><span>5 ⚡ sats → apple tree</span><button type="button" id="buy-tree">Buy tree</button></div>
             <div class="row"><span>12 ⚡ sats → pet bed · 2×2</span><button type="button" id="buy-petbed">Buy pet bed</button></div>
+            <div class="row"><span>14 ⚡ sats → fish pond · 2×2</span><button type="button" id="buy-pond">Buy pond</button></div>
             <div class="row"><span>10 ⚡ sats → crop land</span><button type="button" id="buy-plot">Buy land</button></div>
           </div>
         </div>
@@ -2293,6 +2304,7 @@
         <div id="gear-box" hidden>
           <p>Miner gear</p>
           <div class="row"><span id="herb-inv">🌿 10 herbs</span><button type="button" id="consume-herb">Consume</button></div>
+          <div class="row"><span id="loot-inv">🍄 4 mushrooms · 🐟 4 fish</span></div>
           <p id="set-banner" hidden></p>
           <button type="button" id="wear-cloth-set" hidden>Wear cloth set</button>
           <button type="button" id="wear-leather-set" hidden>Wear leather set</button>
@@ -2485,6 +2497,7 @@
             <button type="button" id="pick-corn"><span class="seed-art">🌽</span><small>Corn</small></button>
             <button type="button" id="pick-carrot"><span class="seed-art">🥕</span><small>Carrot</small></button>
             <button type="button" id="pick-herb"><span class="seed-art">🌿</span><small>Herb</small></button>
+            <button type="button" id="pick-mushroom"><span class="seed-art">🍄</span><small>Mushroom</small></button>
           </div>
         </div>
       </div>
@@ -2533,7 +2546,8 @@
     const CROPS = {
       carrot: { emoji: "🥕", growMs: FF.carrotGrowMs, waterCost: 1, seedKey: "carrotSeeds", cropKey: "carrots", label: "carrot", yield: 2 },
       corn:   { emoji: "🌽", growMs: FF.cornGrowMs, waterCost: 1, seedKey: "cornSeeds",   cropKey: "corn",    label: "corn", yield: 3 },
-      herb:   { emoji: "🌿", growMs: FF.carrotGrowMs, waterCost: 1, seedKey: "herbs", cropKey: "herbs", label: "herb", yield: 1 }
+      herb:   { emoji: "🌿", growMs: FF.carrotGrowMs, waterCost: 1, seedKey: "herbs", cropKey: "herbs", label: "herb", yield: 1 },
+      mushroom: { emoji: "🍄", growMs: FF.carrotGrowMs, waterCost: 1, seedKey: "mushrooms", cropKey: "mushrooms", label: "mushroom", yield: 1 }
     };
 
     const state = {
@@ -2545,6 +2559,8 @@
       carrotSeeds: 0,
       cornSeeds: 15,
       herbs: 10,
+      mushrooms: 4,
+      fish: 4,
       wellWater: 3,
       wellAcc: 0,
       well: { x: 0.14, y: 0.14 },
@@ -2776,6 +2792,13 @@
         state.herbs = Math.max(10, state.herbs || 0);
         state.herbTest = true;
         state.marketLog.unshift({ at: now(), text: "Test pack +10 herbs" });
+      }
+      if (!state.pondTest) {
+        state.mushrooms = Math.max(4, state.mushrooms || 0);
+        state.fish = Math.max(4, state.fish || 0);
+        state.ponds = state.ponds || [];
+        if (!state.ponds.length) state.ponds.push({ id: "pond-test", x: 0.42, y: 0.78, stock: 0, tickAt: 0 });
+        state.pondTest = true;
       }
       if (!state.petBedRate) {
         state.petBeds = state.petBeds || [];
@@ -3046,7 +3069,7 @@ if (!state.demoSmithMats) {
       });
     }
     function fixNums() {
-      ["water","carrots","corn","carrotSeeds","cornSeeds","herbs","milk","eggs","pudding","pants","shirts","beanies","rocks","wool","horseHair","sats","apples","swords","lumber","truffles"].forEach((k) => {
+      ["water","carrots","corn","carrotSeeds","cornSeeds","herbs","mushrooms","fish","milk","eggs","pudding","pants","shirts","beanies","rocks","wool","horseHair","sats","apples","swords","lumber","truffles"].forEach((k) => {
         const n = Number(state[k]);
         state[k] = Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
       });
@@ -3194,6 +3217,7 @@ if (!state.demoSmithMats) {
       if (kind === "sheep") return "sheep";
       if (kind === "pig") return "pig";
       if (kind === "market") return "market";
+      if (kind === "house") return "house";
       return plot.id;
     }
 
@@ -3211,6 +3235,8 @@ if (!state.demoSmithMats) {
         .concat(pigs().length && state.pigPen && typeof state.pigPen.x === "number" ? [{ id: "pig", kind: "pig", x: state.pigPen.x, y: state.pigPen.y, scale: 1.15, level: state.pigPen.level }] : [])
         .concat((state.trees || []).map((tr) => ({ id: tr.id, kind: "tree", x: tr.x, y: tr.y, scale: 1.12 })))
         .concat((state.petBeds || []).map((b) => ({ id: b.id, kind: "petbed", x: b.x, y: b.y, scale: 1 })))
+        .concat((state.ponds || []).map((b) => ({ id: b.id, kind: "pond", x: b.x, y: b.y, scale: 1 })))
+        .concat(state.house ? [{ id: "house", kind: "house", x: state.house.x, y: state.house.y, scale: 1 }] : [])
         .concat(state.plots.map((pl) => ({ id: pl.id, kind: "plot", x: pl.x, y: pl.y, scale: 1 })));
     }
 
@@ -5717,6 +5743,10 @@ function autoTick() {
               state.herbs = (state.herbs || 0) + 1;
               parts.push({ kind: "herb", n: 1, label: "1 herb" });
             }
+            if (!forest && !lake && Math.random() < 0.55) {
+              state.mushrooms = (state.mushrooms || 0) + 1;
+              parts.push({ kind: "mushroom", n: 1, label: "1 cave mushroom" });
+            }
             const hurt = (state.pets || []).find(function (pet) { return pet.id === state.equippedPet; });
             if (hurt && (hurt.hp == null || hurt.hp > 0)) {
               hurt.hp = Math.max(0, (hurt.hp == null ? 20 : hurt.hp) - (4 + Math.floor(Math.random() * 4)));
@@ -6913,7 +6943,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         return { w: 2 + (u >= 2 ? 1 : 0), h: 3 + u };
       }
       if (kind === "smith" || kind === "kitchen" || kind === "tailor") return { w: 3, h: 3 };
-      if (kind === "petbed") return { w: 2, h: 2 };
+      if (kind === "petbed" || kind === "house" || kind === "pond") return { w: 2, h: 2 };
       if (kind === "shed" || kind === "coop" || kind === "horse" || kind === "sheep" || kind === "pig") {
         const b = item || animalBuilding(kind);
         if (kind === "shed" || kind === "horse") {
@@ -7049,6 +7079,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       (state.wells || []).forEach((p) => queue.push([p, "well"]));
       (state.trees || []).forEach((p) => queue.push([p, "tree"]));
       (state.petBeds || []).forEach((p) => queue.push([p, "petbed"]));
+      (state.ponds || []).forEach((p) => queue.push([p, "pond"]));
       let col = 0, row = 0, band = 0;
       const stuck = [];
       queue.forEach(function (pair) {
@@ -7127,6 +7158,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (kind === "crop land") return "plot";
       if (kind === "apple tree") return "tree";
       if (kind === "pet bed") return "petbed";
+      if (kind === "fish pond") return "pond";
       if (kind === "chicken coop") return "coop";
       if (kind === "sheep shed") return "sheep";
       if (kind === "horse shed") return "horse";
@@ -7429,6 +7461,59 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       save();
       render();
       if (typeof paintBeastInventory === "function") paintBeastInventory();
+    }
+    function tickPonds() {
+      (state.ponds || []).forEach(function (pond) {
+        if (pond.stage === "working" && pond.readyAt && now() >= pond.readyAt) pond.stage = "ready";
+      });
+    }
+    function onPondTap(pond) {
+      tickPonds();
+      pond.count = pond.count || (pond.stage && pond.stage !== "empty" ? 1 : 0);
+      pond.stage = pond.stage || "empty";
+      if (pond.stage === "ready") {
+        state.fish = (state.fish || 0) + 1;
+        pond.stage = "hungry";
+        pond.readyAt = 0;
+        toast("Collected 1 fish");
+        save();
+        render();
+        return;
+      }
+      if (pond.count < 2) {
+        if ((state.fish || 0) < 1) { toast("Need 2 fish in the pond"); return; }
+        state.fish -= 1;
+        pond.count += 1;
+        pond.stage = "hungry";
+        toast(pond.count < 2 ? "1 fish. Needs one more." : "2 fish. Feed to breed.");
+        save();
+        render();
+        return;
+      }
+      if (pond.stage === "hungry") {
+        if ((state.corn || 0) < 2) { toast("Need 2 corn"); return; }
+        state.corn -= 2;
+        pond.stage = "working";
+        pond.readyAt = now() + 12000;
+        toast("Fed");
+        save();
+        render();
+        return;
+      }
+      toast("Fish working");
+    }
+    async function buyPond() {
+      if (!(await askYes("Buy a fish pond for 14 sats? It covers 2×2. It stays empty until you add a lake fish."))) return;
+      if (state.sats < 14) { toast("Need 14 sats"); return; }
+      let spot = findSpot("pond");
+      if (!spot) spot = await needSpace("fish pond");
+      if (!spot) return;
+      state.sats -= 14;
+      state.ponds = state.ponds || [];
+      state.ponds.push({ id: "pond" + Date.now().toString(36), x: spot.x, y: spot.y, stock: 0, tickAt: 0 });
+      toast("Pond placed");
+      save();
+      render();
     }
     async function buyPetBed() {
       if (!(await askYes("Buy a pet bed for 12 sats? It covers 2×2."))) return;
@@ -7749,6 +7834,7 @@ async function buySilo() {
       const c = CROPS[type];
       if (state[c.seedKey] < 1) {
         if (type === "herb") { toast("No herbs — chop the Forest"); return; }
+        if (type === "mushroom") { toast("No mushrooms — mine for one"); return; }
         toast("No " + c.label + " seeds — buy some");
         state.tool = "sell";
         state.marketTab = "seeds";
@@ -7797,12 +7883,13 @@ async function buySilo() {
         if (room <= 0) { toast("Carrot silo full"); return; }
         if (y > room) y = room;
       }
-      if (c.cropKey === "herbs") y = 1 + (Math.random() < 0.5 ? 1 : 0);
+      if (c.cropKey === "herbs" || c.cropKey === "mushrooms") y = 1 + (Math.random() < 0.5 ? 1 : 0);
       state[c.cropKey] += y;
       plot.crop.stage = "crush";
-      const icon = c.cropKey === "corn" ? "🌽" : c.cropKey === "herbs" ? "🌿" : "🥕";
+      const icon = c.cropKey === "corn" ? "🌽" : c.cropKey === "herbs" ? "🌿" : c.cropKey === "mushrooms" ? "🍄" : "🥕";
       floatGain(plot.x, plot.y, icon + " +" + y);
-      toast("Harvest +" + y + " " + c.label + (c.cropKey === "herbs" ? (y === 2 ? " — doubled" : " — one back") : ""));
+      const doubled = c.cropKey === "herbs" || c.cropKey === "mushrooms";
+      toast("Harvest +" + y + " " + c.label + (doubled ? (y === 2 ? " — doubled" : " — one back") : ""));
       addFarmXp(4, "Harvest");
       save();
       render();
@@ -7824,7 +7911,7 @@ async function buySilo() {
         waterPlot(plot);
         return;
       }
-      if (state.tool === "carrot" || state.tool === "corn" || state.tool === "herb") {
+      if (state.tool === "carrot" || state.tool === "corn" || state.tool === "herb" || state.tool === "mushroom") {
         plant(plot, state.tool);
       }
     }
@@ -7931,6 +8018,7 @@ async function buySilo() {
       if (plot.crop.type === "herb") {
         growEmoji = done < 0.34 ? "🌱" : done < 0.7 ? "🌿" : "☘️";
       }
+      if (plot.crop.type === "mushroom") growEmoji = done < 0.5 ? "🌱" : "🍄";
       return '<div class="emoji">' + growEmoji + '</div>' +
         '<div class="timer">' + fmtLeft(left) + '</div>' +
         '<div class="crop-grow"><i style="width:' + Math.round(done * 100) + '%"></i></div>' + rosterChip(plot);
@@ -8006,6 +8094,7 @@ async function buySilo() {
     }
     function render() {
       if (typeof tickPetBeds === "function") tickPetBeds();
+      if (typeof tickPonds === "function") tickPonds();
       paintPetStrip();
       if (typeof paintBeastInventory === "function") paintBeastInventory();
       if (typeof bindPetSlot === 'function') bindPetSlot();
@@ -8027,6 +8116,8 @@ async function buySilo() {
       if (herbSeed) herbSeed.textContent = "You have " + herbN + ". Forest drop. Plant for 1–2.";
       const herbInv = document.getElementById("herb-inv");
       if (herbInv) herbInv.textContent = "🌿 " + herbN + " herb" + (herbN === 1 ? "" : "s");
+      const lootInv = document.getElementById("loot-inv");
+      if (lootInv) lootInv.textContent = "🍄 " + (state.mushrooms || 0) + " mana reagent · 🐟 " + (state.fish || 0) + " fish";
       const satsEl = document.getElementById("stat-sats");
       if (satsEl) satsEl.textContent = "⚡ " + state.sats + " sats";
       const wo = document.getElementById("stat-worth");
@@ -8043,7 +8134,7 @@ async function buySilo() {
         const b = document.getElementById("tool-" + name);
         if (!b) return;
         const on = name === "plant"
-          ? (state.mode === "farm" && (state.tool === "corn" || state.tool === "carrot" || state.tool === "herb"))
+          ? (state.mode === "farm" && (state.tool === "corn" || state.tool === "carrot" || state.tool === "herb" || state.tool === "mushroom"))
           : (state.tool === name && state.mode === "farm");
         b.classList.toggle("active", on);
       });
@@ -8052,13 +8143,14 @@ async function buySilo() {
       const forestBtn = document.getElementById("tool-forest");
       if (forestBtn) { forestBtn.classList.toggle("active", forestOpen); forestBtn.classList.remove("glow"); }
       const pb = document.getElementById("tool-plant");
-      if (pb) pb.textContent = state.tool === "carrot" ? "Plant 🥕" : state.tool === "corn" ? "Plant 🌽" : state.tool === "herb" ? "Plant 🌿" : "Plant";
+      if (pb) pb.textContent = state.tool === "carrot" ? "Plant 🥕" : state.tool === "corn" ? "Plant 🌽" : state.tool === "herb" ? "Plant 🌿" : state.tool === "mushroom" ? "Plant 🍄" : "Plant";
 
       const hints = {
         farm: {
           carrot: "Planting carrot. Tap Plant to switch seed.",
           corn: "Planting corn. Tap Plant to switch seed.",
           herb: "Planting a herb. Harvest returns 1 or 2. Consume from Inventory.",
+          mushroom: "Planting a cave mushroom. Harvest returns 1 or 2.",
           sell: "Market: Sell, Seeds, Assets.",
           craft: "Craft in this tab only.",
           barn: "Barn holds water, crops, milk, eggs, pudding, seeds."
@@ -8136,7 +8228,7 @@ async function buySilo() {
       const stage = houseStage();
       house.className = "tile house house-" + stage.id;
       house.innerHTML = '<div class="house-art"><div class="house-roof"></div><div class="house-wall"></div><div class="house-door"></div><div class="house-win"></div></div><div class="label">' + stage.name + "</div>";
-      house.onclick = function (ev) { ev.preventDefault(); ev.stopPropagation(); openHouse(); };
+      bindTile(house, "house", state.house);
       grid.appendChild(house);
 
       (state.carrotSilos || []).forEach((s) => {
@@ -8190,6 +8282,14 @@ async function buySilo() {
         el.innerHTML = petBedArt(s);
         placeEl(el, s.x, s.y, 1, "petbed", s);
         bindTile(el, "petbed", s);
+        grid.appendChild(el);
+      });
+      (state.ponds || []).forEach((s) => {
+        const el = document.createElement("div");
+        el.className = "tile pond";
+        el.innerHTML = '<div class="label">' + (s.count || 0) + '/' + (Math.max(1, s.level || 1) >= 3 ? 15 : Math.max(1, s.level || 1) >= 2 ? 10 : 6) + '</div>';
+        placeEl(el, s.x, s.y, 1, "pond", s);
+        bindTile(el, "pond", s);
         grid.appendChild(el);
       });
 
@@ -8343,6 +8443,8 @@ async function buySilo() {
         else if (kind === "kitchen") openKitchen();
         else if (kind === "tailor") openTailor();
         else if (kind === "petbed") openPetBed(plot);
+        else if (kind === "pond") onPondTap(plot);
+        else if (kind === "house") openHouse();
         else if (kind === "tree") onTreeTap(plot);
         else onPlotTap(plot);
       }
@@ -8489,6 +8591,8 @@ async function buySilo() {
     if (sellTrufflesBtn) sellTrufflesBtn.onclick = sellTruffles;
     const buyPetBedBtn = document.getElementById("buy-petbed");
     if (buyPetBedBtn) buyPetBedBtn.onclick = buyPetBed;
+    const buyPondBtn = document.getElementById("buy-pond");
+    if (buyPondBtn) buyPondBtn.onclick = buyPond;
     const sellHairBtn = document.getElementById("sell-hair");
     if (sellHairBtn) sellHairBtn.onclick = sellHair;
     document.getElementById("sell-eggs").onclick = sellEggs;
@@ -8522,6 +8626,12 @@ async function buySilo() {
     };
     document.getElementById("pick-herb").onclick = function () {
       state.mode = "farm"; state.tool = "herb";
+      const pick = document.getElementById("plant-pick");
+      if (pick) { pick.classList.remove("open"); pick.hidden = true; }
+      render();
+    };
+    document.getElementById("pick-mushroom").onclick = function () {
+      state.mode = "farm"; state.tool = "mushroom";
       const pick = document.getElementById("plant-pick");
       if (pick) { pick.classList.remove("open"); pick.hidden = true; }
       render();
