@@ -66,9 +66,9 @@
     }
     .brand span { color: var(--gold); font-weight: 500; font-size: 10px; display: block; }
     .head-tools { grid-area: tools; display: flex; gap: 6px; align-items: center; }
-    #xp-bar { grid-column: 1 / -1; position: relative; height: 16px; margin-top: 6px; border-radius: 99px; background: rgba(0,0,0,0.35); overflow: hidden; }
+    #xp-bar { grid-column: 1 / -1; position: relative; height: 18px; margin-top: 6px; border-radius: 99px; background: rgba(0,0,0,0.45); overflow: hidden; }
     #xp-fill { display: block; height: 100%; width: 0; background: #e8c36a; }
-    #xp-label { position: absolute; inset: 0; text-align: center; font-size: 10px; line-height: 16px; color: #1c140e; font-weight: 700; }
+    #xp-label { position: absolute; inset: 0; z-index: 1; text-align: center; font-size: 11px; line-height: 18px; color: #efe6cf; font-weight: 700; text-shadow: 0 1px 0 #1c140e, 0 0 3px #1c140e; pointer-events: none; }
     .stats {
       grid-area: stats;
       display: grid;
@@ -186,6 +186,11 @@
     }
     .tile.smith svg { width: 100%; height: 100%; pointer-events: none; }
 
+    .tile.petbed { background: #6a4a28; border-color: #e8c36a; }
+    .tile.petbed svg { width: 100%; height: 100%; }
+    #petbed-panel { display: none; position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 960; background: #1c140e; color: #efe6cf; border: 1px solid #e8c36a; border-radius: 14px; padding: 12px; }
+    #petbed-panel.open { display: block; }
+    #petbed-panel li { display: flex; justify-content: space-between; gap: 8px; margin: 6px 0; font-size: 13px; }
     .tile.kitchen, .tile.tailor {
       background: transparent;
       border: 0;
@@ -476,7 +481,7 @@
     #house-panel.open { display: block; }
     #house-panel .house-xp { position: relative; height: 18px; margin: 8px 0 12px; border-radius: 99px; background: rgba(0,0,0,0.35); overflow: hidden; }
     #house-xp-fill { display: block; height: 100%; width: 0; background: #e8c36a; }
-    #house-xp-label { position: absolute; inset: 0; text-align: center; font-size: 11px; line-height: 18px; color: #1c140e; font-weight: 700; }
+    #house-xp-label { position: absolute; inset: 0; z-index: 1; text-align: center; font-size: 11px; line-height: 18px; color: #efe6cf; font-weight: 700; text-shadow: 0 1px 0 #1c140e, 0 0 3px #1c140e; pointer-events: none; }
     .tile.well {
       background: transparent;
       border: 0;
@@ -2127,11 +2132,12 @@
         <ul id="worth-list"></ul>
         <button type="button" class="ghost" id="worth-close">Close</button>
       </div>
-      <div id="market-panel" aria-hidden="true">
-        <h3>Market</h3>
-        <p class="disclaimer">Demo market to simulate the future online market. Prices shown do not reflect future value. Visual sats only — no real Bitcoin yet.</p>
-        <p id="player-level"></p>
-        <div class="adv-row" id="level-shop"></div>
+      <div id="petbed-panel" aria-hidden="true">
+        <h3>Pet bed</h3>
+        <p id="petbed-note">Choose a pet to rest.</p>
+        <ul id="petbed-list"></ul>
+        <button type="button" class="ghost" id="petbed-close">Close</button>
+      </div>
       <div id="house-panel" aria-hidden="true">
         <h3>House</h3>
         <p id="house-level"></p>
@@ -2139,6 +2145,8 @@
         <ul id="house-unlocks"></ul>
         <button type="button" class="ghost" id="house-close">Close</button>
       </div>
+      <div id="market-panel" aria-hidden="true">
+        <h3>Market</h3>
         <div class="modes three" id="market-tabs" style="margin-bottom:8px">
           <button type="button" id="mtab-resources">Sell</button>
           <button type="button" id="mtab-seeds">Seeds</button>
@@ -2217,6 +2225,7 @@
           </div>
           <div id="asset-farming-list" hidden>
             <div class="row"><span>5 ⚡ sats → apple tree</span><button type="button" id="buy-tree">Buy tree</button></div>
+            <div class="row"><span>12 ⚡ sats → pet bed · 2×2</span><button type="button" id="buy-petbed">Buy pet bed</button></div>
             <div class="row"><span>10 ⚡ sats → crop land</span><button type="button" id="buy-plot">Buy land</button></div>
           </div>
         </div>
@@ -2252,6 +2261,7 @@
         <p id="pet-card-when"></p>
         <div class="evo-row" id="pet-card-evos"></div>
         <button type="button" id="pet-card-bring">Bring</button>
+        <button type="button" id="pet-card-herb">Consume herb · 0</button>
         <button type="button" id="pet-card-breed">Breed</button>
         <div id="pet-breed-pick" style="display:none;margin:8px 0"></div>
         <button type="button" class="ghost" id="pet-card-close">Close</button>
@@ -2282,6 +2292,7 @@
         </div>
         <div id="gear-box" hidden>
           <p>Miner gear</p>
+          <div class="row"><span id="herb-inv">🌿 10 herbs</span><button type="button" id="consume-herb">Consume</button></div>
           <p id="set-banner" hidden></p>
           <button type="button" id="wear-cloth-set" hidden>Wear cloth set</button>
           <button type="button" id="wear-leather-set" hidden>Wear leather set</button>
@@ -2473,6 +2484,7 @@
           <div class="plant-choices">
             <button type="button" id="pick-corn"><span class="seed-art">🌽</span><small>Corn</small></button>
             <button type="button" id="pick-carrot"><span class="seed-art">🥕</span><small>Carrot</small></button>
+            <button type="button" id="pick-herb"><span class="seed-art">🌿</span><small>Herb</small></button>
           </div>
         </div>
       </div>
@@ -2520,7 +2532,8 @@
     const TILE_MIN = 52;
     const CROPS = {
       carrot: { emoji: "🥕", growMs: FF.carrotGrowMs, waterCost: 1, seedKey: "carrotSeeds", cropKey: "carrots", label: "carrot", yield: 2 },
-      corn:   { emoji: "🌽", growMs: FF.cornGrowMs, waterCost: 1, seedKey: "cornSeeds",   cropKey: "corn",    label: "corn", yield: 3 }
+      corn:   { emoji: "🌽", growMs: FF.cornGrowMs, waterCost: 1, seedKey: "cornSeeds",   cropKey: "corn",    label: "corn", yield: 3 },
+      herb:   { emoji: "🌿", growMs: FF.carrotGrowMs, waterCost: 1, seedKey: "herbs", cropKey: "herbs", label: "herb", yield: 1 }
     };
 
     const state = {
@@ -2531,6 +2544,7 @@
       corn: 20,
       carrotSeeds: 0,
       cornSeeds: 15,
+      herbs: 10,
       wellWater: 3,
       wellAcc: 0,
       well: { x: 0.14, y: 0.14 },
@@ -2757,6 +2771,19 @@
         state.sats += FF.pack30Bonus;
         state.pack30 = true;
         state.marketLog.unshift({ at: now(), text: "Tester pack +" + FF.pack30Bonus + " sats" });
+      }
+      if (!state.herbTest) {
+        state.herbs = Math.max(10, state.herbs || 0);
+        state.herbTest = true;
+        state.marketLog.unshift({ at: now(), text: "Test pack +10 herbs" });
+      }
+      if (!state.petBedRate) {
+        state.petBeds = state.petBeds || [];
+        if (!state.petBeds.length) state.petBeds.push({ id: "bed-test", x: 0.72, y: 0.62 });
+        (state.pets || []).forEach(function (pet) {
+          if (pet.id === "mouse-test") pet.hp = 4;
+        });
+        state.petBedRate = true;
       }
       if (!state.demoMats) {
         state.rocks = (state.rocks || 0) + 25;
@@ -3019,7 +3046,7 @@ if (!state.demoSmithMats) {
       });
     }
     function fixNums() {
-      ["water","carrots","corn","carrotSeeds","cornSeeds","milk","eggs","pudding","pants","shirts","beanies","rocks","wool","horseHair","sats","apples","swords","lumber","truffles"].forEach((k) => {
+      ["water","carrots","corn","carrotSeeds","cornSeeds","herbs","milk","eggs","pudding","pants","shirts","beanies","rocks","wool","horseHair","sats","apples","swords","lumber","truffles"].forEach((k) => {
         const n = Number(state[k]);
         state[k] = Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
       });
@@ -3183,6 +3210,7 @@ if (!state.demoSmithMats) {
         .concat(sheep().length && state.sheepPen && typeof state.sheepPen.x === "number" ? [{ id: "sheep", kind: "sheep", x: state.sheepPen.x, y: state.sheepPen.y, scale: 1.15, level: state.sheepPen.level }] : [])
         .concat(pigs().length && state.pigPen && typeof state.pigPen.x === "number" ? [{ id: "pig", kind: "pig", x: state.pigPen.x, y: state.pigPen.y, scale: 1.15, level: state.pigPen.level }] : [])
         .concat((state.trees || []).map((tr) => ({ id: tr.id, kind: "tree", x: tr.x, y: tr.y, scale: 1.12 })))
+        .concat((state.petBeds || []).map((b) => ({ id: b.id, kind: "petbed", x: b.x, y: b.y, scale: 1 })))
         .concat(state.plots.map((pl) => ({ id: pl.id, kind: "plot", x: pl.x, y: pl.y, scale: 1 })));
     }
 
@@ -3196,6 +3224,7 @@ if (!state.demoSmithMats) {
       if (kind === "pig") return state.pigPen;
       if (kind === "market") return state.market;
       if (kind === "tree") return plot;
+      if (kind === "petbed") return plot;
       return plot;
     }
 
@@ -3245,6 +3274,9 @@ if (!state.demoSmithMats) {
       }
       if (kind === "tree") {
         return (state.trees || []).filter((p) => p.id !== skipId).map((p) => ({ id: p.id, x: p.x, y: p.y }));
+      }
+      if (kind === "petbed") {
+        return (state.petBeds || []).filter((p) => p.id !== skipId).map((p) => ({ id: p.id, x: p.x, y: p.y }));
       }
       return state.plots.filter((p) => p.id !== skipId).map((p) => ({ id: p.id, x: p.x, y: p.y }));
     }
@@ -5209,7 +5241,8 @@ function autoTick() {
         }
       } catch (err) {}
       const zoneName = spec.zone === "forest" ? "Forest" : spec.zone === "lake" ? "Lake · water" : "Mine";
-      document.getElementById("pet-card-stats").textContent = "Lv " + lvl + " · " + (pet.xp || 0) + "/" + xpToNext(lvl) + " xp · " + beastRange(pet) + " dmg · " + zoneName;
+      const hp = pet.hp == null ? 20 : pet.hp;
+      document.getElementById("pet-card-stats").textContent = "Lv " + lvl + " · " + petPct(pet) + "% hp" + (petOut(pet) ? " · out until 30%" : "") + " · " + (pet.xp || 0) + "/" + xpToNext(lvl) + " xp · " + beastRange(pet) + " dmg · " + zoneName;
       const when = document.getElementById("pet-card-when");
       if (stage >= 2) when.textContent = "Final form. No further evolution.";
       else {
@@ -5227,6 +5260,14 @@ function autoTick() {
         step.innerHTML = (paintSrc ? "<img src=\"" + paintSrc + "\" alt=\"\" style=\"width:100%;height:auto;display:block;border-radius:8px\">" : beastSkin(pet.species, showLvl)) + "<small>" + (i > stage ? "Not yet" : name) + "</small>";
         row.appendChild(step);
       });
+      const herbBtn = document.getElementById("pet-card-herb");
+      if (herbBtn) {
+        herbBtn.textContent = "Consume herb · " + (state.herbs || 0);
+        herbBtn.onclick = function () {
+          consumeHerbOn(pet.id);
+          openPetCard(id);
+        };
+      }
       const bring = document.getElementById("pet-card-bring");
       bring.textContent = state.equippedPet === pet.id ? "With you" : "Bring";
       bring.onclick = function () {
@@ -5284,7 +5325,8 @@ function autoTick() {
       }
       pets.forEach(function (pet) {
         const li = document.createElement("li");
-        li.innerHTML = beastSkin(pet.species, pet.lvl || 1) + "<span><b>" + beastForm(pet) + "</b><br>Lv " + (pet.lvl || 1) + " · tap for forms</span>";
+        const hp = pet.hp == null ? 20 : pet.hp;
+        li.innerHTML = beastSkin(pet.species, pet.lvl || 1) + "<span><b>" + beastForm(pet) + "</b><br>Lv " + (pet.lvl || 1) + " · " + petPct(pet) + "%" + (petOut(pet) ? " · out" : "") + "</span>";
         li.onclick = function () { openPetCard(pet.id); };
         ul.appendChild(li);
       });
@@ -5295,7 +5337,7 @@ function autoTick() {
       if (!eq || !book) return;
       const pet = (state.pets || []).find(function (p) { return p.id === state.equippedPet; });
       if (!pet) eq.innerHTML = "<div><b>No pet equipped</b><div>Capture a wild beast in a chapter fight.</div></div>";
-      else eq.innerHTML = beastSkin(pet.species, pet.lvl || 1) + "<div><b>" + beastForm(pet) + "</b><div>Lv " + (pet.lvl || 1) + " · " + (pet.xp || 0) + "/" + xpToNext(pet.lvl || 1) + " xp</div><div>Fight damage " + beastRange(pet) + "</div><div>Evolves at 5 and 10</div></div>";
+      else eq.innerHTML = beastSkin(pet.species, pet.lvl || 1) + "<div><b>" + beastForm(pet) + "</b><div>Lv " + (pet.lvl || 1) + " · " + (pet.hp == null ? 20 : pet.hp) + "/20 hp · " + (pet.xp || 0) + "/" + xpToNext(pet.lvl || 1) + " xp</div><div>Fight damage " + beastRange(pet) + "</div><div>Evolves at 5 and 10</div></div>";
       book.innerHTML = "";
       Object.keys(BEASTS).forEach(function (id) {
         const spec = BEASTS[id];
@@ -5599,7 +5641,7 @@ function autoTick() {
           const pet = (state.pets || []).find(function (p) { return p.id === state.equippedPet; });
           if (fp) { void fp.offsetWidth; fp.classList.add("swing"); }
           if (mobEl) { void mobEl.offsetWidth; mobEl.classList.add("hit"); }
-          if (pet && c > 0) {
+          if (pet && c > 0 && !petOut(pet)) {
             const pd = Math.max(1, Math.round(beastDmg(pet)));
             c -= pd;
             if (c < 0) c = 0;
@@ -5670,6 +5712,15 @@ function autoTick() {
             if (ironN) {
               state.ironOre = (state.ironOre || 0) + ironN;
               parts.push({ kind: "iron", n: ironN, label: ironN + " iron ore" });
+            }
+            if (forest && Math.random() < 0.55) {
+              state.herbs = (state.herbs || 0) + 1;
+              parts.push({ kind: "herb", n: 1, label: "1 herb" });
+            }
+            const hurt = (state.pets || []).find(function (pet) { return pet.id === state.equippedPet; });
+            if (hurt && (hurt.hp == null || hurt.hp > 0)) {
+              hurt.hp = Math.max(0, (hurt.hp == null ? 20 : hurt.hp) - (4 + Math.floor(Math.random() * 4)));
+              if (petOut(hurt)) parts.push({ kind: "hurt", n: 1, label: beastForm(hurt) + " is under 30% — out until a herb or a free bed" });
             }
             state.lootParts = parts;
             state.pendingLootN = parts.reduce(function (a, x) { return a + x.n; }, 0);
@@ -6598,34 +6649,18 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       { id: "apple", lvl: 9, cost: 0, label: "Apple tree", later: true },
       { id: "skiff", lvl: 12, cost: 0, label: "Fishing skiff", later: true }
     ];
-    function paintLevelShop() {
-      const line = document.getElementById("player-level");
-      const box = document.getElementById("level-shop");
-      if (!line || !box) return;
-      const lvl = playerLevel();
-      const into = (state.playerXp || 0) % 20;
-      line.textContent = "Farm level " + lvl + " · " + into + "/20 to next. Harvest and the well raise it.";
-      state.unlocks = state.unlocks || {};
-      box.innerHTML = "";
-      LEVEL_SHOP.forEach(function (item) {
-        const b = document.createElement("button");
-        b.type = "button";
-        const owned = !!state.unlocks[item.id];
-        b.textContent = owned ? item.label + " owned" : item.label + " · lvl " + item.lvl + " · " + item.cost;
-        b.disabled = owned || lvl < item.lvl;
-        b.onclick = function () {
-          if (playerLevel() < item.lvl) { toast("Level " + item.lvl + " unlocks this"); return; }
-          if ((state.sats || 0) < item.cost) { toast("Not enough sats"); return; }
-          state.sats -= item.cost;
-          state.unlocks[item.id] = true;
-          if (item.id === "seeds") state.carrotSeeds = (state.carrotSeeds || 0) + 5;
-          save();
-          toast(item.label + " bought");
-          paintLevelShop();
-          render();
-        };
-        box.appendChild(b);
-      });
+    function buyUnlock(item) {
+      if (item.later) { toast("Later"); return; }
+      if (playerLevel() < item.lvl) { toast("Level " + item.lvl + " unlocks this"); return; }
+      if (state.unlocks && state.unlocks[item.id]) return;
+      if ((state.sats || 0) < item.cost) { toast("Not enough sats"); return; }
+      state.sats -= item.cost;
+      state.unlocks[item.id] = true;
+      if (item.id === "seeds") state.carrotSeeds = (state.carrotSeeds || 0) + 5;
+      save();
+      toast(item.label + " bought");
+      openHouse();
+      render();
     }
     function openHouse() {
       closeAllTabs();
@@ -6645,9 +6680,16 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       LEVEL_SHOP.forEach(function (item) {
         const li = document.createElement("li");
         const owned = !!state.unlocks[item.id];
-        const open = lvl >= item.lvl;
+        const open = lvl >= item.lvl && !item.later;
         li.textContent = "Lv " + item.lvl + " · " + item.label + (item.later ? " · later" : " · " + item.cost + " sats") + (owned ? " · unlocked" : open ? " · ready" : " · locked");
         if (owned) li.style.color = "#e8c36a";
+        if (open && !owned) {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.textContent = "Buy";
+          b.onclick = function () { buyUnlock(item); };
+          li.appendChild(b);
+        }
         list.appendChild(li);
       });
       pan.classList.add("open");
@@ -6662,7 +6704,6 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       closeAllTabs();
       if (wasOpen && !force) return;
       showMarketTab(state.marketTab || "resources");
-      paintLevelShop();
       showResCat(state.resCat || "feed");
       showCraftSell(state.craftSell || "food");
       showAssetSide(state.assetSide || "animals");
@@ -6872,6 +6913,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         return { w: 2 + (u >= 2 ? 1 : 0), h: 3 + u };
       }
       if (kind === "smith" || kind === "kitchen" || kind === "tailor") return { w: 3, h: 3 };
+      if (kind === "petbed") return { w: 2, h: 2 };
       if (kind === "shed" || kind === "coop" || kind === "horse" || kind === "sheep" || kind === "pig") {
         const b = item || animalBuilding(kind);
         if (kind === "shed" || kind === "horse") {
@@ -7006,6 +7048,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       (state.tailors || []).forEach((p) => queue.push([p, "tailor"]));
       (state.wells || []).forEach((p) => queue.push([p, "well"]));
       (state.trees || []).forEach((p) => queue.push([p, "tree"]));
+      (state.petBeds || []).forEach((p) => queue.push([p, "petbed"]));
       let col = 0, row = 0, band = 0;
       const stuck = [];
       queue.forEach(function (pair) {
@@ -7083,6 +7126,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     function spaceKind(kind) {
       if (kind === "crop land") return "plot";
       if (kind === "apple tree") return "tree";
+      if (kind === "pet bed") return "petbed";
       if (kind === "chicken coop") return "coop";
       if (kind === "sheep shed") return "sheep";
       if (kind === "horse shed") return "horse";
@@ -7306,6 +7350,98 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       paintSmith();
       fillBarn();
       save();
+    }
+    function petHp(pet) { return pet && pet.hp == null ? 20 : (pet ? pet.hp : 0); }
+    function petPct(pet) { return Math.round(petHp(pet) / 20 * 100); }
+    function petOut(pet) { return petPct(pet) < 30; }
+    function petBedArt(bed) {
+      const resting = bed && bed.petId;
+      return '<svg viewBox="0 0 64 64"><rect x="6" y="28" width="52" height="22" rx="6" fill="#c4a574"/><rect x="10" y="32" width="44" height="14" rx="4" fill="#efe6cf"/><rect x="8" y="46" width="8" height="8" fill="#6a4a28"/><rect x="48" y="46" width="8" height="8" fill="#6a4a28"/>' +
+        (resting ? '<text x="32" y="24" text-anchor="middle" font-size="12" fill="#efe6cf">z z</text>' : '<text x="32" y="24" text-anchor="middle" font-size="11" fill="#e8c36a">bed</text>') + '</svg>';
+    }
+    function tickPetBeds() {
+      (state.petBeds || []).forEach(function (bed) {
+        if (!bed.petId) return;
+        const pet = (state.pets || []).find(function (p) { return p.id === bed.petId; });
+        if (!pet) { bed.petId = null; return; }
+        const last = bed.tickAt || now();
+        const steps = Math.floor((now() - last) / 1000);
+        if (steps > 0) {
+          pet.hp = Math.min(20, petHp(pet) + steps * 0.2);
+          bed.tickAt = last + steps * 1000;
+          if (pet.hp >= 20) {
+            pet.hp = 20;
+            toast(beastForm(pet) + " rested");
+            bed.petId = null;
+            bed.tickAt = 0;
+          }
+        }
+      });
+    }
+    function openPetBed(bed) {
+      tickPetBeds();
+      const pan = document.getElementById("petbed-panel");
+      if (!pan) return;
+      if (pan.parentElement !== document.body) document.body.appendChild(pan);
+      const list = document.getElementById("petbed-list");
+      const note = document.getElementById("petbed-note");
+      const guest = (state.pets || []).find(function (p) { return p.id === bed.petId; });
+      if (note) note.textContent = guest
+        ? beastForm(guest) + " is here · " + petPct(guest) + "% · 1% a second."
+        : "Choose a pet. Heals 1% a second. Under 30% they cannot fight unless a herb gets them there.";
+      if (list) {
+        list.innerHTML = "";
+        (state.pets || []).forEach(function (pet) {
+          const li = document.createElement("li");
+          const b = document.createElement("button");
+          b.type = "button";
+          const here = bed.petId === pet.id;
+          b.textContent = here ? "Here" : (bed.petId ? "Bed full" : "Send");
+          b.disabled = !!bed.petId;
+          b.onclick = function () {
+            if (bed.petId) return;
+            if (petHp(pet) >= 20) { toast(beastForm(pet) + " is fine"); return; }
+            bed.petId = pet.id;
+            bed.tickAt = now();
+            toast(beastForm(pet) + " sent to the bed");
+            save();
+            openPetBed(bed);
+            render();
+          };
+          li.appendChild(document.createTextNode(beastForm(pet) + " " + petPct(pet) + "%" + (petOut(pet) ? " · out" : "")));
+          li.appendChild(b);
+          list.appendChild(li);
+        });
+      }
+      pan.classList.add("open");
+      pan.setAttribute("aria-hidden", "false");
+      const closer = document.getElementById("petbed-close");
+      if (closer) closer.onclick = function () { pan.classList.remove("open"); pan.setAttribute("aria-hidden", "true"); };
+    }
+    function consumeHerbOn(petId) {
+      const pet = (state.pets || []).find(function (p) { return p.id === petId; }) || (state.pets || []).slice().sort(function (a, b) { return petHp(a) - petHp(b); })[0];
+      if (!pet) { toast("No pet"); return; }
+      if (petHp(pet) >= 20) { toast(beastForm(pet) + " is not injured"); return; }
+      if ((state.herbs || 0) < 1) { toast("No herbs"); return; }
+      state.herbs -= 1;
+      pet.hp = Math.min(20, petHp(pet) + 10);
+      toast("Consumed a herb · " + beastForm(pet) + " " + pet.hp + "/20");
+      save();
+      render();
+      if (typeof paintBeastInventory === "function") paintBeastInventory();
+    }
+    async function buyPetBed() {
+      if (!(await askYes("Buy a pet bed for 12 sats? It covers 2×2."))) return;
+      if (state.sats < 12) { toast("Need 12 sats"); return; }
+      let spot = findSpot("petbed");
+      if (!spot) spot = await needSpace("pet bed");
+      if (!spot) return;
+      state.sats -= 12;
+      state.petBeds = state.petBeds || [];
+      state.petBeds.push({ id: "bed" + Date.now().toString(36), x: spot.x, y: spot.y });
+      toast("Pet bed placed");
+      save();
+      render();
     }
     async function buySmith() {
       if (!(await askYes("Buy a blacksmith for 20 sats?"))) return;
@@ -7612,6 +7748,7 @@ async function buySilo() {
       if (plot.crop) { toast("This plot is busy"); return; }
       const c = CROPS[type];
       if (state[c.seedKey] < 1) {
+        if (type === "herb") { toast("No herbs — chop the Forest"); return; }
         toast("No " + c.label + " seeds — buy some");
         state.tool = "sell";
         state.marketTab = "seeds";
@@ -7660,11 +7797,12 @@ async function buySilo() {
         if (room <= 0) { toast("Carrot silo full"); return; }
         if (y > room) y = room;
       }
+      if (c.cropKey === "herbs") y = 1 + (Math.random() < 0.5 ? 1 : 0);
       state[c.cropKey] += y;
       plot.crop.stage = "crush";
-      const icon = c.cropKey === "corn" ? "🌽" : "🥕";
+      const icon = c.cropKey === "corn" ? "🌽" : c.cropKey === "herbs" ? "🌿" : "🥕";
       floatGain(plot.x, plot.y, icon + " +" + y);
-      toast("Harvest +" + y + " " + c.label);
+      toast("Harvest +" + y + " " + c.label + (c.cropKey === "herbs" ? (y === 2 ? " — doubled" : " — one back") : ""));
       addFarmXp(4, "Harvest");
       save();
       render();
@@ -7686,7 +7824,7 @@ async function buySilo() {
         waterPlot(plot);
         return;
       }
-      if (state.tool === "carrot" || state.tool === "corn") {
+      if (state.tool === "carrot" || state.tool === "corn" || state.tool === "herb") {
         plant(plot, state.tool);
       }
     }
@@ -7790,6 +7928,9 @@ async function buySilo() {
         else if (done < 0.82) growEmoji = "🥬";
         else growEmoji = "🥕";
       }
+      if (plot.crop.type === "herb") {
+        growEmoji = done < 0.34 ? "🌱" : done < 0.7 ? "🌿" : "☘️";
+      }
       return '<div class="emoji">' + growEmoji + '</div>' +
         '<div class="timer">' + fmtLeft(left) + '</div>' +
         '<div class="crop-grow"><i style="width:' + Math.round(done * 100) + '%"></i></div>' + rosterChip(plot);
@@ -7864,6 +8005,7 @@ async function buySilo() {
       });
     }
     function render() {
+      if (typeof tickPetBeds === "function") tickPetBeds();
       paintPetStrip();
       if (typeof paintBeastInventory === "function") paintBeastInventory();
       if (typeof bindPetSlot === 'function') bindPetSlot();
@@ -7880,6 +8022,11 @@ async function buySilo() {
       if (sc) sc.textContent = "🌽 " + state.corn + "/" + cornMax();
       const scar = document.getElementById("stat-carrot-top");
       if (scar) scar.textContent = "🥕 " + (state.carrots || 0) + "/" + carrotMax();
+      const herbN = state.herbs || 0;
+      const herbSeed = document.getElementById("herb-seed-have");
+      if (herbSeed) herbSeed.textContent = "You have " + herbN + ". Forest drop. Plant for 1–2.";
+      const herbInv = document.getElementById("herb-inv");
+      if (herbInv) herbInv.textContent = "🌿 " + herbN + " herb" + (herbN === 1 ? "" : "s");
       const satsEl = document.getElementById("stat-sats");
       if (satsEl) satsEl.textContent = "⚡ " + state.sats + " sats";
       const wo = document.getElementById("stat-worth");
@@ -7896,7 +8043,7 @@ async function buySilo() {
         const b = document.getElementById("tool-" + name);
         if (!b) return;
         const on = name === "plant"
-          ? (state.mode === "farm" && (state.tool === "corn" || state.tool === "carrot"))
+          ? (state.mode === "farm" && (state.tool === "corn" || state.tool === "carrot" || state.tool === "herb"))
           : (state.tool === name && state.mode === "farm");
         b.classList.toggle("active", on);
       });
@@ -7905,12 +8052,13 @@ async function buySilo() {
       const forestBtn = document.getElementById("tool-forest");
       if (forestBtn) { forestBtn.classList.toggle("active", forestOpen); forestBtn.classList.remove("glow"); }
       const pb = document.getElementById("tool-plant");
-      if (pb) pb.textContent = state.tool === "carrot" ? "Plant 🥕" : state.tool === "corn" ? "Plant 🌽" : "Plant";
+      if (pb) pb.textContent = state.tool === "carrot" ? "Plant 🥕" : state.tool === "corn" ? "Plant 🌽" : state.tool === "herb" ? "Plant 🌿" : "Plant";
 
       const hints = {
         farm: {
           carrot: "Planting carrot. Tap Plant to switch seed.",
           corn: "Planting corn. Tap Plant to switch seed.",
+          herb: "Planting a herb. Harvest returns 1 or 2. Consume from Inventory.",
           sell: "Market: Sell, Seeds, Assets.",
           craft: "Craft in this tab only.",
           barn: "Barn holds water, crops, milk, eggs, pudding, seeds."
@@ -8034,6 +8182,14 @@ async function buySilo() {
         el.innerHTML = tailorArt();
         placeEl(el, s.x, s.y, 1, "tailor", s);
         bindTile(el, "tailor", s);
+        grid.appendChild(el);
+      });
+      (state.petBeds || []).forEach((s) => {
+        const el = document.createElement("div");
+        el.className = "tile petbed";
+        el.innerHTML = petBedArt(s);
+        placeEl(el, s.x, s.y, 1, "petbed", s);
+        bindTile(el, "petbed", s);
         grid.appendChild(el);
       });
 
@@ -8186,6 +8342,7 @@ async function buySilo() {
         else if (kind === "smith") openSmith(plot);
         else if (kind === "kitchen") openKitchen();
         else if (kind === "tailor") openTailor();
+        else if (kind === "petbed") openPetBed(plot);
         else if (kind === "tree") onTreeTap(plot);
         else onPlotTap(plot);
       }
@@ -8330,6 +8487,8 @@ async function buySilo() {
     if (buyPigBtn) buyPigBtn.onclick = buyPig;
     const sellTrufflesBtn = document.getElementById("sell-truffles");
     if (sellTrufflesBtn) sellTrufflesBtn.onclick = sellTruffles;
+    const buyPetBedBtn = document.getElementById("buy-petbed");
+    if (buyPetBedBtn) buyPetBedBtn.onclick = buyPetBed;
     const sellHairBtn = document.getElementById("sell-hair");
     if (sellHairBtn) sellHairBtn.onclick = sellHair;
     document.getElementById("sell-eggs").onclick = sellEggs;
@@ -8361,6 +8520,26 @@ async function buySilo() {
       if (pick) { pick.classList.remove("open"); pick.hidden = true; }
       render();
     };
+    document.getElementById("pick-herb").onclick = function () {
+      state.mode = "farm"; state.tool = "herb";
+      const pick = document.getElementById("plant-pick");
+      if (pick) { pick.classList.remove("open"); pick.hidden = true; }
+      render();
+    };
+    const plantHerb = document.getElementById("plant-herb");
+    if (plantHerb) plantHerb.onclick = function () {
+      if ((state.herbs || 0) < 1) { toast("No herbs — chop the Forest"); return; }
+      state.mode = "farm";
+      state.tool = "herb";
+      const pick = document.getElementById("plant-pick");
+      if (pick) { pick.classList.remove("open"); pick.hidden = true; }
+      const market = document.getElementById("market-panel");
+      if (market) { market.classList.remove("open"); market.style.display = "none"; }
+      toast("Tap an empty plot");
+      render();
+    };
+    const consumeHerb = document.getElementById("consume-herb");
+    if (consumeHerb) consumeHerb.onclick = function () { consumeHerbOn(state.equippedPet); };
     document.getElementById("tool-sell").onclick = () => { state.mode = "farm"; state.tool = "sell"; openMarket(); render(); };
     document.getElementById("tool-barn").onclick = () => { state.mode = "farm"; state.tool = "barn"; openBarn(); render(); };
     const rosterBtn = document.getElementById("tool-roster");
