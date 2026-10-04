@@ -2136,7 +2136,7 @@
       </div>
       <div id="pond-panel" aria-hidden="true">
         <h3>Fish pond</h3>
-        <p id="pond-note">Stock it with lake fish.</p>
+        <p id="pond-note">Put fish in. Feed the whole pond for extras. Collect any time.</p>
         <button type="button" id="pond-add">Put fish in</button>
         <button type="button" id="pond-feed">Feed</button>
         <button type="button" id="pond-take">Collect</button>
@@ -7462,45 +7462,106 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       render();
       if (typeof paintBeastInventory === "function") paintBeastInventory();
     }
+    function pondCap(pond) {
+      const lvl = Math.max(1, (pond && pond.level) || 1);
+      return lvl >= 3 ? 15 : lvl >= 2 ? 10 : 6;
+    }
     function tickPonds() {
       (state.ponds || []).forEach(function (pond) {
-        if (pond.stage === "working" && pond.readyAt && now() >= pond.readyAt) pond.stage = "ready";
+        if (pond.stage === "working" && pond.readyAt && now() >= pond.readyAt) {
+          const extra = pond.pending || 0;
+          const room = Math.max(0, pondCap(pond) - (pond.count || 0));
+          const into = Math.min(room, extra);
+          pond.count = (pond.count || 0) + into;
+          const spill = extra - into;
+          if (spill) state.fish = (state.fish || 0) + spill;
+          pond.pending = 0;
+          pond.stage = pond.count ? "stocked" : "empty";
+          pond.readyAt = 0;
+          toast(spill ? ("+" + into + " in the pond · " + spill + " to the bag") : ("+" + extra + " fish"));
+        }
       });
     }
-    function onPondTap(pond) {
+    function openPond(pond) {
       tickPonds();
-      pond.count = pond.count || (pond.stage && pond.stage !== "empty" ? 1 : 0);
-      pond.stage = pond.stage || "empty";
-      if (pond.stage === "ready") {
-        state.fish = (state.fish || 0) + 1;
-        pond.stage = "hungry";
-        pond.readyAt = 0;
-        toast("Collected 1 fish");
-        save();
-        render();
-        return;
+      pond.count = pond.count || 0;
+      const pan = document.getElementById("pond-panel");
+      if (!pan) return;
+      if (pan.parentElement !== document.body) document.body.appendChild(pan);
+      const note = document.getElementById("pond-note");
+      const cap = pondCap(pond);
+      const n = pond.count || 0;
+      const left = pond.stage === "working" && pond.readyAt ? Math.max(0, pond.readyAt - now()) : 0;
+      if (note) {
+        note.textContent = n
+          ? (n + "/" + cap + " fish · bag " + (state.fish || 0) + " · corn " + (state.corn || 0) + ". " +
+            (left
+              ? ("Fed · " + fmtLeft(left) + " for " + (pond.pending || n) + " extra. Collect now takes the " + n + " and cancels the extras.")
+              : ("Feed spends " + n + " corn for " + n + " extra. Collect takes all whenever.")))
+          : "Empty. Put lake fish in, up to " + cap + ". Bag " + (state.fish || 0) + ".";
       }
-      if (pond.count < 2) {
-        if ((state.fish || 0) < 1) { toast("Need 2 fish in the pond"); return; }
-        state.fish -= 1;
-        pond.count += 1;
-        pond.stage = "hungry";
-        toast(pond.count < 2 ? "1 fish. Needs one more." : "2 fish. Feed to breed.");
-        save();
-        render();
-        return;
+      const add = document.getElementById("pond-add");
+      const feed = document.getElementById("pond-feed");
+      const take = document.getElementById("pond-take");
+      if (add) {
+        add.textContent = n >= cap ? "Full" : "Put fish in";
+        add.disabled = n >= cap;
+        add.onclick = function () {
+          if ((pond.count || 0) >= pondCap(pond)) { toast("Pond is full"); return; }
+          if ((state.fish || 0) < 1) { toast("No fish in the bag"); return; }
+          state.fish -= 1;
+          pond.count = (pond.count || 0) + 1;
+          if (pond.stage !== "working") pond.stage = "stocked";
+          toast("Fish in · " + pond.count + "/" + pondCap(pond));
+          save();
+          render();
+          openPond(pond);
+        };
       }
-      if (pond.stage === "hungry") {
-        if ((state.corn || 0) < 2) { toast("Need 2 corn"); return; }
-        state.corn -= 2;
-        pond.stage = "working";
-        pond.readyAt = now() + 12000;
-        toast("Fed");
-        save();
-        render();
-        return;
+      if (feed) {
+        feed.textContent = left ? "Fed" : ("Feed · " + n + " corn");
+        feed.disabled = !n || !!left;
+        feed.onclick = function () {
+          tickPonds();
+          const have = pond.count || 0;
+          if (!have) { toast("Pond is empty"); return; }
+          if (pond.stage === "working" && pond.readyAt && now() < pond.readyAt) { toast("Already fed"); return; }
+          if ((state.corn || 0) < have) { toast("Need " + have + " corn"); return; }
+          state.corn -= have;
+          pond.pending = have;
+          pond.stage = "working";
+          pond.readyAt = now() + 12000;
+          toast("Fed " + have + " · 1 corn each");
+          save();
+          render();
+          openPond(pond);
+        };
       }
-      toast("Fish working");
+      if (take) {
+        take.textContent = n ? ("Collect " + n) : "Collect";
+        take.disabled = !n;
+        take.onclick = function () {
+          tickPonds();
+          const have = pond.count || 0;
+          if (!have) { toast("Nothing to collect"); return; }
+          state.fish = (state.fish || 0) + have;
+          pond.count = 0;
+          pond.pending = 0;
+          pond.stage = "empty";
+          pond.readyAt = 0;
+          toast("Collected " + have + " fish");
+          save();
+          render();
+          openPond(pond);
+        };
+      }
+      pan.classList.add("open");
+      pan.setAttribute("aria-hidden", "false");
+      const closer = document.getElementById("pond-close");
+      if (closer) closer.onclick = function () {
+        pan.classList.remove("open");
+        pan.setAttribute("aria-hidden", "true");
+      };
     }
     async function buyPond() {
       if (!(await askYes("Buy a fish pond for 14 sats? It covers 2×2. It stays empty until you add a lake fish."))) return;
@@ -8287,7 +8348,7 @@ async function buySilo() {
       (state.ponds || []).forEach((s) => {
         const el = document.createElement("div");
         el.className = "tile pond";
-        el.innerHTML = '<div class="label">' + (s.count || 0) + '/' + (Math.max(1, s.level || 1) >= 3 ? 15 : Math.max(1, s.level || 1) >= 2 ? 10 : 6) + '</div>';
+        el.innerHTML = '<div class="label">' + (s.count || 0) + '/' + (Math.max(1, s.level || 1) >= 3 ? 15 : Math.max(1, s.level || 1) >= 2 ? 10 : 6) + (s.stage === "working" ? " · fed" : "") + '</div>';
         placeEl(el, s.x, s.y, 1, "pond", s);
         bindTile(el, "pond", s);
         grid.appendChild(el);
@@ -8443,7 +8504,7 @@ async function buySilo() {
         else if (kind === "kitchen") openKitchen();
         else if (kind === "tailor") openTailor();
         else if (kind === "petbed") openPetBed(plot);
-        else if (kind === "pond") onPondTap(plot);
+        else if (kind === "pond") openPond(plot);
         else if (kind === "house") openHouse();
         else if (kind === "tree") onTreeTap(plot);
         else onPlotTap(plot);
