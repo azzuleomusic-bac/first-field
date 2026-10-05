@@ -191,6 +191,48 @@
     #petbed-panel, #pond-panel { display: none; position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 960; background: #1c140e; color: #efe6cf; border: 1px solid #e8c36a; border-radius: 14px; padding: 12px; }
     #pond-panel.open { display: block; }
     .tile.pond { background: #1d4e5c; border-color: #7fd0c8; }
+
+    .tile.charm { background: #243044; border-color: #c9b6f2; }
+
+    #gear-box .gear-art { min-height: 36px; display: flex; align-items: center; justify-content: center; }
+    #gear-box .gear-art svg, #gear-pick-list svg { width: 36px !important; height: 36px !important; }
+    .miner.has-sword .miner-blade, .fight-miner.has-sword .miner-blade { display: block !important; z-index: 9; width: 16px; height: 42px; right: -2px; }
+    .miner.has-black .miner-blade::before, .fight-miner.has-black .miner-blade::before { background: #1a1a1e; height: 28px; width: 10px; }
+
+    #gear-box.open { display:block !important; position:fixed; left:12px; right:12px; bottom:12px; z-index:1000; max-height:72vh; overflow:auto; background:#1c140e; color:#efe6cf; border:1px solid #e8c36a; border-radius:14px; padding:12px; }
+    #gear-pick { z-index:1100 !important; }
+    .miner.has-sword .miner-blade, .fight-miner.has-sword .miner-blade { display:block; z-index:8; }
+    .miner.has-iron-cap .miner-head::before, .fight-miner.has-iron-cap .miner-head::before { content:''; position:absolute; left:-2px; right:-2px; top:-6px; height:10px; background:#b9b1a2; border-radius:4px; }
+    .miner.has-iron-vest .miner-torso, .fight-miner.has-iron-vest .miner-torso { background:#b9b1a2; box-shadow:inset 0 4px 0 #1c140e; }
+    .miner.has-iron-pants .miner-legs-wrap, .fight-miner.has-iron-pants .miner-legs-wrap { background:#b9b1a2; }
+    .miner.has-iron-gloves .wear-gloves, .fight-miner.has-iron-gloves .wear-gloves { background:#b9b1a2; box-shadow:11px 0 0 #b9b1a2; }
+    .miner.has-iron-boots .wear-boots, .fight-miner.has-iron-boots .wear-boots { background:#b9b1a2; box-shadow:11px 0 0 #b9b1a2; }
+    .miner.has-copper-cap .miner-head::before, .fight-miner.has-copper-cap .miner-head::before { content:''; position:absolute; left:-2px; right:-2px; top:-6px; height:10px; background:#c46a3a; border-radius:4px; }
+    .miner.has-copper-vest .miner-torso, .fight-miner.has-copper-vest .miner-torso { background:#c46a3a; box-shadow:inset 0 4px 0 #1c140e; }
+    .miner.has-copper-pants .miner-legs-wrap, .fight-miner.has-copper-pants .miner-legs-wrap { background:#c46a3a; }
+    .miner.has-copper-gloves .wear-gloves, .fight-miner.has-copper-gloves .wear-gloves { background:#c46a3a; box-shadow:11px 0 0 #c46a3a; }
+    .miner.has-copper-boots .wear-boots, .fight-miner.has-copper-boots .wear-boots { background:#c46a3a; box-shadow:11px 0 0 #c46a3a; }
+    .miner.has-silver-cap .miner-head::before, .fight-miner.has-silver-cap .miner-head::before { content:''; position:absolute; left:-2px; right:-2px; top:-6px; height:10px; background:#d5dbe2; border-radius:4px; }
+    .miner.has-silver-vest .miner-torso, .fight-miner.has-silver-vest .miner-torso { background:#d5dbe2; box-shadow:inset 0 4px 0 #1c140e; }
+    .miner.has-silver-pants .miner-legs-wrap, .fight-miner.has-silver-pants .miner-legs-wrap { background:#d5dbe2; }
+    .miner.has-silver-gloves .wear-gloves, .fight-miner.has-silver-gloves .wear-gloves { background:#d5dbe2; box-shadow:11px 0 0 #d5dbe2; }
+    .miner.has-silver-boots .wear-boots, .fight-miner.has-silver-boots .wear-boots { background:#d5dbe2; box-shadow:11px 0 0 #d5dbe2; }
+    .miner.has-gold-cap .miner-head::before, .fight-miner.has-gold-cap .miner-head::before { content:''; position:absolute; left:-2px; right:-2px; top:-6px; height:10px; background:#e8c36a; border-radius:4px; }
+    .miner.has-gold-vest .miner-torso, .fight-miner.has-gold-vest .miner-torso { background:#e8c36a; box-shadow:inset 0 4px 0 #1c140e; }
+    .miner.has-gold-pants .miner-legs-wrap, .fight-miner.has-gold-pants .miner-legs-wrap { background:#e8c36a; }
+    .miner.has-gold-gloves .wear-gloves, .fight-miner.has-gold-gloves .wear-gloves { background:#e8c36a; box-shadow:11px 0 0 #e8c36a; }
+    .miner.has-gold-boots .wear-boots, .fight-miner.has-gold-boots .wear-boots { background:#e8c36a; box-shadow:11px 0 0 #e8c36a; }
+    .miner.has-black-cap .miner-head::before, .fight-miner.has-black-cap .miner-head::before { content:''; position:absolute; left:-2px; right:-2px; top:-6px; height:10px; background:#2c2c30; border-radius:4px; }
+    .miner.has-black-vest .miner-torso, .fight-miner.has-black-vest .miner-torso { background:#2c2c30; box-shadow:inset 0 4px 0 #1c140e; }
+    .miner.has-black-pants .miner-legs-wrap, .fight-miner.has-black-pants .miner-legs-wrap { background:#2c2c30; }
+    .miner.has-black-gloves .wear-gloves, .fight-miner.has-black-gloves .wear-gloves { background:#2c2c30; box-shadow:11px 0 0 #2c2c30; }
+    .miner.has-black-boots .wear-boots, .fight-miner.has-black-boots .wear-boots { background:#2c2c30; box-shadow:11px 0 0 #2c2c30; }
+    #charm-panel { display: none; position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 960; max-height: 70vh; overflow: auto; background: #1c140e; color: #efe6cf; border: 1px solid #c9b6f2; border-radius: 14px; padding: 12px; }
+    #charm-panel.open { display: block; }
+    #charm-panel .row, #smith-weapons .row, #barn-list li { display: flex; align-items: center; gap: 8px; }
+    .loot-ico { width: 28px; height: 28px; flex: 0 0 28px; }
+    #charm-worn { display: flex; gap: 8px; margin: 0 0 8px; }
+
     #petbed-panel.open { display: block; }
     #petbed-panel li { display: flex; justify-content: space-between; gap: 8px; margin: 6px 0; font-size: 13px; }
     .tile.kitchen, .tile.tailor {
@@ -1012,6 +1054,11 @@
       background: repeating-linear-gradient(90deg, #8a5a32 0 2px, #5c3a1e 2px 4px);
       box-shadow: 11px 0 0 #6b4424;
     }
+
+    .miner.has-copper .miner-blade::before, .fight-miner.has-copper .miner-blade::before { background: linear-gradient(180deg, #f0c2a4 0%, #c46a3a 50%, #6a3418 100%); }
+    .miner.has-silver .miner-blade::before, .fight-miner.has-silver .miner-blade::before { background: linear-gradient(180deg, #f4f7fb 0%, #c5ced8 50%, #6d7884 100%); }
+    .miner.has-gold .miner-blade::before, .fight-miner.has-gold .miner-blade::before { background: linear-gradient(180deg, #fff1c2 0%, #e8c36a 50%, #8a6a22 100%); }
+    .miner.has-black .miner-blade::before, .fight-miner.has-black .miner-blade::before { background: linear-gradient(180deg, #6a6a72 0%, #2c2c30 55%, #0e0e10 100%); }
     .miner.has-iron .miner-blade::before, .fight-miner.has-iron .miner-blade::before {
       background: linear-gradient(180deg, #e7edf4 0%, #8e99a8 46%, #3c4450 100%);
     }
@@ -2233,6 +2280,7 @@
             <div class="row"><span>20 ⚡ sats → blacksmith</span><button type="button" id="buy-smith">Buy blacksmith</button></div>
             <div class="row"><span>18 ⚡ sats → kitchen</span><button type="button" id="buy-kitchen">Buy kitchen</button></div>
             <div class="row"><span>18 ⚡ sats → tailor</span><button type="button" id="buy-tailor">Buy tailor</button></div>
+            <div class="row"><span>16 ⚡ sats → charm bench · 2×2</span><button type="button" id="buy-charm">Buy charm bench</button></div>
           </div>
           <div id="asset-farming-list" hidden>
             <div class="row"><span>5 ⚡ sats → apple tree</span><button type="button" id="buy-tree">Buy tree</button></div>
@@ -2309,6 +2357,11 @@
           <p id="set-banner" hidden></p>
           <button type="button" id="wear-cloth-set" hidden>Wear cloth set</button>
           <button type="button" id="wear-leather-set" hidden>Wear leather set</button>
+          <button type="button" id="wear-iron-set">Wear iron set</button>
+          <button type="button" id="wear-copper-set">Wear copper set</button>
+          <button type="button" id="wear-silver-set">Wear silver set</button>
+          <button type="button" id="wear-gold-set">Wear gold set</button>
+          <button type="button" id="wear-black-set">Wear black stone set</button>
           <ul id="gear-stats"></ul>
           <div class="gear-grid">
             <button type="button" class="gear-slot" data-slot="helmet">Head<br><span class="gear-art"></span><small>empty</small></button>
@@ -2391,9 +2444,21 @@
         <div id="smith-weapons" hidden>
           <div class="row"><span id="smith-sword-line">15 rocks + 7 lumber → 1 stone sword · +5 to +8 dmg</span><button type="button" id="craft-sword">Make stone sword</button></div>
           <div class="row"><span id="smith-iron-line">2 iron ingots + 4 lumber + 1 leather → 1 iron sword · +8 to +12 dmg</span><button type="button" id="craft-iron">Make iron sword</button></div>
+          <div class="row"><span id="smith-copper-line"></span><button type="button" id="craft-copper">Make copper sword</button></div>
+          <div class="row"><span id="smith-silver-line"></span><button type="button" id="craft-silver">Make silver sword</button></div>
+          <div class="row"><span id="smith-gold-line"></span><button type="button" id="craft-gold">Make gold sword</button></div>
+          <div class="row"><span id="smith-black-line"></span><button type="button" id="craft-black">Make black sword</button></div>
         </div>
         <button type="button" class="ghost" id="smith-close">Close</button>
       </div>
+      <div id="charm-panel" aria-hidden="true">
+        <h3>Charm bench</h3>
+        <p id="charm-note">Lake material, alone or mixed. Wear 3.</p>
+        <div id="charm-worn"></div>
+        <div id="charm-rows"></div>
+        <button type="button" class="ghost" id="charm-close">Close</button>
+      </div>
+
       <div id="csilo-panel" aria-hidden="true">
         <h3>Carrot silo</h3>
         <p id="csilo-status">20 carrot cap</p>
@@ -2504,7 +2569,8 @@
       </div>
 
     <script src="config.js"></script>
-  <script>
+  <script>window.addEventListener('error',function(e){window.__bootErr=e.message+' @ '+e.filename+':'+e.lineno+':'+e.colno;});</script>
+<script>
   (function () {
     const FF = Object.assign({
       starterSats: 30, pack30Bonus: 20, wellMs: 2000, cornGrowMs: 10000, carrotGrowMs: 10000,
@@ -3227,6 +3293,7 @@ if (!state.demoSmithMats) {
         .concat((state.silos || []).map((s) => ({ id: s.id, kind: "silo", x: s.x, y: s.y, scale: pieceScale(s), upgrades: s.upgrades })))
         .concat((state.carrotSilos || []).map((s) => ({ id: s.id, kind: "csilo", x: s.x, y: s.y, scale: pieceScale(s), upgrades: s.upgrades })))
         .concat((state.smiths || []).map((s) => ({ id: s.id, kind: "smith", x: s.x, y: s.y, scale: 1 })))
+        .concat((state.charmsBenches || []).map((s) => ({ id: s.id, kind: "charm", x: s.x, y: s.y, scale: 1 })))
         .concat((state.kitchens || []).map((s) => ({ id: s.id, kind: "kitchen", x: s.x, y: s.y, scale: 1 })))
         .concat((state.tailors || []).map((s) => ({ id: s.id, kind: "tailor", x: s.x, y: s.y, scale: 1 })))
         .concat([{ id: "shed", kind: "shed", x: state.shed.x, y: state.shed.y, scale: 1.22, level: state.shed.level }])
@@ -3274,6 +3341,9 @@ if (!state.demoSmithMats) {
       }
       if (kind === "smith") {
         return (state.smiths || []).filter((p) => p.id !== skipId).map((p) => ({ id: p.id, x: p.x, y: p.y }));
+      }
+      if (kind === "charm") {
+        return (state.charmsBenches || []).filter((p) => p.id !== skipId).map((p) => ({ id: p.id, x: p.x, y: p.y }));
       }
       if (kind === "kitchen") {
         return (state.kitchens || []).filter((p) => p.id !== skipId).map((p) => ({ id: p.id, x: p.x, y: p.y }));
@@ -4986,6 +5056,7 @@ function autoTick() {
       ul.innerHTML = shown.length
         ? shown.map((r) => "<li><span>" + r[0] + "</span><span>" + r[2] + "</span></li>").join("")
         : "<li><span>Nothing in the barn</span><span></span></li>";
+      if (typeof paintZoneBarn === "function") paintZoneBarn(ul);
       const box = document.getElementById("barn-hide-zero");
       if (box) {
         box.classList.toggle("on", hide);
@@ -5162,6 +5233,7 @@ function autoTick() {
     }
     function previewWild(kind, chapter) {
       state.fightKind = kind;
+      state.blackSetHit = false;
       state.mobLevel = (chapter - 1) * 5 + 1;
       state.bossFight = false;
       state.pendingFight = true;
@@ -5652,7 +5724,8 @@ function autoTick() {
           shootFist();
           if (mobEl) { void mobEl.offsetWidth; mobEl.classList.add("hit"); }
           const a = minerAtk();
-          const base = a.min + Math.floor(Math.random() * (a.max - a.min + 1));
+          let base = a.min + Math.floor(Math.random() * (a.max - a.min + 1));
+          if (metalSet() === "black" && !state.blackSetHit) { base *= 2; state.blackSetHit = true; }
           const clanDmg = clanPct(state.fightKind === "forest" ? "forest" : "mine");
           const boosted = Math.max(1, Math.round(base * (1 + clanDmg / 100)));
           const hit = rollHit(boosted);
@@ -5753,6 +5826,12 @@ function autoTick() {
               hurt.hp = Math.max(0, (hurt.hp == null ? 20 : hurt.hp) - (4 + Math.floor(Math.random() * 4)));
               if (petOut(hurt)) parts.push({ kind: "hurt", n: 1, label: beastForm(hurt) + " is under 30% — out until a herb or a free bed" });
             }
+            try { grantChapterLoot(parts); } catch (e) {}
+            if (metalSet() === "gold") {
+              const sats = 2 + Math.floor(Math.random() * 3);
+              state.sats = (state.sats || 0) + sats;
+              parts.push({ kind: "sats", n: sats, label: sats + " sats" });
+            }
             state.lootParts = parts;
             state.pendingLootN = parts.reduce(function (a, x) { return a + x.n; }, 0);
             state.pendingLoot = parts.length ? ("You found " + parts.map(function (x) { return x.label; }).join(", ") + ".") : "No loot this time.";
@@ -5798,10 +5877,11 @@ function autoTick() {
       paintMine();
     }
     function lootBonus() {
+      const metalLoot = metalStats().loot;
       const cloth = (state.gearPants ? 0.15 : 0) + (state.gearShirt ? 0.10 : 0) + (state.gearBeanie ? 0.10 : 0) + (state.gearGloves ? 0.10 : 0) + (state.gearBoots ? 0.10 : 0);
       const leather = (state.gearLeatherPants ? 0.20 : 0) + (state.gearLeatherVest ? 0.16 : 0) + (state.gearLeatherCap ? 0.16 : 0) + (state.gearLeatherGloves ? 0.16 : 0) + (state.gearLeatherBoots ? 0.16 : 0);
       const set = clothWorn() * 0.02 + leatherWorn() * 0.03 + (clothWorn() >= 5 ? 0.05 : 0) + (leatherWorn() >= 5 ? 0.08 : 0);
-      return cloth + leather + set;
+      return cloth + leather + set + metalLoot;
     }
     function scaleLoot(n) {
       if (!n) return 0;
@@ -5816,6 +5896,7 @@ function autoTick() {
       return scaleLoot(Math.floor(Math.random() * 3));
     }
     function lootIcon(kind) {
+      if (typeof zoneIcon === "function") { const z = zoneIcon(kind); if (z) return z; }
       if (kind === "lumber") return '<svg viewBox="0 0 64 48" aria-hidden="true"><rect x="8" y="22" width="48" height="12" rx="4" fill="#8b5a2b"/><rect x="12" y="16" width="40" height="10" rx="4" fill="#a36a32"/><rect x="16" y="28" width="36" height="10" rx="4" fill="#6e4220"/></svg>';
       if (kind === "leather") return '<svg viewBox="0 0 64 48" aria-hidden="true"><rect x="8" y="18" width="48" height="7" rx="3" fill="#a56b3c"/><rect x="12" y="27" width="40" height="6" rx="3" fill="#6b4220"/><rect x="16" y="11" width="32" height="5" rx="2" fill="#d4b48a"/><circle cx="14" cy="21" r="1.4" fill="#3a2414"/><circle cx="50" cy="30" r="1.4" fill="#3a2414"/></svg>';
       if (kind === "iron") return '<svg viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="34" cy="30" rx="18" ry="12" fill="#2c333c"/><ellipse cx="22" cy="26" rx="12" ry="9" fill="#5c6773"/><ellipse cx="42" cy="28" rx="10" ry="8" fill="#1a1e24"/><path fill="#d5dee8" d="M20 22 l8-8 5 4-4 7z"/><path fill="#8a96a3" d="M36 18 l6 2-2 6-6-2z"/></svg>';
@@ -5875,16 +5956,57 @@ function autoTick() {
     function leatherWorn() {
       return (state.gearLeatherCap ? 1 : 0) + (state.gearLeatherVest ? 1 : 0) + (state.gearLeatherPants ? 1 : 0) + (state.gearLeatherGloves ? 1 : 0) + (state.gearLeatherBoots ? 1 : 0);
     }
+
+    function metalName(m) { return m.charAt(0).toUpperCase() + m.slice(1); }
+    function metalSet() {
+      const order = ["black", "gold", "silver", "copper"];
+      for (let i = 0; i < order.length; i++) {
+        const m = order[i];
+        const n = metalName(m);
+        if (state["gear" + n + "Cap"] && state["gear" + n + "Vest"] && state["gear" + n + "Pants"] && state["gear" + n + "Gloves"] && state["gear" + n + "Boots"]) return m;
+      }
+      return "";
+    }
+    function metalStats() {
+      const table = {
+        copper: { cap: 1, vest: 2, pants: 1, gloves: 1, boots: 0.04 },
+        silver: { cap: 2, vest: 3, pants: 2, gloves: 2, boots: 0.06 },
+        gold: { cap: 3, vest: 4, pants: 3, gloves: 3, boots: 0.08 },
+        black: { cap: 4, vest: 6, pants: 4, gloves: 4, boots: 0.10 }
+      };
+      let dmg = 0, def = 0, loot = 0;
+      Object.keys(table).forEach(function (m) {
+        const n = metalName(m);
+        const row = table[m];
+        if (state["gear" + n + "Cap"]) def += row.cap;
+        if (state["gear" + n + "Vest"]) def += row.vest;
+        if (state["gear" + n + "Pants"]) def += row.pants;
+        if (state["gear" + n + "Gloves"]) dmg += row.gloves;
+        if (state["gear" + n + "Boots"]) loot += row.boots;
+      });
+      const set = metalSet();
+      if (set === "copper") { def += 6; dmg += 6; loot += 0.10; }
+      if (set === "silver") { def += 8; dmg += 8; loot += 0.12; }
+      if (set === "gold") { def += 10; dmg += 10; loot += 0.15; }
+      if (set === "black") { def += 14; dmg += 14; loot += 0.20; }
+      return { dmg: dmg, def: def, loot: loot, set: set };
+    }
     function minerAtk() {
-      if (state.gearIron) return { min: 16, max: 24 };
-      if (state.gearSword) return { min: 13, max: 20 };
-      return { min: 8, max: 12 };
+      let min = 8, max = 12;
+      if (state.gearBlack) { min = 28; max = 28; }
+      else if (state.gearGold) { min = 22; max = 22; }
+      else if (state.gearSilver) { min = 18; max = 18; }
+      else if (state.gearCopper) { min = 14; max = 14; }
+      else if (state.gearIron) { min = 16; max = 24; }
+      else if (state.gearSword) { min = 13; max = 20; }
+      const extra = metalStats().dmg;
+      return { min: min + extra, max: max + extra };
     }
     function minerDef() {
       const cloth = (state.gearPants ? 1 : 0) + (state.gearShirt ? 1 : 0) + (state.gearBeanie ? 1 : 0) + (state.gearGloves ? 1 : 0) + (state.gearBoots ? 1 : 0);
       const leather = (state.gearLeatherCap ? 2 : 0) + (state.gearLeatherVest ? 2 : 0) + (state.gearLeatherPants ? 2 : 0) + (state.gearLeatherGloves ? 2 : 0) + (state.gearLeatherBoots ? 2 : 0);
       const set = leatherWorn() + (leatherWorn() >= 5 ? 2 : 0) + (clothWorn() >= 5 ? 1 : 0);
-      return cloth + leather + set;
+      return cloth + leather + set + metalStats().def;
     }
         function woolArt() {
       return '<svg class="gear-art" viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="17" rx="10" ry="9" fill="#e8e0d4"/><ellipse cx="12" cy="14" rx="5" ry="4.5" fill="#f4efe6"/><ellipse cx="20" cy="15" rx="4.5" ry="4" fill="#d9d0c4"/><ellipse cx="16" cy="20" rx="5" ry="4" fill="#cfc6ba"/></svg>';
@@ -5909,6 +6031,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     }
     function openGearPick(slot) {
       const pick = document.getElementById("gear-pick");
+      if (pick && pick.parentElement !== document.body) document.body.appendChild(pick);
       const list = document.getElementById("gear-pick-list");
       const title = document.getElementById("gear-pick-title");
       if (!pick || !list) return;
@@ -5918,6 +6041,35 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (slot === "helmet" && ((state.beanies || 0) > 0 || state.gearBeanie)) items.push({ id: "beanie", name: "Beanie", sub: "+1 def · +10% loot", art: beanieArt(), on: !!state.gearBeanie });
       if (slot === "weapon" && ((state.swords || 0) > 0 || state.gearSword)) items.push({ id: "sword", name: "Stone sword", sub: "+5 to +8 damage", art: swordArt(), on: !!state.gearSword });
       if (slot === "weapon" && ((state.ironSwords || 0) > 0 || state.gearIron)) items.push({ id: "iron", name: "Iron sword", sub: "+8 to +12 damage", art: ironSwordArt(), on: !!state.gearIron });
+      if (slot === "weapon" && ((state.copperSwords || 0) > 0 || state.gearCopper)) items.push({ id: "copper", name: "Copper sword", sub: "+14 damage", art: zoneIcon("copperSwords"), on: !!state.gearCopper });
+      if (slot === "weapon" && ((state.silverSwords || 0) > 0 || state.gearSilver)) items.push({ id: "silver", name: "Silver sword", sub: "+18 damage", art: zoneIcon("silverSwords"), on: !!state.gearSilver });
+      if (slot === "weapon" && ((state.goldSwords || 0) > 0 || state.gearGold)) items.push({ id: "gold", name: "Gold sword", sub: "+22 damage", art: zoneIcon("goldSwords"), on: !!state.gearGold });
+      if (slot === "weapon" && ((state.blackSwords || 0) > 0 || state.gearBlack)) items.push({ id: "black", name: "Black stone sword", sub: "+28 damage", art: zoneIcon("blackSwords"), on: !!state.gearBlack });
+      if (slot === "helmet" && ((state.ironCaps || 0) > 0 || state.gearIronCap)) items.push({ id: "iron-cap", name: "Iron cap", sub: "Gear", art: zoneIcon("ironOre"), on: !!state.gearIronCap });
+      if (slot === "armor" && ((state.ironVests || 0) > 0 || state.gearIronVest)) items.push({ id: "iron-vest", name: "Iron vest", sub: "Gear", art: zoneIcon("ironOre"), on: !!state.gearIronVest });
+      if (slot === "pants" && ((state.ironPants || 0) > 0 || state.gearIronPants)) items.push({ id: "iron-pants", name: "Iron pants", sub: "Gear", art: zoneIcon("ironOre"), on: !!state.gearIronPants });
+      if (slot === "hands" && ((state.ironGloves || 0) > 0 || state.gearIronGloves)) items.push({ id: "iron-gloves", name: "Iron gloves", sub: "Gear", art: zoneIcon("ironOre"), on: !!state.gearIronGloves });
+      if (slot === "boots" && ((state.ironBoots || 0) > 0 || state.gearIronBoots)) items.push({ id: "iron-boots", name: "Iron boots", sub: "Gear", art: zoneIcon("ironOre"), on: !!state.gearIronBoots });
+      if (slot === "helmet" && ((state.copperCaps || 0) > 0 || state.gearCopperCap)) items.push({ id: "copper-cap", name: "Copper cap", sub: "Gear", art: zoneIcon("copperOre"), on: !!state.gearCopperCap });
+      if (slot === "armor" && ((state.copperVests || 0) > 0 || state.gearCopperVest)) items.push({ id: "copper-vest", name: "Copper vest", sub: "Gear", art: zoneIcon("copperOre"), on: !!state.gearCopperVest });
+      if (slot === "pants" && ((state.copperPants || 0) > 0 || state.gearCopperPants)) items.push({ id: "copper-pants", name: "Copper pants", sub: "Gear", art: zoneIcon("copperOre"), on: !!state.gearCopperPants });
+      if (slot === "hands" && ((state.copperGloves || 0) > 0 || state.gearCopperGloves)) items.push({ id: "copper-gloves", name: "Copper gloves", sub: "Gear", art: zoneIcon("copperOre"), on: !!state.gearCopperGloves });
+      if (slot === "boots" && ((state.copperBoots || 0) > 0 || state.gearCopperBoots)) items.push({ id: "copper-boots", name: "Copper boots", sub: "Gear", art: zoneIcon("copperOre"), on: !!state.gearCopperBoots });
+      if (slot === "helmet" && ((state.silverCaps || 0) > 0 || state.gearSilverCap)) items.push({ id: "silver-cap", name: "Silver cap", sub: "Gear", art: zoneIcon("silverOre"), on: !!state.gearSilverCap });
+      if (slot === "armor" && ((state.silverVests || 0) > 0 || state.gearSilverVest)) items.push({ id: "silver-vest", name: "Silver vest", sub: "Gear", art: zoneIcon("silverOre"), on: !!state.gearSilverVest });
+      if (slot === "pants" && ((state.silverPants || 0) > 0 || state.gearSilverPants)) items.push({ id: "silver-pants", name: "Silver pants", sub: "Gear", art: zoneIcon("silverOre"), on: !!state.gearSilverPants });
+      if (slot === "hands" && ((state.silverGloves || 0) > 0 || state.gearSilverGloves)) items.push({ id: "silver-gloves", name: "Silver gloves", sub: "Gear", art: zoneIcon("silverOre"), on: !!state.gearSilverGloves });
+      if (slot === "boots" && ((state.silverBoots || 0) > 0 || state.gearSilverBoots)) items.push({ id: "silver-boots", name: "Silver boots", sub: "Gear", art: zoneIcon("silverOre"), on: !!state.gearSilverBoots });
+      if (slot === "helmet" && ((state.goldCaps || 0) > 0 || state.gearGoldCap)) items.push({ id: "gold-cap", name: "Gold cap", sub: "Gear", art: zoneIcon("goldOre"), on: !!state.gearGoldCap });
+      if (slot === "armor" && ((state.goldVests || 0) > 0 || state.gearGoldVest)) items.push({ id: "gold-vest", name: "Gold vest", sub: "Gear", art: zoneIcon("goldOre"), on: !!state.gearGoldVest });
+      if (slot === "pants" && ((state.goldPants || 0) > 0 || state.gearGoldPants)) items.push({ id: "gold-pants", name: "Gold pants", sub: "Gear", art: zoneIcon("goldOre"), on: !!state.gearGoldPants });
+      if (slot === "hands" && ((state.goldGloves || 0) > 0 || state.gearGoldGloves)) items.push({ id: "gold-gloves", name: "Gold gloves", sub: "Gear", art: zoneIcon("goldOre"), on: !!state.gearGoldGloves });
+      if (slot === "boots" && ((state.goldBoots || 0) > 0 || state.gearGoldBoots)) items.push({ id: "gold-boots", name: "Gold boots", sub: "Gear", art: zoneIcon("goldOre"), on: !!state.gearGoldBoots });
+      if (slot === "helmet" && ((state.blackCaps || 0) > 0 || state.gearBlackCap)) items.push({ id: "black-cap", name: "Black stone cap", sub: "Gear", art: zoneIcon("blackStone"), on: !!state.gearBlackCap });
+      if (slot === "armor" && ((state.blackVests || 0) > 0 || state.gearBlackVest)) items.push({ id: "black-vest", name: "Black stone vest", sub: "Gear", art: zoneIcon("blackStone"), on: !!state.gearBlackVest });
+      if (slot === "pants" && ((state.blackPants || 0) > 0 || state.gearBlackPants)) items.push({ id: "black-pants", name: "Black stone pants", sub: "Gear", art: zoneIcon("blackStone"), on: !!state.gearBlackPants });
+      if (slot === "hands" && ((state.blackGloves || 0) > 0 || state.gearBlackGloves)) items.push({ id: "black-gloves", name: "Black stone gloves", sub: "Gear", art: zoneIcon("blackStone"), on: !!state.gearBlackGloves });
+      if (slot === "boots" && ((state.blackBoots || 0) > 0 || state.gearBlackBoots)) items.push({ id: "black-boots", name: "Black stone boots", sub: "Gear", art: zoneIcon("blackStone"), on: !!state.gearBlackBoots });
       if (slot === "hands" && ((state.gloves || 0) > 0 || state.gearGloves)) items.push({ id: "gloves", name: "Cloth gloves", sub: "+1 def · +10% loot", art: glovesArt(), on: !!state.gearGloves });
       if (slot === "hands" && ((state.leatherGloves || 0) > 0 || state.gearLeatherGloves)) items.push({ id: "lgloves", name: "Leather gloves", sub: "+2 def · +16% loot", art: leatherArt("gloves"), on: !!state.gearLeatherGloves });
       if (slot === "boots" && ((state.boots || 0) > 0 || state.gearBoots)) items.push({ id: "boots", name: "Cloth boots", sub: "+1 def · +10% loot", art: bootsArt(), on: !!state.gearBoots });
@@ -5962,7 +6114,36 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         lgloves: ["gearLeatherGloves", "leatherGloves", "Removed leather gloves"],
         lboots: ["gearLeatherBoots", "leatherBoots", "Removed leather boots"],
         sword: ["gearSword", "swords", "Removed stone sword"],
-        iron: ["gearIron", "ironSwords", "Removed iron sword"]
+        iron: ["gearIron", "ironSwords", "Removed iron sword"],
+        copper: ["gearCopper", "copperSwords", "Removed copper sword"],
+        silver: ["gearSilver", "silverSwords", "Removed silver sword"],
+        gold: ["gearGold", "goldSwords", "Removed gold sword"],
+        black: ["gearBlack", "blackSwords", "Removed black stone sword"],
+        "iron-cap": ["gearIronCap", "ironCaps", "Removed iron cap"],
+        "iron-vest": ["gearIronVest", "ironVests", "Removed iron vest"],
+        "iron-pants": ["gearIronPants", "ironPants", "Removed iron pants"],
+        "iron-gloves": ["gearIronGloves", "ironGloves", "Removed iron gloves"],
+        "iron-boots": ["gearIronBoots", "ironBoots", "Removed iron boots"],
+        "copper-cap": ["gearCopperCap", "copperCaps", "Removed copper cap"],
+        "copper-vest": ["gearCopperVest", "copperVests", "Removed copper vest"],
+        "copper-pants": ["gearCopperPants", "copperPants", "Removed copper pants"],
+        "copper-gloves": ["gearCopperGloves", "copperGloves", "Removed copper gloves"],
+        "copper-boots": ["gearCopperBoots", "copperBoots", "Removed copper boots"],
+        "silver-cap": ["gearSilverCap", "silverCaps", "Removed silver cap"],
+        "silver-vest": ["gearSilverVest", "silverVests", "Removed silver vest"],
+        "silver-pants": ["gearSilverPants", "silverPants", "Removed silver pants"],
+        "silver-gloves": ["gearSilverGloves", "silverGloves", "Removed silver gloves"],
+        "silver-boots": ["gearSilverBoots", "silverBoots", "Removed silver boots"],
+        "gold-cap": ["gearGoldCap", "goldCaps", "Removed gold cap"],
+        "gold-vest": ["gearGoldVest", "goldVests", "Removed gold vest"],
+        "gold-pants": ["gearGoldPants", "goldPants", "Removed gold pants"],
+        "gold-gloves": ["gearGoldGloves", "goldGloves", "Removed gold gloves"],
+        "gold-boots": ["gearGoldBoots", "goldBoots", "Removed gold boots"],
+        "black-cap": ["gearBlackCap", "blackCaps", "Removed black stone cap"],
+        "black-vest": ["gearBlackVest", "blackVests", "Removed black stone vest"],
+        "black-pants": ["gearBlackPants", "blackPants", "Removed black stone pants"],
+        "black-gloves": ["gearBlackGloves", "blackGloves", "Removed black stone gloves"],
+        "black-boots": ["gearBlackBoots", "blackBoots", "Removed black stone boots"]
       };
       const row = map[id];
       if (!row || !state[row[0]]) return;
@@ -5976,12 +6157,12 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       save();
     }
     function freeSlot(slot) {
-      if (slot === "helmet") { if (state.gearBeanie) takeOff("beanie"); if (state.gearLeatherCap) takeOff("lcap"); }
-      if (slot === "armor") { if (state.gearShirt) takeOff("shirt"); if (state.gearLeatherVest) takeOff("lvest"); }
-      if (slot === "pants") { if (state.gearPants) takeOff("pants"); if (state.gearLeatherPants) takeOff("lpants"); }
-      if (slot === "hands") { if (state.gearGloves) takeOff("gloves"); if (state.gearLeatherGloves) takeOff("lgloves"); }
-      if (slot === "boots") { if (state.gearBoots) takeOff("boots"); if (state.gearLeatherBoots) takeOff("lboots"); }
-      if (slot === "weapon") { if (state.gearSword) takeOff("sword"); if (state.gearIron) takeOff("iron"); }
+      if (slot === "helmet") { if (state.gearBeanie) takeOff("beanie"); if (state.gearLeatherCap) takeOff("lcap"); if (state.gearIronCap) takeOff("iron-cap"); if (state.gearCopperCap) takeOff("copper-cap"); if (state.gearSilverCap) takeOff("silver-cap"); if (state.gearGoldCap) takeOff("gold-cap"); if (state.gearBlackCap) takeOff("black-cap"); }
+      if (slot === "armor") { if (state.gearShirt) takeOff("shirt"); if (state.gearLeatherVest) takeOff("lvest"); if (state.gearIronVest) takeOff("iron-vest"); if (state.gearCopperVest) takeOff("copper-vest"); if (state.gearSilverVest) takeOff("silver-vest"); if (state.gearGoldVest) takeOff("gold-vest"); if (state.gearBlackVest) takeOff("black-vest"); }
+      if (slot === "pants") { if (state.gearPants) takeOff("pants"); if (state.gearLeatherPants) takeOff("lpants"); if (state.gearIronPants) takeOff("iron-pants"); if (state.gearCopperPants) takeOff("copper-pants"); if (state.gearSilverPants) takeOff("silver-pants"); if (state.gearGoldPants) takeOff("gold-pants"); if (state.gearBlackPants) takeOff("black-pants"); }
+      if (slot === "hands") { if (state.gearGloves) takeOff("gloves"); if (state.gearLeatherGloves) takeOff("lgloves"); if (state.gearIronGloves) takeOff("iron-gloves"); if (state.gearCopperGloves) takeOff("copper-gloves"); if (state.gearSilverGloves) takeOff("silver-gloves"); if (state.gearGoldGloves) takeOff("gold-gloves"); if (state.gearBlackGloves) takeOff("black-gloves"); }
+      if (slot === "boots") { if (state.gearBoots) takeOff("boots"); if (state.gearLeatherBoots) takeOff("lboots"); if (state.gearIronBoots) takeOff("iron-boots"); if (state.gearCopperBoots) takeOff("copper-boots"); if (state.gearSilverBoots) takeOff("silver-boots"); if (state.gearGoldBoots) takeOff("gold-boots"); if (state.gearBlackBoots) takeOff("black-boots"); }
+      if (slot === "weapon") { ["sword","iron","copper","silver","gold","black"].forEach(function (id) { const flag = id === "sword" ? "gearSword" : id === "iron" ? "gearIron" : "gear" + id.charAt(0).toUpperCase() + id.slice(1); if (state[flag]) takeOff(id); }); }
     }
     function wearItem(id) {
       if (id === "pants") {
@@ -6019,6 +6200,35 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (id === "lpants") { if ((state.leatherPants || 0) < 1) return; freeSlot("pants"); state.leatherPants -= 1; state.gearLeatherPants = true; toast("Equipped leather pants"); }
       if (id === "lgloves") { if ((state.leatherGloves || 0) < 1) return; freeSlot("hands"); state.leatherGloves -= 1; state.gearLeatherGloves = true; toast("Equipped leather gloves"); }
       if (id === "lboots") { if ((state.leatherBoots || 0) < 1) return; freeSlot("boots"); state.leatherBoots -= 1; state.gearLeatherBoots = true; toast("Equipped leather boots"); }
+      if (id === "iron-cap") { if ((state.ironCaps || 0) < 1) return; freeSlot("helmet"); state.ironCaps -= 1; state.gearIronCap = true; toast("Equipped iron cap"); }
+      if (id === "iron-vest") { if ((state.ironVests || 0) < 1) return; freeSlot("armor"); state.ironVests -= 1; state.gearIronVest = true; toast("Equipped iron vest"); }
+      if (id === "iron-pants") { if ((state.ironPants || 0) < 1) return; freeSlot("pants"); state.ironPants -= 1; state.gearIronPants = true; toast("Equipped iron pants"); }
+      if (id === "iron-gloves") { if ((state.ironGloves || 0) < 1) return; freeSlot("hands"); state.ironGloves -= 1; state.gearIronGloves = true; toast("Equipped iron gloves"); }
+      if (id === "iron-boots") { if ((state.ironBoots || 0) < 1) return; freeSlot("boots"); state.ironBoots -= 1; state.gearIronBoots = true; toast("Equipped iron boots"); }
+      if (id === "copper-cap") { if ((state.copperCaps || 0) < 1) return; freeSlot("helmet"); state.copperCaps -= 1; state.gearCopperCap = true; toast("Equipped copper cap"); }
+      if (id === "copper-vest") { if ((state.copperVests || 0) < 1) return; freeSlot("armor"); state.copperVests -= 1; state.gearCopperVest = true; toast("Equipped copper vest"); }
+      if (id === "copper-pants") { if ((state.copperPants || 0) < 1) return; freeSlot("pants"); state.copperPants -= 1; state.gearCopperPants = true; toast("Equipped copper pants"); }
+      if (id === "copper-gloves") { if ((state.copperGloves || 0) < 1) return; freeSlot("hands"); state.copperGloves -= 1; state.gearCopperGloves = true; toast("Equipped copper gloves"); }
+      if (id === "copper-boots") { if ((state.copperBoots || 0) < 1) return; freeSlot("boots"); state.copperBoots -= 1; state.gearCopperBoots = true; toast("Equipped copper boots"); }
+      if (id === "silver-cap") { if ((state.silverCaps || 0) < 1) return; freeSlot("helmet"); state.silverCaps -= 1; state.gearSilverCap = true; toast("Equipped silver cap"); }
+      if (id === "silver-vest") { if ((state.silverVests || 0) < 1) return; freeSlot("armor"); state.silverVests -= 1; state.gearSilverVest = true; toast("Equipped silver vest"); }
+      if (id === "silver-pants") { if ((state.silverPants || 0) < 1) return; freeSlot("pants"); state.silverPants -= 1; state.gearSilverPants = true; toast("Equipped silver pants"); }
+      if (id === "silver-gloves") { if ((state.silverGloves || 0) < 1) return; freeSlot("hands"); state.silverGloves -= 1; state.gearSilverGloves = true; toast("Equipped silver gloves"); }
+      if (id === "silver-boots") { if ((state.silverBoots || 0) < 1) return; freeSlot("boots"); state.silverBoots -= 1; state.gearSilverBoots = true; toast("Equipped silver boots"); }
+      if (id === "gold-cap") { if ((state.goldCaps || 0) < 1) return; freeSlot("helmet"); state.goldCaps -= 1; state.gearGoldCap = true; toast("Equipped gold cap"); }
+      if (id === "gold-vest") { if ((state.goldVests || 0) < 1) return; freeSlot("armor"); state.goldVests -= 1; state.gearGoldVest = true; toast("Equipped gold vest"); }
+      if (id === "gold-pants") { if ((state.goldPants || 0) < 1) return; freeSlot("pants"); state.goldPants -= 1; state.gearGoldPants = true; toast("Equipped gold pants"); }
+      if (id === "gold-gloves") { if ((state.goldGloves || 0) < 1) return; freeSlot("hands"); state.goldGloves -= 1; state.gearGoldGloves = true; toast("Equipped gold gloves"); }
+      if (id === "gold-boots") { if ((state.goldBoots || 0) < 1) return; freeSlot("boots"); state.goldBoots -= 1; state.gearGoldBoots = true; toast("Equipped gold boots"); }
+      if (id === "black-cap") { if ((state.blackCaps || 0) < 1) return; freeSlot("helmet"); state.blackCaps -= 1; state.gearBlackCap = true; toast("Equipped black stone cap"); }
+      if (id === "black-vest") { if ((state.blackVests || 0) < 1) return; freeSlot("armor"); state.blackVests -= 1; state.gearBlackVest = true; toast("Equipped black stone vest"); }
+      if (id === "black-pants") { if ((state.blackPants || 0) < 1) return; freeSlot("pants"); state.blackPants -= 1; state.gearBlackPants = true; toast("Equipped black stone pants"); }
+      if (id === "black-gloves") { if ((state.blackGloves || 0) < 1) return; freeSlot("hands"); state.blackGloves -= 1; state.gearBlackGloves = true; toast("Equipped black stone gloves"); }
+      if (id === "black-boots") { if ((state.blackBoots || 0) < 1) return; freeSlot("boots"); state.blackBoots -= 1; state.gearBlackBoots = true; toast("Equipped black stone boots"); }
+      if (id === "copper") { if ((state.copperSwords || 0) < 1) return; freeSlot("weapon"); state.copperSwords -= 1; state.gearCopper = true; toast("Equipped copper sword"); }
+      if (id === "silver") { if ((state.silverSwords || 0) < 1) return; freeSlot("weapon"); state.silverSwords -= 1; state.gearSilver = true; toast("Equipped silver sword"); }
+      if (id === "gold") { if ((state.goldSwords || 0) < 1) return; freeSlot("weapon"); state.goldSwords -= 1; state.gearGold = true; toast("Equipped gold sword"); }
+      if (id === "black") { if ((state.blackSwords || 0) < 1) return; freeSlot("weapon"); state.blackSwords -= 1; state.gearBlack = true; toast("Equipped black stone sword"); }
       if (id === "iron") { if ((state.ironSwords || 0) < 1) return; freeSlot("weapon"); state.ironSwords -= 1; state.gearIron = true; toast("Equipped iron sword"); }
       fillGearStats();
       fillGearSlots();
@@ -6028,7 +6238,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     }
     function fillGearSlots() {
       if (typeof paintBeastInventory === 'function') paintBeastInventory();
-      document.querySelectorAll(".gear-slot").forEach(function (el) {
+            document.querySelectorAll(".gear-slot").forEach(function (el) {
         const slot = el.getAttribute("data-slot");
         if (slot === "pet") {
           const pet = (state.pets || []).find(function (p) { return p.id === state.equippedPet; });
@@ -6040,29 +6250,42 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         }
         const sm = el.querySelector("small");
         const art = el.querySelector(".gear-art");
-        if (slot === "pants") {
+        const metalWorn = {
+          helmet: [["gearBlackCap","Black stone cap","blackStone"],["gearGoldCap","Gold cap","goldOre"],["gearSilverCap","Silver cap","silverOre"],["gearCopperCap","Copper cap","copperOre"],["gearIronCap","Iron cap","ironOre"]],
+          armor: [["gearBlackVest","Black stone vest","blackStone"],["gearGoldVest","Gold vest","goldOre"],["gearSilverVest","Silver vest","silverOre"],["gearCopperVest","Copper vest","copperOre"],["gearIronVest","Iron vest","ironOre"]],
+          pants: [["gearBlackPants","Black stone pants","blackStone"],["gearGoldPants","Gold pants","goldOre"],["gearSilverPants","Silver pants","silverOre"],["gearCopperPants","Copper pants","copperOre"],["gearIronPants","Iron pants","ironOre"]],
+          hands: [["gearBlackGloves","Black stone gloves","blackStone"],["gearGoldGloves","Gold gloves","goldOre"],["gearSilverGloves","Silver gloves","silverOre"],["gearCopperGloves","Copper gloves","copperOre"],["gearIronGloves","Iron gloves","ironOre"]],
+          boots: [["gearBlackBoots","Black stone boots","blackStone"],["gearGoldBoots","Gold boots","goldOre"],["gearSilverBoots","Silver boots","silverOre"],["gearCopperBoots","Copper boots","copperOre"],["gearIronBoots","Iron boots","ironOre"]]
+        };
+        const hit = (metalWorn[slot] || []).find(function (r) { return state[r[0]]; });
+        if (hit) {
+          if (sm) sm.textContent = hit[1];
+          if (art) art.innerHTML = zoneIcon(hit[2]);
+        } else if (slot === "pants") {
           if (sm) sm.textContent = state.gearPants ? "+1 def +15% loot" : "empty";
           if (art) art.innerHTML = state.gearPants ? pantsArt() : "";
-        }
-        if (slot === "armor") {
+        } else if (slot === "armor") {
           if (sm) sm.textContent = state.gearShirt ? "+1 def +10% loot" : "empty";
           if (art) art.innerHTML = state.gearShirt ? shirtArt() : "";
-        }
-        if (slot === "helmet") {
+        } else if (slot === "helmet") {
           if (sm) sm.textContent = state.gearBeanie ? "+1 def +10% loot" : "empty";
           if (art) art.innerHTML = state.gearBeanie ? beanieArt() : "";
         }
         if (slot === "weapon") {
-          if (state.gearIron) { if (sm) sm.textContent = "+8 to +12 damage"; if (art) art.innerHTML = ironSwordArt(); }
+          if (state.gearBlack) { if (sm) sm.textContent = "Black stone sword"; if (art) art.innerHTML = zoneIcon("blackSwords"); }
+          else if (state.gearGold) { if (sm) sm.textContent = "Gold sword"; if (art) art.innerHTML = zoneIcon("goldSwords"); }
+          else if (state.gearSilver) { if (sm) sm.textContent = "Silver sword"; if (art) art.innerHTML = zoneIcon("silverSwords"); }
+          else if (state.gearCopper) { if (sm) sm.textContent = "Copper sword"; if (art) art.innerHTML = zoneIcon("copperSwords"); }
+          else if (state.gearIron) { if (sm) sm.textContent = "+8 to +12 damage"; if (art) art.innerHTML = ironSwordArt(); }
           else if (state.gearSword) { if (sm) sm.textContent = "+5 to +8 damage"; if (art) art.innerHTML = swordArt(); }
           else { if (sm) sm.textContent = "empty"; if (art) art.innerHTML = ""; }
         }
-        if (slot === "hands") {
+        if (slot === "hands" && !hit) {
           if (state.gearLeatherGloves) { if (sm) sm.textContent = "+2 def +16% loot"; if (art) art.innerHTML = leatherArt("gloves"); }
           else if (state.gearGloves) { if (sm) sm.textContent = "+1 def +10% loot"; if (art) art.innerHTML = glovesArt(); }
           else { if (sm) sm.textContent = "empty"; if (art) art.innerHTML = ""; }
         }
-        if (slot === "boots") {
+        if (slot === "boots" && !hit) {
           if (state.gearLeatherBoots) { if (sm) sm.textContent = "+2 def +16% loot"; if (art) art.innerHTML = leatherArt("boots"); }
           else if (state.gearBoots) { if (sm) sm.textContent = "+1 def +10% loot"; if (art) art.innerHTML = bootsArt(); }
           else { if (sm) sm.textContent = "empty"; if (art) art.innerHTML = ""; }
@@ -6089,6 +6312,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         "<li><span>" + clanFightLabel() + "</span><span>+" + clanFightPct() + "%</span></li>" +
         "<li><span>Defense</span><span>" + minerDef() + "</span></li>" +
         "<li><span>Loot</span><span>" + (rockB ? ("+" + rockB + "%") : "0%") + "</span></li>" +
+        "<li><span>Metal set</span><span>" + (metalSet() ? metalSet() : "none") + "</span></li>" +
         "<li class='" + (cw >= 5 ? "set-full" : "") + "'><span>Cloth set</span><span>" + cw + "/5" + (cw >= 5 ? " Woolworks" : "") + "</span></li>" +
         "<li class='" + (lw >= 5 ? "set-full" : "") + "'><span>Leather set</span><span>" + lw + "/5" + (lw >= 5 ? " Hidebound" : "") + "</span></li>";
       const ban = document.getElementById("set-banner");
@@ -6161,6 +6385,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         const full = String(r[1]).indexOf("Woolworks") >= 0 || String(r[1]).indexOf("Hidebound") >= 0;
         return "<li class='" + (full ? "set-full" : "") + "'><span>" + r[0] + "</span><span>" + r[1] + "</span></li>";
       }).join("");
+      if (typeof paintMetalSlots === "function") paintMetalSlots();
     }
     function dressMiner() {
       const on = {
@@ -6174,9 +6399,41 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         "has-leather-pants": !!state.gearLeatherPants,
         "has-leather-gloves": !!state.gearLeatherGloves,
         "has-leather-boots": !!state.gearLeatherBoots,
-        "has-sword": !!(state.gearSword || state.gearIron),
-        "has-iron": !!state.gearIron
+        "has-sword": !!(state.gearSword || state.gearIron || state.gearCopper || state.gearSilver || state.gearGold || state.gearBlack),
+        "has-iron": !!state.gearIron,
+        "has-copper": !!state.gearCopper,
+        "has-silver": !!state.gearSilver,
+        "has-gold": !!state.gearGold,
+        "has-black": !!state.gearBlack,
+        "has-iron-cap": !!state.gearIronCap,
+        "has-iron-vest": !!state.gearIronVest,
+        "has-iron-pants": !!state.gearIronPants,
+        "has-iron-gloves": !!state.gearIronGloves,
+        "has-iron-boots": !!state.gearIronBoots,
+        "has-copper-cap": !!state.gearCopperCap,
+        "has-copper-vest": !!state.gearCopperVest,
+        "has-copper-pants": !!state.gearCopperPants,
+        "has-copper-gloves": !!state.gearCopperGloves,
+        "has-copper-boots": !!state.gearCopperBoots,
+        "has-silver-cap": !!state.gearSilverCap,
+        "has-silver-vest": !!state.gearSilverVest,
+        "has-silver-pants": !!state.gearSilverPants,
+        "has-silver-gloves": !!state.gearSilverGloves,
+        "has-silver-boots": !!state.gearSilverBoots,
+        "has-gold-cap": !!state.gearGoldCap,
+        "has-gold-vest": !!state.gearGoldVest,
+        "has-gold-pants": !!state.gearGoldPants,
+        "has-gold-gloves": !!state.gearGoldGloves,
+        "has-gold-boots": !!state.gearGoldBoots,
+        "has-black-cap": !!state.gearBlackCap,
+        "has-black-vest": !!state.gearBlackVest,
+        "has-black-pants": !!state.gearBlackPants,
+        "has-black-gloves": !!state.gearBlackGloves,
+        "has-black-boots": !!state.gearBlackBoots
       };
+      document.querySelectorAll(".miner, .fight-miner").forEach(function (root) {
+        Object.keys(on).forEach(function (k) { root.classList.toggle(k, on[k]); });
+      });
       ["miner", "gear-miner", "forest-miner"].forEach(function (id) {
         const root = document.getElementById(id);
         if (!root) return;
@@ -6944,7 +7201,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         return { w: 2 + (u >= 2 ? 1 : 0), h: 3 + u };
       }
       if (kind === "smith" || kind === "kitchen" || kind === "tailor") return { w: 3, h: 3 };
-      if (kind === "petbed" || kind === "house") return { w: 2, h: 2 };
+      if (kind === "petbed" || kind === "house" || kind === "charm") return { w: 2, h: 2 };
       if (kind === "pond") {
         const lvl = Math.max(1, (item && item.level) || 1);
         if (lvl >= 3) return { w: 4, h: 4 };
@@ -8362,6 +8619,14 @@ async function buySilo() {
         bindTile(el, "smith", s);
         grid.appendChild(el);
       });
+      (state.charmsBenches || []).forEach((s) => {
+        const el = document.createElement("div");
+        el.className = "tile charm";
+        el.innerHTML = '<div class="label">charms</div>';
+        placeEl(el, s.x, s.y, 1, "charm", s);
+        bindTile(el, "charm", s);
+        grid.appendChild(el);
+      });
       (state.kitchens || []).forEach((s) => {
         const el = document.createElement("div");
         el.className = "tile kitchen";
@@ -8542,6 +8807,7 @@ async function buySilo() {
         else if (kind === "silo") openSilo(plot);
         else if (kind === "csilo") openCarrotSilo(plot);
         else if (kind === "smith") openSmith(plot);
+        else if (kind === "charm") openCharm();
         else if (kind === "kitchen") openKitchen();
         else if (kind === "tailor") openTailor();
         else if (kind === "petbed") openPetBed(plot);
@@ -9264,8 +9530,11 @@ async function buySilo() {
         const box = document.getElementById("gear-box");
         const stats = document.getElementById("stats-box");
         if (!box) return;
-        box.hidden = !box.hidden;
-        if (!box.hidden) { fillGearStats(); fillGearSlots(); }
+        if (box.parentElement !== document.body) document.body.appendChild(box);
+        const open = !box.classList.contains("open");
+        box.classList.toggle("open", open);
+        box.hidden = !open;
+        if (open) { fillGearStats(); fillGearSlots(); if (typeof dressMiner === "function") dressMiner(); }
         if (stats) stats.hidden = true;
         syncInvButtons();
       };
@@ -9313,9 +9582,8 @@ async function buySilo() {
           return;
         }
         if (slot === "weapon") {
-          if (state.gearIron) takeOff("iron");
-          else if (state.gearSword) takeOff("sword");
-          else openGearPick("weapon");
+          const wornW = ["black","gold","silver","copper","iron","sword"].find(function (id) { return state[id === "sword" ? "gearSword" : id === "iron" ? "gearIron" : "gear" + id.charAt(0).toUpperCase() + id.slice(1)]; });
+          if (wornW) takeOff(wornW); else openGearPick("weapon");
           return;
         }
         if (slot === "hands") {
@@ -9454,6 +9722,320 @@ async function buySilo() {
     };
     const buySiloBtn = document.getElementById("buy-silo");
     if (buySiloBtn) buySiloBtn.onclick = buySilo;
+
+
+    function metalCount(metal, part) {
+      if (part === "pants") return metal + "Pants";
+      if (part === "gloves") return metal + "Gloves";
+      if (part === "boots") return metal + "Boots";
+      return metal + part.charAt(0).toUpperCase() + part.slice(1) + "s";
+    }
+    function wearMetalSet(metal) {
+      const parts = [["helmet","cap"],["armor","vest"],["pants","pants"],["hands","gloves"],["boots","boots"]];
+      parts.forEach(function (p) {
+        const count = metalCount(metal, p[1]);
+        const flag = "gear" + metal.charAt(0).toUpperCase() + metal.slice(1) + p[1].charAt(0).toUpperCase() + p[1].slice(1);
+        if (state[flag]) return;
+        if ((state[count] || 0) < 1) state[count] = 1;
+        freeSlot(p[0]);
+        state[count] -= 1;
+        state[flag] = true;
+      });
+      const sword = metal === "iron" ? "iron" : metal;
+      if ((state[metal + "Swords"] || state[metal === "black" ? "blackSwords" : metal + "Swords"] || 0) > 0 || state["gear" + metal.charAt(0).toUpperCase() + metal.slice(1)]) {
+        if (typeof wearItem === "function" && !state["gear" + (metal === "iron" ? "Iron" : metal.charAt(0).toUpperCase() + metal.slice(1))] && metal !== "black") wearItem(sword);
+      }
+      if (metal === "black" && !state.gearBlack && (state.blackSwords || 0) > 0) wearItem("black");
+      if (metal === "gold" && !state.gearGold && (state.goldSwords || 0) > 0) wearItem("gold");
+      if (metal === "silver" && !state.gearSilver && (state.silverSwords || 0) > 0) wearItem("silver");
+      if (metal === "copper" && !state.gearCopper && (state.copperSwords || 0) > 0) wearItem("copper");
+      if (metal === "iron" && !state.gearIron && (state.ironSwords || 0) > 0) wearItem("iron");
+      if (typeof dressMiner === "function") dressMiner();
+      if (typeof fillGearSlots === "function") fillGearSlots();
+      save();
+    }
+    function paintMetalSlots() {
+      const sets = [
+        ["helmet", [["gearIronCap", "Iron cap", "ironOre"], ["gearCopperCap", "Copper cap", "copperOre"], ["gearSilverCap", "Silver cap", "silverOre"], ["gearGoldCap", "Gold cap", "goldOre"], ["gearBlackCap", "Black stone cap", "blackStone"]]],
+        ["armor", [["gearIronVest", "Iron vest", "ironOre"], ["gearCopperVest", "Copper vest", "copperOre"], ["gearSilverVest", "Silver vest", "silverOre"], ["gearGoldVest", "Gold vest", "goldOre"], ["gearBlackVest", "Black stone vest", "blackStone"]]],
+        ["pants", [["gearIronPants", "Iron pants", "ironOre"], ["gearCopperPants", "Copper pants", "copperOre"], ["gearSilverPants", "Silver pants", "silverOre"], ["gearGoldPants", "Gold pants", "goldOre"], ["gearBlackPants", "Black stone pants", "blackStone"]]],
+        ["hands", [["gearIronGloves", "Iron gloves", "ironOre"], ["gearCopperGloves", "Copper gloves", "copperOre"], ["gearSilverGloves", "Silver gloves", "silverOre"], ["gearGoldGloves", "Gold gloves", "goldOre"], ["gearBlackGloves", "Black stone gloves", "blackStone"]]],
+        ["boots", [["gearIronBoots", "Iron boots", "ironOre"], ["gearCopperBoots", "Copper boots", "copperOre"], ["gearSilverBoots", "Silver boots", "silverOre"], ["gearGoldBoots", "Gold boots", "goldOre"], ["gearBlackBoots", "Black stone boots", "blackStone"]]]
+      ];
+      document.querySelectorAll(".gear-slot").forEach(function (el) {
+        const slot = el.getAttribute("data-slot");
+        const row = sets.find(function (s) { return s[0] === slot; });
+        if (!row) return;
+        const hit = row[1].find(function (r) { return state[r[0]]; });
+        if (!hit) return;
+        const sm = el.querySelector("small");
+        const art = el.querySelector(".gear-art");
+        if (sm) sm.textContent = hit[1];
+        if (art) art.innerHTML = zoneIcon(hit[2]);
+      });
+    }
+
+    function zoneIcon(kind) {
+      const mats = {
+        ironOre: ["#b9b1a2", "ore"], copperOre: ["#c46a3a", "ore"], silverOre: ["#d5dbe2", "ore"], goldOre: ["#e8c36a", "ore"], blackStone: ["#2c2c30", "ore"],
+        softwood: ["#c4a574", "wood"], hardwood: ["#8a5a32", "wood"], ironwood: ["#6d7358", "wood"], heartwood: ["#a33b32", "wood"], worldroot: ["#3d5c38", "wood"],
+        shoreGlass: ["#9fd8e8", "gem"], lilyJade: ["#3dba8a", "gem"], tideCrystal: ["#6ec8e0", "gem"], wreckAmber: ["#e09a3a", "gem"], moonscale: ["#c9b6f2", "gem"]
+      };
+      const swords = { ironSwords: "#b9b1a2", copperSwords: "#c46a3a", silverSwords: "#d5dbe2", goldSwords: "#e8c36a", blackSwords: "#2c2c30" };
+      if (mats[kind]) {
+        const col = mats[kind][0], shape = mats[kind][1];
+        if (shape === "wood") return '<svg class="loot-ico" viewBox="0 0 32 32"><rect x="4" y="12" width="24" height="8" rx="3" fill="' + col + '"/><rect x="7" y="8" width="18" height="6" rx="2" fill="#efe6cf" opacity="0.35"/></svg>';
+        if (shape === "gem") return '<svg class="loot-ico" viewBox="0 0 32 32"><polygon points="16,4 26,12 22,26 10,26 6,12" fill="' + col + '"/></svg>';
+        return '<svg class="loot-ico" viewBox="0 0 32 32"><path d="M8 18 L14 6 L22 10 L26 20 L16 28 Z" fill="' + col + '"/></svg>';
+      }
+      if (swords[kind]) return '<svg class="loot-ico" viewBox="0 0 32 32"><rect x="14" y="4" width="4" height="18" fill="' + swords[kind] + '"/><rect x="10" y="20" width="12" height="3" fill="#6a5030"/><rect x="15" y="23" width="2" height="5" fill="#6a5030"/></svg>';
+      if (String(kind).indexOf("charm:") === 0) return '<svg class="loot-ico" viewBox="0 0 32 32"><circle cx="16" cy="14" r="8" fill="#c9b6f2"/><rect x="14" y="22" width="4" height="6" fill="#e8c36a"/></svg>';
+      return "";
+    }
+    const ZONE_MATS = {
+      mine: [
+        { key: "ironOre", name: "iron ore" },
+        { key: "copperOre", name: "copper ore" },
+        { key: "silverOre", name: "silver ore" },
+        { key: "goldOre", name: "gold ore" },
+        { key: "blackStone", name: "black stone" }
+      ],
+      forest: [
+        { key: "softwood", name: "softwood" },
+        { key: "hardwood", name: "hardwood" },
+        { key: "ironwood", name: "ironwood" },
+        { key: "heartwood", name: "heartwood" },
+        { key: "worldroot", name: "worldroot" }
+      ],
+      lake: [
+        { key: "shoreGlass", name: "shore glass" },
+        { key: "lilyJade", name: "lily jade" },
+        { key: "tideCrystal", name: "tide crystal" },
+        { key: "wreckAmber", name: "wreck amber" },
+        { key: "moonscale", name: "moonscale" }
+      ]
+    };
+    const WEAPONS = [
+      { key: "ironSwords", ore: "ironOre", name: "iron sword", dmg: 10, line: "smith-iron-line", btn: "craft-iron", oreName: "iron ore" },
+      { key: "copperSwords", ore: "copperOre", name: "copper sword", dmg: 14, line: "smith-copper-line", btn: "craft-copper", oreName: "copper ore" },
+      { key: "silverSwords", ore: "silverOre", name: "silver sword", dmg: 18, line: "smith-silver-line", btn: "craft-silver", oreName: "silver ore" },
+      { key: "goldSwords", ore: "goldOre", name: "gold sword", dmg: 22, line: "smith-gold-line", btn: "craft-gold", oreName: "gold ore" },
+      { key: "blackSwords", ore: "blackStone", name: "black stone sword", dmg: 28, line: "smith-black-line", btn: "craft-black", oreName: "black stone" }
+    ];
+    const CHARMS = [
+      { id: "glass", name: "Glass charm", a: "shoreGlass", b: "shoreGlass", buff: "A win gives a little health back" },
+      { id: "jade", name: "Jade charm", a: "lilyJade", b: "lilyJade", buff: "Your pet takes 15% less damage" },
+      { id: "tide", name: "Tide charm", a: "tideCrystal", b: "tideCrystal", buff: "You attack faster" },
+      { id: "amber", name: "Amber charm", a: "wreckAmber", b: "wreckAmber", buff: "+Loot% on every drop" },
+      { id: "moon", name: "Moonscale charm", a: "moonscale", b: "moonscale", buff: "Once a fight, a killing blow leaves you at 1 HP" },
+      { id: "reed", name: "Reed glass", a: "shoreGlass", b: "softwood", buff: "+8% damage" },
+      { id: "lily", name: "Lily wood", a: "lilyJade", b: "hardwood", buff: "10% chance your hit lands twice" },
+      { id: "tideiron", name: "Tide iron", a: "tideCrystal", b: "ironwood", buff: "+12% crit" },
+      { id: "amberheart", name: "Amber heart", a: "wreckAmber", b: "heartwood", buff: "Your pet gains extra fight XP" },
+      { id: "rootmoon", name: "Root moon", a: "moonscale", b: "worldroot", buff: "Once a fight, the enemy loses a turn" },
+      { id: "ironglass", name: "Iron glass", a: "shoreGlass", b: "ironOre", buff: "A kill drops a few sats" },
+      { id: "copperjade", name: "Copper jade", a: "lilyJade", b: "copperOre", buff: "First hit of a fight deals double" },
+      { id: "silvertide", name: "Silver tide", a: "tideCrystal", b: "silverOre", buff: "Hits can strike a second foe" },
+      { id: "goldamber", name: "Gold amber", a: "wreckAmber", b: "goldOre", buff: "A win returns a little craft loot" },
+      { id: "blackmoon", name: "Black moon", a: "moonscale", b: "blackStone", buff: "Damage ignores a chunk of defense" }
+    ];
+    function matName(key) {
+      const all = ZONE_MATS.mine.concat(ZONE_MATS.forest, ZONE_MATS.lake);
+      const hit = all.find(function (m) { return m.key === key; });
+      return hit ? hit.name : key;
+    }
+    function seedZoneLoot() {
+      if (state.zoneLootSeed) return;
+      ZONE_MATS.mine.concat(ZONE_MATS.forest, ZONE_MATS.lake).forEach(function (m) {
+        if ((state[m.key] || 0) < 5) state[m.key] = 5;
+      });
+      WEAPONS.forEach(function (w) { if ((state[w.key] || 0) < 1) state[w.key] = 1; });
+      if ((state.ironCaps || 0) < 1) state.ironCaps = 1; if ((state.ironVests || 0) < 1) state.ironVests = 1; if ((state.ironPants || 0) < 1) state.ironPants = 1; if ((state.ironGloves || 0) < 1) state.ironGloves = 1; if ((state.ironBoots || 0) < 1) state.ironBoots = 1; if ((state.copperCaps || 0) < 1) state.copperCaps = 1; if ((state.copperVests || 0) < 1) state.copperVests = 1; if ((state.copperPants || 0) < 1) state.copperPants = 1; if ((state.copperGloves || 0) < 1) state.copperGloves = 1; if ((state.copperBoots || 0) < 1) state.copperBoots = 1; if ((state.silverCaps || 0) < 1) state.silverCaps = 1; if ((state.silverVests || 0) < 1) state.silverVests = 1; if ((state.silverPants || 0) < 1) state.silverPants = 1; if ((state.silverGloves || 0) < 1) state.silverGloves = 1; if ((state.silverBoots || 0) < 1) state.silverBoots = 1; if ((state.goldCaps || 0) < 1) state.goldCaps = 1; if ((state.goldVests || 0) < 1) state.goldVests = 1; if ((state.goldPants || 0) < 1) state.goldPants = 1; if ((state.goldGloves || 0) < 1) state.goldGloves = 1; if ((state.goldBoots || 0) < 1) state.goldBoots = 1; if ((state.blackCaps || 0) < 1) state.blackCaps = 1; if ((state.blackVests || 0) < 1) state.blackVests = 1; if ((state.blackPants || 0) < 1) state.blackPants = 1; if ((state.blackGloves || 0) < 1) state.blackGloves = 1; if ((state.blackBoots || 0) < 1) state.blackBoots = 1;
+      state.charms = state.charms || {};
+      CHARMS.forEach(function (c) { if ((state.charms[c.id] || 0) < 1) state.charms[c.id] = 1; });
+      state.wornCharms = state.wornCharms || [];
+      state.charmsBenches = state.charmsBenches || [];
+      if (!state.charmsBenches.length) state.charmsBenches.push({ id: "charm-demo", x: 0.62, y: 0.78 });
+      state.zoneLootSeed = true;
+    }
+    function grantChapterLoot(parts) {
+      const zone = state.fightKind === "forest" ? "forest" : state.fightKind === "lake" ? "lake" : "mine";
+      const ch = Math.min(5, Math.max(1, Math.ceil((state.mobLevel || 1) / 5)));
+      const mat = ZONE_MATS[zone][ch - 1];
+      state[mat.key] = (state[mat.key] || 0) + 1;
+      parts.push({ kind: mat.key, n: 1, label: "1 " + mat.name });
+    }
+    function paintZoneBarn(ul) {
+      seedZoneLoot();
+      ZONE_MATS.mine.concat(ZONE_MATS.forest, ZONE_MATS.lake).forEach(function (m) {
+        if (m.key === "ironOre") return;
+        const li = document.createElement("li");
+        li.innerHTML = zoneIcon(m.key) + " " + m.name + " · " + (state[m.key] || 0);
+        ul.appendChild(li);
+      });
+      WEAPONS.forEach(function (w) {
+        if (w.key === "ironSwords") return;
+        const li = document.createElement("li");
+        li.innerHTML = zoneIcon(w.key) + " " + w.name + " · " + (state[w.key] || 0) + " · +" + w.dmg;
+        ul.appendChild(li);
+      });
+      const armorRows = [["ironCaps","Iron cap","ironOre"],["ironVests","Iron vest","ironOre"],["ironPants","Iron pants","ironOre"],["ironGloves","Iron gloves","ironOre"],["ironBoots","Iron boots","ironOre"],["copperCaps","Copper cap","copperOre"],["copperVests","Copper vest","copperOre"],["copperPants","Copper pants","copperOre"],["copperGloves","Copper gloves","copperOre"],["copperBoots","Copper boots","copperOre"],["silverCaps","Silver cap","silverOre"],["silverVests","Silver vest","silverOre"],["silverPants","Silver pants","silverOre"],["silverGloves","Silver gloves","silverOre"],["silverBoots","Silver boots","silverOre"],["goldCaps","Gold cap","goldOre"],["goldVests","Gold vest","goldOre"],["goldPants","Gold pants","goldOre"],["goldGloves","Gold gloves","goldOre"],["goldBoots","Gold boots","goldOre"],["blackCaps","Black stone cap","blackStone"],["blackVests","Black stone vest","blackStone"],["blackPants","Black stone pants","blackStone"],["blackGloves","Black stone gloves","blackStone"],["blackBoots","Black stone boots","blackStone"]];
+      armorRows.forEach(function (row) {
+        const li = document.createElement("li");
+        li.innerHTML = zoneIcon(row[2]) + " " + row[1] + " · " + (state[row[0]] || 0);
+        ul.appendChild(li);
+      });
+      CHARMS.forEach(function (c) {
+        const worn = (state.wornCharms || []).indexOf(c.id) >= 0;
+        const li = document.createElement("li");
+        li.innerHTML = zoneIcon("charm:" + c.id) + " " + c.name + " · " + (state.charms && state.charms[c.id] || 0) + (worn ? " · worn" : "");
+        ul.appendChild(li);
+      });
+    }
+    function paintZoneSmith() {
+      seedZoneLoot();
+      WEAPONS.forEach(function (w) {
+        const el = document.getElementById(w.line);
+        const btn = document.getElementById(w.btn);
+        if (el) el.innerHTML = zoneIcon(w.ore) + " 4 " + w.oreName + " + 2 lumber → " + zoneIcon(w.key) + " 1 " + w.name + " · +" + w.dmg + " · have " + (state[w.key] || 0);
+        if (btn) btn.onclick = function () {
+          if ((state[w.ore] || 0) < 4) { toast("Need 4 " + w.oreName); return; }
+          if ((state.lumber || 0) < 2) { toast("Need 2 lumber"); return; }
+          state[w.ore] -= 4;
+          state.lumber -= 2;
+          state[w.key] = (state[w.key] || 0) + 1;
+          toast(w.name);
+          paintZoneSmith();
+          if (typeof fillBarn === "function") fillBarn();
+          save();
+        };
+      });
+      const armorHost = document.getElementById("smith-armor");
+      if (armorHost && !document.getElementById("smith-metal-armor")) {
+        const block = document.createElement("div");
+        block.id = "smith-metal-armor";
+        armorHost.appendChild(block);
+      }
+      const block = document.getElementById("smith-metal-armor");
+      if (block) {
+        block.innerHTML = "";
+        const sets = [{"key": "ironCaps", "ore": "ironOre", "oreName": "iron ore", "name": "Iron cap"}, {"key": "ironVests", "ore": "ironOre", "oreName": "iron ore", "name": "Iron vest"}, {"key": "ironPants", "ore": "ironOre", "oreName": "iron ore", "name": "Iron pants"}, {"key": "ironGloves", "ore": "ironOre", "oreName": "iron ore", "name": "Iron gloves"}, {"key": "ironBoots", "ore": "ironOre", "oreName": "iron ore", "name": "Iron boots"}, {"key": "copperCaps", "ore": "copperOre", "oreName": "copper ore", "name": "Copper cap"}, {"key": "copperVests", "ore": "copperOre", "oreName": "copper ore", "name": "Copper vest"}, {"key": "copperPants", "ore": "copperOre", "oreName": "copper ore", "name": "Copper pants"}, {"key": "copperGloves", "ore": "copperOre", "oreName": "copper ore", "name": "Copper gloves"}, {"key": "copperBoots", "ore": "copperOre", "oreName": "copper ore", "name": "Copper boots"}, {"key": "silverCaps", "ore": "silverOre", "oreName": "silver ore", "name": "Silver cap"}, {"key": "silverVests", "ore": "silverOre", "oreName": "silver ore", "name": "Silver vest"}, {"key": "silverPants", "ore": "silverOre", "oreName": "silver ore", "name": "Silver pants"}, {"key": "silverGloves", "ore": "silverOre", "oreName": "silver ore", "name": "Silver gloves"}, {"key": "silverBoots", "ore": "silverOre", "oreName": "silver ore", "name": "Silver boots"}, {"key": "goldCaps", "ore": "goldOre", "oreName": "gold ore", "name": "Gold cap"}, {"key": "goldVests", "ore": "goldOre", "oreName": "gold ore", "name": "Gold vest"}, {"key": "goldPants", "ore": "goldOre", "oreName": "gold ore", "name": "Gold pants"}, {"key": "goldGloves", "ore": "goldOre", "oreName": "gold ore", "name": "Gold gloves"}, {"key": "goldBoots", "ore": "goldOre", "oreName": "gold ore", "name": "Gold boots"}, {"key": "blackCaps", "ore": "blackStone", "oreName": "black stone", "name": "Black stone cap"}, {"key": "blackVests", "ore": "blackStone", "oreName": "black stone", "name": "Black stone vest"}, {"key": "blackPants", "ore": "blackStone", "oreName": "black stone", "name": "Black stone pants"}, {"key": "blackGloves", "ore": "blackStone", "oreName": "black stone", "name": "Black stone gloves"}, {"key": "blackBoots", "ore": "blackStone", "oreName": "black stone", "name": "Black stone boots"}];
+        sets.forEach(function (row) {
+          const line = document.createElement("div");
+          line.className = "row";
+          const span = document.createElement("span");
+          span.innerHTML = zoneIcon(row.ore) + " 3 " + row.oreName + " → " + row.name + " · have " + (state[row.key] || 0);
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = "Make";
+          btn.onclick = function () {
+            if ((state[row.ore] || 0) < 3) { toast("Need 3 " + row.oreName); return; }
+            state[row.ore] -= 3;
+            state[row.key] = (state[row.key] || 0) + 1;
+            toast(row.name);
+            save();
+            paintZoneSmith();
+            if (typeof fillBarn === "function") fillBarn();
+          };
+          line.appendChild(span);
+          line.appendChild(btn);
+          block.appendChild(line);
+        });
+      }
+    }
+    function charmCostOk(c) {
+      const need = {};
+      need[c.a] = (need[c.a] || 0) + 1;
+      need[c.b] = (need[c.b] || 0) + 1;
+      return Object.keys(need).every(function (k) { return (state[k] || 0) >= need[k]; });
+    }
+    function openCharm() {
+      seedZoneLoot();
+      const pan = document.getElementById("charm-panel");
+      if (!pan) return;
+      if (pan.parentElement !== document.body) document.body.appendChild(pan);
+      const worn = document.getElementById("charm-worn");
+      const rows = document.getElementById("charm-rows");
+      state.wornCharms = state.wornCharms || [];
+      if (worn) {
+        worn.innerHTML = state.wornCharms.length
+          ? state.wornCharms.map(function (id) {
+              const c = CHARMS.find(function (x) { return x.id === id; });
+              return zoneIcon("charm:" + id) + (c ? c.name : id);
+            }).join(" ")
+          : "No charms worn";
+      }
+      if (rows) {
+        rows.innerHTML = "";
+        CHARMS.forEach(function (c) {
+          const row = document.createElement("div");
+          row.className = "row";
+          const span = document.createElement("span");
+          span.innerHTML = zoneIcon(c.a) + " " + matName(c.a) + " + " + zoneIcon(c.b) + " " + matName(c.b) + " → " + zoneIcon("charm:" + c.id) + " " + c.name + " · " + c.buff + " · have " + ((state.charms && state.charms[c.id]) || 0);
+          const make = document.createElement("button");
+          make.type = "button";
+          make.textContent = "Craft";
+          make.onclick = function () {
+            if (!charmCostOk(c)) { toast("Missing material"); return; }
+            state[c.a] -= 1;
+            state[c.b] -= 1;
+            state.charms[c.id] = (state.charms[c.id] || 0) + 1;
+            toast(c.name);
+            save();
+            openCharm();
+            if (typeof fillBarn === "function") fillBarn();
+          };
+          const wear = document.createElement("button");
+          wear.type = "button";
+          const on = state.wornCharms.indexOf(c.id) >= 0;
+          wear.textContent = on ? "Take off" : "Wear";
+          wear.onclick = function () {
+            const i = state.wornCharms.indexOf(c.id);
+            if (i >= 0) state.wornCharms.splice(i, 1);
+            else {
+              if (!(state.charms && state.charms[c.id])) { toast("Craft one first"); return; }
+              if (state.wornCharms.length >= 3) { toast("3 charms worn"); return; }
+              state.wornCharms.push(c.id);
+            }
+            save();
+            openCharm();
+            if (typeof fillBarn === "function") fillBarn();
+          };
+          row.appendChild(span);
+          row.appendChild(make);
+          row.appendChild(wear);
+          rows.appendChild(row);
+        });
+      }
+      pan.classList.add("open");
+      pan.setAttribute("aria-hidden", "false");
+      const closer = document.getElementById("charm-close");
+      if (closer) closer.onclick = function () { pan.classList.remove("open"); pan.setAttribute("aria-hidden", "true"); };
+    }
+    async function buyCharmBench() {
+      if (!(await askYes("Buy a charm bench for 16 sats? It covers 2×2."))) return;
+      if (state.sats < 16) { toast("Need 16 sats"); return; }
+      let spot = findSpot("charm");
+      if (!spot) spot = await needSpace("charm bench");
+      if (!spot) return;
+      state.sats -= 16;
+      state.charmsBenches = state.charmsBenches || [];
+      state.charmsBenches.push({ id: "ch" + Date.now().toString(36), x: spot.x, y: spot.y });
+      toast("Charm bench placed");
+      save();
+      render();
+    }
+    const buyCharmBtn = document.getElementById("buy-charm");
+    if (buyCharmBtn) buyCharmBtn.onclick = buyCharmBench;
+    const oldPaintSmith = paintSmith;
+    paintSmith = function () { oldPaintSmith(); paintZoneSmith(); };
+    seedZoneLoot();
+
+
+    [["wear-black-set","black"],["wear-gold-set","gold"],["wear-silver-set","silver"],["wear-copper-set","copper"],["wear-iron-set","iron"]].forEach(function (row) {
+      const b = document.getElementById(row[0]);
+      if (b) b.onclick = function () { wearMetalSet(row[1]); toast(row[1] + " set on"); };
+    });
     const buySmithBtn = document.getElementById("buy-smith");
     if (buySmithBtn) buySmithBtn.onclick = buySmith;
     const buyKitchenBtn = document.getElementById("buy-kitchen");
@@ -10233,6 +10815,7 @@ async function buySilo() {
         try { bootBtn.setPointerCapture(ev.pointerId); } catch (e) {}
       });
       function releaseStart(go) {
+        if (!held && go) held = true;
         if (!held) return;
         held = false;
         bootBtn.classList.remove("pressed");
@@ -10252,6 +10835,7 @@ async function buySilo() {
           }, 480);
         }, 140);
       }
+      bootBtn.addEventListener("click", function () { if (!bootEl.classList.contains("fade")) releaseStart(true); });
       bootBtn.addEventListener("pointerup", function (ev) {
         ev.preventDefault();
         ev.stopPropagation();
