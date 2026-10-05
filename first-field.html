@@ -137,7 +137,8 @@
     #set-panel.open { display: block; }
     #set-panel h3 { margin: 0 0 8px; font-size: 13px; color: var(--gold); }
     #set-panel label { display: block; font-size: 12px; opacity: 0.8; margin-bottom: 6px; }
-    #set-vol { width: 100%; }
+    #set-vol, #set-sfx { width: 100%; }
+    #set-sfx { margin-bottom: 8px; }
     #set-off { width: 100%; min-height: 40px; margin-top: 10px; }
     #field-wrap {
       flex: 1 1 auto;
@@ -192,7 +193,29 @@
     #pond-panel.open { display: block; }
     .tile.pond { background: #1d4e5c; border-color: #7fd0c8; }
 
-    .tile.charm { background: #243044; border-color: #c9b6f2; }
+    .tile.charm { background: transparent; border: 0; box-shadow: none; overflow: visible; z-index: 3; }
+    .tile.charm svg { width: 128%; height: 128%; margin: -14% 0 0 -14%; pointer-events: none; }
+
+
+    #charm-rows .row { display:block; border:1px solid rgba(232,195,106,.35); border-radius:10px; padding:8px; margin:0 0 8px; }
+    #charm-rows small { opacity:.8; }
+
+    #work-panel { display:none; position:fixed; left:12px; right:12px; bottom:12px; z-index:1000; background:#1c140e; color:#efe6cf; border:1px solid #e8c36a; border-radius:14px; padding:12px; }
+    #work-panel.open { display:block; }
+
+
+    #fight-count { display:none; position:fixed; inset:0; z-index:1250; background:rgba(0,0,0,.72); align-items:center; justify-content:center; }
+    #fight-count.open { display:flex; }
+    #fight-count .card { width:min(240px, calc(100% - 32px)); background:#1c140e; border:2px solid #e8c36a; border-radius:14px; padding:18px; text-align:center; }
+    #fight-count-num { margin:0; font-size:42px; font-weight:800; color:#e8c36a; }
+
+    #ad-break { display:none; position:fixed; inset:0; z-index:1300; background:rgba(0,0,0,.72); align-items:center; justify-content:center; }
+    #ad-break.open { display:flex; }
+    #ad-break .card { width:min(280px, calc(100% - 32px)); background:#1c140e; color:#efe6cf; border:2px solid #e8c36a; border-radius:14px; padding:16px; text-align:center; }
+    #ad-count { font-size:28px; color:#e8c36a; margin:8px 0; }
+
+    #work-hours button.on { outline:2px solid #e8c36a; }
+
 
     #gear-box .gear-art { min-height: 36px; display: flex; align-items: center; justify-content: center; }
     #gear-box .gear-art svg, #gear-pick-list svg { width: 36px !important; height: 36px !important; }
@@ -1165,15 +1188,15 @@
       background: linear-gradient(180deg, #d0d4d8 0%, #8a9096 45%, #4e555c 100%);
       clip-path: polygon(0 32%, 8% 18%, 18% 38%, 78% 0, 100% 50%, 78% 100%, 18% 62%, 8% 82%, 0 68%);
     }
-    .mine-stage.on .pick { display: block; animation: pickStrike 0.42s ease-in-out infinite; }
-    .mine-stage.on .rock { animation: resourceHit 0.42s ease-in-out infinite; }
+    .mine-stage.on .pick, .mine-stage.working .pick { display: block; animation: pickStrike 0.42s ease-in-out infinite; }
+    .mine-stage.on .rock, .mine-stage.working .rock { animation: resourceHit 0.42s ease-in-out infinite; }
     .forest-stage .tree {
       width: 36px; height: 52px; border-radius: 8px 8px 4px 4px;
       background: linear-gradient(#2f6a32 0 62%, #6b4423 62%);
       right: 18px; bottom: 10px;
     }
     .forest-stage .pick { right: 52px; bottom: 26px; }
-    .forest-stage.on .tree { animation: resourceHit 0.42s ease-in-out infinite; }
+    .forest-stage.on .tree, .forest-stage.working .tree { animation: resourceHit 0.42s ease-in-out infinite; }
     #tool-forest.glow { box-shadow: 0 0 0 2px #c9a227; }
     @keyframes minerBob {
       0%,100% { transform: translate(0,0); }
@@ -1680,6 +1703,7 @@
     #ask-box {
       display: none;
       position: fixed;
+      z-index: 1400;
       left: 50%;
       top: 50%;
       bottom: auto;
@@ -2147,8 +2171,10 @@
     </header>
     <div id="set-panel" aria-hidden="true">
       <h3>Sound</h3>
-      <label for="set-vol">Volume</label>
+      <label for="set-vol">Music</label>
       <input id="set-vol" type="range" min="0" max="100" value="70">
+      <label for="set-sfx">Sound effects</label>
+      <input id="set-sfx" type="range" min="0" max="100" value="70">
       <button type="button" id="set-off">Music off</button>
     </div>
     <div id="zoom-bar">
@@ -2340,10 +2366,11 @@
           <div class="rock"></div>
         </div>
         <div class="mine-bar"><i id="mine-bar"></i></div>
-        <p id="mine-status">Tap Start mining.</p>
+        <p id="mine-status">Tap Fight!.</p>
         <div class="scene-actions">
         <button type="button" id="btn-gear" class="btn-inv">Inventory</button>
-        <button type="button" id="btn-mine">Start mining</button>
+        <button type="button" id="btn-mine">Fight!</button>
+        <button type="button" id="btn-work-mine">Work</button>
         <button type="button" id="btn-stats" class="btn-st">Stats</button>
         </div>
         <div id="stats-box" hidden>
@@ -2395,6 +2422,7 @@
     <div class="scene-actions">
     <button type="button" class="btn-inv" id="btn-gear-forest">Inventory</button>
     <button type="button" id="btn-forest">Chop wood</button>
+    <button type="button" id="btn-work-forest">Work</button>
     <button type="button" class="btn-st" id="btn-stats-forest">Stats</button>
     </div>
 <div id="forest-pets" class="pet-strip"></div>
@@ -2451,10 +2479,47 @@
         </div>
         <button type="button" class="ghost" id="smith-close">Close</button>
       </div>
+      
+      
+      
+      <div id="fight-count" aria-hidden="true">
+        <div class="card"><p id="fight-count-num">3</p></div>
+      </div>
+
+      <div id="ad-break" aria-hidden="true">
+        <div class="card">
+          <h3>Ad break</h3>
+          <p id="ad-count">5</p>
+          <p>No real ad yet.</p>
+        </div>
+      </div>
+
+      <div id="work-panel" aria-hidden="true">
+        <h3 id="work-title">Work</h3>
+        <p id="work-note">Send him to work. Demo hour is 12 seconds. Real game is 1 hour, cap 4.</p>
+        <div class="modes" id="work-hours">
+          <button type="button" data-h="1">1h</button>
+          <button type="button" data-h="2">2h</button>
+          <button type="button" data-h="3">3h</button>
+          <button type="button" data-h="4">4h</button>
+        </div>
+        <button type="button" id="work-go">Job</button>
+        <button type="button" id="work-ad">Enhanced job</button>
+        <button type="button" id="work-take">Collect</button>
+        <button type="button" id="work-abort">Abort job</button>
+        <button type="button" class="ghost" id="work-close">Close</button>
+      </div>
+
       <div id="charm-panel" aria-hidden="true">
         <h3>Charm bench</h3>
         <p id="charm-note">Lake material, alone or mixed. Wear 3.</p>
         <div id="charm-worn"></div>
+        <div class="modes" id="charm-sort">
+          <button type="button" data-sort="all">All</button>
+          <button type="button" data-sort="lake">Lake</button>
+          <button type="button" data-sort="forest">Forest</button>
+          <button type="button" data-sort="mine">Mine</button>
+        </div>
         <div id="charm-rows"></div>
         <button type="button" class="ghost" id="charm-close">Close</button>
       </div>
@@ -2523,7 +2588,7 @@
       <div id="stat-worth">Farm worth 0 sats</div>
       <div class="menu-row">
         <button class="ghost" id="btn-tidy" type="button">Clean farm</button>
-        <button class="ghost" id="btn-auto" type="button">Automate 2m</button>
+        <button class="ghost" id="btn-auto" type="button">Automate 1m</button>
         <button class="ghost" id="buy-expand" type="button">Expand farm</button>
       </div>
       <div class="modes" style="grid-template-columns:1fr 1fr 1fr 1fr">
@@ -3121,6 +3186,8 @@ if (!state.demoSmithMats) {
         const p = document.getElementById("ask-msg");
         const yes = document.getElementById("ask-yes");
         const no = document.getElementById("ask-no");
+        if (box && box.parentElement !== document.body) document.body.appendChild(box);
+        if (box) box.style.zIndex = "1400";
         p.textContent = msg;
         box.classList.add("open");
         box.setAttribute("aria-hidden", "false");
@@ -4479,8 +4546,8 @@ if (!state.demoSmithMats) {
     function refreshAutoLabel() {
       const el = document.getElementById("btn-auto");
       if (!el) return;
-      if (autoOn()) el.textContent = "Auto " + fmtLeft(state.autoUntil - now());
-      else el.textContent = "Automate 2m";
+      if (autoOn()) el.textContent = "Auto " + fmtLeft(state.autoUntil - now()) + " · " + (state.autoAds || 1) + "/3";
+      else { state.autoAds = 0; el.textContent = "Automate 1m"; }
     }
     async function buyAuto() {
       if (autoOn()) { toast("Already running " + fmtLeft(state.autoUntil - now())); return; }
@@ -4493,6 +4560,20 @@ if (!state.demoSmithMats) {
       toast("Auto on for 2 minutes");
       save();
       render();
+    }
+    function buyAutoAd() {
+      const left = Math.max(0, (state.autoUntil || 0) - now());
+      const stacked = state.autoAds || 0;
+      if (stacked >= 3 || left >= 3 * 60 * 1000) { toast("3 minutes stacked"); return; }
+      playAd(function () {
+        const base = Math.max(now(), state.autoUntil || 0);
+        state.autoUntil = base + 60 * 1000;
+        state.autoAds = Math.min(3, (state.autoAds || 0) + 1);
+        if (!state.autoNext) state.autoNext = "cow";
+        toast("Auto +" + state.autoAds + " min");
+        save();
+        render();
+      });
     }
     function autoPlantWaterHarvest() {
       const seed = (state.tool === "carrot") ? "carrot" : "corn";
@@ -5928,7 +6009,7 @@ function autoTick() {
           }).join("");
         } else art.innerHTML = "";
       }
-      if (box) { box.classList.add("open"); box.setAttribute("aria-hidden", "false");
+      if (box) { if (box.parentElement !== document.body) document.body.appendChild(box); box.style.zIndex = "1200"; box.classList.add("open"); box.setAttribute("aria-hidden", "false");
         dressMiner();
       }
     }
@@ -6442,6 +6523,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       const fm = document.querySelector("#fight-box .fight-miner");
       if (fm) Object.keys(on).forEach(function (k) { fm.classList.toggle(k, on[k]); });
     }
+    function workBusy() { return !!(state.work && state.work.until && Date.now() < state.work.until); }
     function mineOn() { return (state.miningUntil || 0) > now(); }
     var pickHitTimer = 0;
     var pickAudio = null;
@@ -6480,7 +6562,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       crack.connect(hp);
       hp.connect(bp);
       bp.connect(ng);
-      ng.connect(ctx.destination);
+      ng.connect(sfxBus() || ctx.destination);
       crack.start(t);
 
       const shard = ctx.createOscillator();
@@ -6522,7 +6604,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       tg.gain.exponentialRampToValueAtTime(0.38, t + 0.006);
       tg.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
       thud.connect(tg);
-      tg.connect(ctx.destination);
+      tg.connect(sfxBus() || ctx.destination);
       thud.start(t);
       thud.stop(t + 0.15);
 
@@ -6549,7 +6631,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       noise.connect(hp);
       hp.connect(bp);
       bp.connect(ng);
-      ng.connect(ctx.destination);
+      ng.connect(sfxBus() || ctx.destination);
       noise.start(t);
 
       const chip = ctx.createOscillator();
@@ -6561,7 +6643,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       cg.gain.exponentialRampToValueAtTime(0.08, t + 0.003);
       cg.gain.exponentialRampToValueAtTime(0.0001, t + 0.028);
       chip.connect(cg);
-      cg.connect(ctx.destination);
+      cg.connect(sfxBus() || ctx.destination);
       chip.start(t);
       chip.stop(t + 0.04);
     }
@@ -6575,7 +6657,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (pickHitTimer) return;
       ensurePickAudio();
       function loop() {
-        const still = mineOn() && document.getElementById("mine-panel") && document.getElementById("mine-panel").classList.contains("open") && !document.hidden;
+        const still = (mineOn() || (workBusy() && state.work.area !== "forest")) && document.getElementById("mine-panel") && document.getElementById("mine-panel").classList.contains("open") && !document.hidden;
         if (!still) { pickHitTimer = 0; return; }
         playPickHit();
         pickHitTimer = setTimeout(loop, 420);
@@ -6593,7 +6675,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (chopHitTimer) return;
       ensurePickAudio();
       function loop() {
-        const still = forestOn() && document.getElementById("forest-panel") && document.getElementById("forest-panel").classList.contains("open") && !document.hidden;
+        const still = (forestOn() || (workBusy() && state.work.area === "forest")) && document.getElementById("forest-panel") && document.getElementById("forest-panel").classList.contains("open") && !document.hidden;
         if (!still) { chopHitTimer = 0; return; }
         playChopHit();
         chopHitTimer = setTimeout(loop, 420);
@@ -6607,7 +6689,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       const bar = document.getElementById("mine-bar");
       const on = mineOn();
       if (stage) stage.classList.toggle("on", on);
-      syncPickHits(on);
+      syncPickHits(on || (typeof workBusy === "function" && workBusy() && state.work.area !== "forest"));
       dressMiner();
       const total = FF.mineMs || 20000;
       let started = state.miningStarted || (state.miningUntil ? state.miningUntil - total : 0);
@@ -6625,7 +6707,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         if (stage) stage.classList.toggle("fishing", fishing);
         if (st && !state.mineReady) st.textContent = "Tap Start mining.";
         if (st && state.mineReady) st.textContent = "Last run finished.";
-        if (btn) { btn.disabled = false; btn.textContent = (state.inAdventure && state.fightKind === "lake") ? "Start fishing" : "Start mining"; }
+        if (btn) { btn.disabled = false; btn.textContent = (state.inAdventure && state.fightKind === "lake") ? "Fight!" : "Fight!"; }
       }
       if (bar) bar.style.width = pct + "%";
       const mineBtn = document.getElementById("tool-mine");
@@ -6634,16 +6716,65 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     function armFightAudio() {
       document.querySelectorAll("audio").forEach(function (a) { try { a.pause(); } catch (e) {} });
     }
-    function startMine() {
-      armFightAudio();
-      if (mineOn()) return;
-      const total = FF.mineMs || 20000;
-      state.miningStarted = now();
-      state.miningUntil = now() + total;
-      const fishing = state.inAdventure && state.fightKind === "lake";
-      toast((fishing ? "Fishing " : "Mining ") + fmtLeft(FF.mineMs || 5000));
+    function countFight(statusId, done) {
+      if (state.fightCount) return;
+      state.fightCount = true;
+      const st = document.getElementById(statusId);
+      const steps = ["3", "2", "1", "Fight!"];
+      let i = 0;
+      if (st) st.textContent = steps[0];
+      const tick = setInterval(function () {
+        i += 1;
+        if (st && steps[i]) st.textContent = steps[i];
+        if (i >= steps.length - 1) {
+          clearInterval(tick);
+          state.fightCount = false;
+          done();
+        }
+      }, 700);
+    }
+
+    function popFightCount(done) {
+      const box = document.getElementById("fight-count");
+      const num = document.getElementById("fight-count-num");
+      if (!box) { if (done) done(); return; }
+      if (box.parentElement !== document.body) document.body.appendChild(box);
+      const steps = ["3", "2", "1", "Fight!"];
+      let i = 0;
+      if (num) num.textContent = steps[0];
+      box.classList.add("open");
+      box.setAttribute("aria-hidden", "false");
+      const tick = setInterval(function () {
+        i += 1;
+        if (num && steps[i]) num.textContent = steps[i];
+        if (i >= steps.length - 1) {
+          clearInterval(tick);
+          setTimeout(function () {
+            box.classList.remove("open");
+            box.setAttribute("aria-hidden", "true");
+            if (done) done();
+          }, 450);
+        }
+      }, 600);
+    }
+    function launchMineFight() {
+      state.miningUntil = 0;
+      state.miningStarted = 0;
+      const pan = document.getElementById("mine-panel");
+      state.pendingFight = true;
+      if (!(state.inAdventure && state.fightKind === "lake")) state.fightKind = "mine";
+      state.mobLevel = state.advLevel || 1;
+      state.bossFight = state.mobLevel % 5 === 0;
+      state.pendingLoot = "";
+      state.pendingLootN = 0;
       save();
       paintMine();
+      popFightCount(function () { if (pan && pan.classList.contains("open")) startFight(); });
+    }
+    function startMine() {
+      if (workBusy()) { toast("On a job. Wait it out or abort and drop the pay."); return; }
+      armFightAudio();
+      launchMineFight();
     }
 
     function forestOn() { return (state.forestUntil || 0) > now(); }
@@ -6654,7 +6785,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       const bar = document.getElementById("forest-bar");
       const on = forestOn();
       if (stage) stage.classList.toggle("on", on);
-      syncChopHits(on);
+      syncChopHits(on || (typeof workBusy === "function" && workBusy() && state.work.area === "forest"));
       dressMiner();
       const total = FF.forestMs || 5000;
       let pct = 0;
@@ -6724,15 +6855,20 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       fillBarn();
     }
     function startForest() {
+      if (workBusy()) { toast("On a job. Wait it out or abort and drop the pay."); return; }
       armFightAudio();
-      if (forestOn()) return;
-      const total = FF.forestMs || 5000;
-      state.forestStarted = now();
-      state.forestUntil = now() + total;
-      state.forestReady = false;
-      toast("Chopping " + fmtLeft(total));
+      state.forestUntil = 0;
+      state.forestStarted = 0;
+      const pan = document.getElementById("forest-panel");
+      state.pendingFight = true;
+      state.fightKind = "forest";
+      state.mobLevel = state.advLevel || 1;
+      state.bossFight = state.mobLevel % 5 === 0;
+      state.pendingLoot = "";
+      state.pendingLootN = 0;
       save();
       paintForest();
+      popFightCount(function () { if (pan && pan.classList.contains("open")) startFight(); });
     }
     
     function parkInv(host) {
@@ -7344,6 +7480,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       (state.trees || []).forEach((p) => queue.push([p, "tree"]));
       (state.petBeds || []).forEach((p) => queue.push([p, "petbed"]));
       (state.ponds || []).forEach((p) => queue.push([p, "pond"]));
+      (state.charmsBenches || []).forEach((p) => queue.push([p, "charm"]));
       let col = 0, row = 0, band = 0;
       const stuck = [];
       queue.forEach(function (pair) {
@@ -7566,6 +7703,21 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       toast("Tailor placed");
       save();
       render();
+    }
+
+    function charmArt() {
+      return '<svg viewBox="0 0 64 64" aria-hidden="true">' +
+        '<rect x="8" y="36" width="48" height="8" rx="2" fill="#6a4a28"/>' +
+        '<rect x="12" y="44" width="6" height="14" fill="#4a3218"/>' +
+        '<rect x="46" y="44" width="6" height="14" fill="#4a3218"/>' +
+        '<rect x="10" y="34" width="44" height="4" fill="#c9b6f2"/>' +
+        '<path d="M32 8 v16" stroke="#e8c36a" stroke-width="2"/>' +
+        '<circle cx="32" cy="28" r="7" fill="#1c2438" stroke="#e8c36a" stroke-width="2"/>' +
+        '<path d="M32 23 a4 4 0 1 0 0 8 a3 3 0 1 1 0-8z" fill="#efe6cf"/>' +
+        '<circle cx="18" cy="38" r="2" fill="#7eb6d6"/>' +
+        '<circle cx="46" cy="38" r="2" fill="#e8c36a"/>' +
+        '<circle cx="32" cy="40" r="2" fill="#c9b6f2"/>' +
+        '</svg>';
     }
     function smithArt() {
       return '<svg viewBox="0 0 64 64" aria-hidden="true">' +
@@ -8147,7 +8299,7 @@ async function buySilo() {
         const g = ctx.createGain();
         g.gain.value = 0.45;
         src.connect(g);
-        g.connect(ctx.destination);
+        g.connect(sfxBus() || ctx.destination);
         src.start(0);
       }
       if (window._wellSplashBuf) { fire(window._wellSplashBuf); return; }
@@ -8622,7 +8774,7 @@ async function buySilo() {
       (state.charmsBenches || []).forEach((s) => {
         const el = document.createElement("div");
         el.className = "tile charm";
-        el.innerHTML = '<div class="label">charms</div>';
+        el.innerHTML = charmArt();
         placeEl(el, s.x, s.y, 1, "charm", s);
         bindTile(el, "charm", s);
         grid.appendChild(el);
@@ -9956,6 +10108,11 @@ async function buySilo() {
       if (pan.parentElement !== document.body) document.body.appendChild(pan);
       const worn = document.getElementById("charm-worn");
       const rows = document.getElementById("charm-rows");
+      document.querySelectorAll("#charm-sort button").forEach(function (b) {
+        b.classList.toggle("on", b.getAttribute("data-sort") === (state.charmSort || "all"));
+        b.onclick = function () { state.charmSort = b.getAttribute("data-sort"); openCharm(); };
+      });
+
       state.wornCharms = state.wornCharms || [];
       if (worn) {
         worn.innerHTML = state.wornCharms.length
@@ -9967,11 +10124,26 @@ async function buySilo() {
       }
       if (rows) {
         rows.innerHTML = "";
-        CHARMS.forEach(function (c) {
+        const sort = state.charmSort || "all";
+        const forestKeys = { softwood:1, hardwood:1, ironwood:1, heartwood:1, worldroot:1 };
+        const mineKeys = { ironOre:1, copperOre:1, silverOre:1, goldOre:1, blackStone:1 };
+        function mixOf(c) {
+          if (mineKeys[c.a] || mineKeys[c.b]) return "mine";
+          if (forestKeys[c.a] || forestKeys[c.b]) return "forest";
+          return "lake";
+        }
+        const list = CHARMS.filter(function (c) { return sort === "all" || mixOf(c) === sort; });
+        const titles = { lake: "Lake + lake", forest: "Lake + forest", mine: "Lake + mine" };
+        if (sort !== "all") {
+          const h = document.createElement("p");
+          h.textContent = titles[sort] + " · " + list.length;
+          rows.appendChild(h);
+        }
+        list.forEach(function (c) {
           const row = document.createElement("div");
           row.className = "row";
           const span = document.createElement("span");
-          span.innerHTML = zoneIcon(c.a) + " " + matName(c.a) + " + " + zoneIcon(c.b) + " " + matName(c.b) + " → " + zoneIcon("charm:" + c.id) + " " + c.name + " · " + c.buff + " · have " + ((state.charms && state.charms[c.id]) || 0);
+          span.innerHTML = "<b>" + c.name + "</b><br>" + zoneIcon(c.a) + " " + matName(c.a) + " + " + zoneIcon(c.b) + " " + matName(c.b) + "<br><small>" + c.buff + " · have " + ((state.charms && state.charms[c.id]) || 0) + "</small>";
           const make = document.createElement("button");
           make.type = "button";
           make.textContent = "Craft";
@@ -10036,6 +10208,173 @@ async function buySilo() {
       const b = document.getElementById(row[0]);
       if (b) b.onclick = function () { wearMetalSet(row[1]); toast(row[1] + " set on"); };
     });
+
+    const WORK_HOUR_MS = 12000;
+    function workChapter(area) {
+      const clear = area === "forest" ? (state.forestClear || 0) : area === "lake" ? (state.lakeClear || 0) : (state.mineClear || 0);
+      return Math.min(5, Math.max(1, Math.floor(clear / 5) + 1));
+    }
+    function workResource(area) {
+      if (area === "forest") return { key: "lumber", name: "lumber" };
+      if (area === "lake") return { key: "fish", name: "fish" };
+      return { key: "rocks", name: "rocks" };
+    }
+    function workCap() { return Math.max(4, state.workCapHours || 4); }
+    function workDue(job) {
+      if (!job || !job.until) return 0;
+      const elapsed = Math.min(job.until, Date.now()) - job.started;
+      const hours = Math.floor(elapsed / WORK_HOUR_MS);
+      return Math.max(0, hours * (job.rate || 1) - (job.paid || 0));
+    }
+    function settleWork() {
+      const job = state.work;
+      if (!job) return 0;
+      const due = workDue(job);
+      const res = workResource(job.area);
+      if (due > 0) {
+        state[res.key] = (state[res.key] || 0) + due;
+        job.paid = (job.paid || 0) + due;
+      }
+      const done = job.until && Date.now() >= job.until;
+      if (done && !job.shown) {
+        job.shown = true;
+        const total = job.paid || 0;
+        state.lootParts = [{ kind: res.key, n: total, label: total + " " + res.name }];
+        state.work = null;
+        if (typeof openLoot === "function") openLoot((job.boost ? "Enhanced work done. " : "Work done. ") + "You found " + total + " " + res.name + ".", total, true);
+        save();
+      }
+      return due;
+    }
+
+    function paintWorkScene() {
+      const job = state.work && Date.now() < state.work.until ? state.work : null;
+      const mine = document.getElementById("mine-stage");
+      const forest = document.getElementById("forest-stage");
+      if (mine) mine.classList.toggle("working", !!(job && (job.area === "mine" || job.area === "lake")));
+      if (forest) forest.classList.toggle("working", !!(job && job.area === "forest"));
+      const st = document.getElementById(job && job.area === "forest" ? "forest-status" : "mine-status");
+      if (job && st) st.textContent = "Working the " + job.area + " · " + Math.ceil((job.until - Date.now()) / 1000) + "s left";
+      if (typeof syncPickHits === "function") syncPickHits(mineOn() || (job && job.area !== "forest"));
+      if (typeof syncChopHits === "function") syncChopHits(forestOn() || (job && job.area === "forest"));
+    }
+    function paintWork(area) {
+      paintWorkScene();
+      const job = state.work;
+      const note = document.getElementById("work-note");
+      const title = document.getElementById("work-title");
+      const ch = workChapter(area);
+      const res = workResource(area);
+      if (title) title.textContent = (area === "lake" ? "Lake" : area === "forest" ? "Forest" : "Mine") + " work";
+      const cap = workCap();
+      let line = "Chapter " + ch + " · " + ch + " " + res.name + " an hour · cap " + cap + "h.";
+      if (job) {
+        const left = Math.max(0, job.until - Date.now());
+        line += " Working the " + job.area + " · " + Math.ceil(left / 1000) + "s left in demo · paid " + (job.paid || 0) + ".";
+      }
+      if (note) note.textContent = line + " Demo hour is 12s.";
+      const take = document.getElementById("work-take");
+      if (take) take.disabled = !job;
+    }
+
+    function playAd(done) {
+      const box = document.getElementById("ad-break");
+      const count = document.getElementById("ad-count");
+      if (!box) { if (done) done(); return; }
+      if (box.parentElement !== document.body) document.body.appendChild(box);
+      let left = 5;
+      if (count) count.textContent = "5";
+      box.classList.add("open");
+      box.setAttribute("aria-hidden", "false");
+      const tick = setInterval(function () {
+        left -= 1;
+        if (count) count.textContent = String(Math.max(0, left));
+        if (left <= 0) {
+          clearInterval(tick);
+          box.classList.remove("open");
+          box.setAttribute("aria-hidden", "true");
+          if (done) done();
+        }
+      }, 1000);
+    }
+    function openWork(area) {
+      state.workPick = area;
+      state.workHours = state.workHours || 1;
+      const pan = document.getElementById("work-panel");
+      if (!pan) return;
+      if (pan.parentElement !== document.body) document.body.appendChild(pan);
+      paintWork(area);
+      pan.querySelectorAll("#work-hours button").forEach(function (b) {
+        b.classList.toggle("on", Number(b.getAttribute("data-h")) === state.workHours);
+        b.onclick = function () {
+          state.workHours = Math.min(workCap(), Number(b.getAttribute("data-h")) || 1);
+          paintWork(area);
+        };
+      });
+      const go = document.getElementById("work-go");
+    function abortWork() {
+      const job = state.work;
+      if (!job) { toast("No job running"); return; }
+      const res = workResource(job.area);
+      const paid = job.paid || 0;
+      if (paid) state[res.key] = Math.max(0, (state[res.key] || 0) - paid);
+      state.work = null;
+      toast("Job aborted. Pay dropped.");
+      try { save(); } catch (e) {}
+      paintWork(state.workPick || job.area || "mine");
+      if (typeof fillBarn === "function") fillBarn();
+    }
+    function startWork(boost) {
+        const hours = Math.min(workCap(), state.workHours || 1);
+        const ch = workChapter(area);
+        state.work = { area: area, started: Date.now(), until: Date.now() + hours * WORK_HOUR_MS, rate: ch * (boost ? 2 : 1), paid: 0, chapter: ch, boost: !!boost, shown: false };
+        toast((boost ? "Enhanced" : "Job") + " · " + area + " · " + hours + " demo hours");
+        try { save(); } catch (e) {}
+        paintWork(area);
+      }
+      if (go) go.onclick = async function () {
+        if (!(await askYes("Send him to work for " + (state.workHours || 1) + " hours?"))) return;
+        startWork(false);
+      };
+      const adBtn = document.getElementById("work-ad");
+      if (adBtn) adBtn.onclick = async function () {
+        if (!(await askYes("Watch an ad and boost your job?"))) return;
+        playAd(function () { startWork(true); });
+      };
+      const abort = document.getElementById("work-abort");
+      if (abort) abort.onclick = async function () { if (await askYes("Abort the job and drop the pay?")) abortWork(); };
+      const take = document.getElementById("work-take");
+      if (take) take.onclick = function () {
+        const n = settleWork();
+        const res = workResource((state.work && state.work.area) || area);
+        toast(n ? ("Collected " + n + " " + res.name) : "Nothing ready");
+        save();
+        paintWork(area);
+        if (typeof fillBarn === "function") fillBarn();
+      };
+      pan.classList.add("open");
+      pan.setAttribute("aria-hidden", "false");
+      const closer = document.getElementById("work-close");
+      if (closer) closer.onclick = function () { pan.classList.remove("open"); pan.setAttribute("aria-hidden", "true"); };
+    }
+    const workMine = document.getElementById("btn-work-mine");
+    if (workMine) workMine.onclick = function () { openWork(state.fightKind === "lake" ? "lake" : "mine"); };
+    const workForest = document.getElementById("btn-work-forest");
+    if (workForest) workForest.onclick = function () { openWork("forest"); };
+    if (!window.__workTick) window.__workTick = setInterval(function () {
+      if (!state.work || state.workBusy) return;
+      state.workBusy = true;
+      try {
+        const before = state.work;
+        settleWork();
+        const pan = document.getElementById("work-panel");
+        paintWorkScene();
+        if (before && pan && pan.classList.contains("open")) paintWork(state.workPick || before.area || "mine");
+      } finally { state.workBusy = false; }
+    }, 1000);
+
+    const autoBtn = document.getElementById("btn-auto");
+    if (autoBtn) autoBtn.onclick = buyAutoAd;
     const buySmithBtn = document.getElementById("buy-smith");
     if (buySmithBtn) buySmithBtn.onclick = buySmith;
     const buyKitchenBtn = document.getElementById("buy-kitchen");
@@ -10139,8 +10478,8 @@ async function buySilo() {
       closeAllTabs();
     });
     document.getElementById("btn-tidy").onclick = tidyFarm;
-    const autoBtn = document.getElementById("btn-auto");
-    if (autoBtn) autoBtn.onclick = buyAuto;
+    const autoBtnLate = document.getElementById("btn-auto");
+    if (autoBtnLate) autoBtnLate.onclick = buyAutoAd;
 
     
     function relToStage(el, stage) {
@@ -10621,6 +10960,33 @@ async function buySilo() {
       } catch (e) {}
       return Math.max(0, Math.min(100, vol));
     }
+
+    function sfxVol() {
+      let vol = 70;
+      try {
+        const raw = localStorage.getItem("ff-sfx");
+        const n = Number(raw);
+        if (raw != null && Number.isFinite(n)) vol = n;
+      } catch (e) {}
+      return Math.max(0, Math.min(100, vol));
+    }
+    function sfxBus() {
+      const ctx = ensurePickAudio();
+      if (!ctx) return null;
+      if (!window.__sfxBus) {
+        window.__sfxBus = ctx.createGain();
+        window.__sfxBus.connect(ctx.destination);
+      }
+      window.__sfxBus.gain.value = sfxVol() / 100;
+      return window.__sfxBus;
+    }
+    function setSfx(vol) {
+      vol = Math.max(0, Math.min(100, Number(vol) || 0));
+      try { localStorage.setItem("ff-sfx", String(vol)); } catch (e) {}
+      if (window.__sfxBus) window.__sfxBus.gain.value = vol / 100;
+      const sl = document.getElementById("set-sfx");
+      if (sl && sl.value !== String(vol)) sl.value = String(vol);
+    }
     function setVol(vol) {
       vol = Math.max(0, Math.min(100, Number(vol) || 0));
       try { localStorage.setItem("ff-vol", String(vol)); } catch (e) {}
@@ -10802,6 +11168,12 @@ async function buySilo() {
     if (sl) {
       sl.addEventListener("input", function () { setVol(sl.value); });
       sl.addEventListener("change", function () { setVol(sl.value); });
+    }
+        const sfxSl = document.getElementById("set-sfx");
+    if (sfxSl) {
+      sfxSl.value = String(sfxVol());
+      sfxSl.addEventListener("input", function () { setSfx(sfxSl.value); });
+      sfxSl.addEventListener("change", function () { setSfx(sfxSl.value); });
     }
     const offBtn = document.getElementById("set-off");
     if (offBtn) offBtn.onclick = toggleMusicOff;
