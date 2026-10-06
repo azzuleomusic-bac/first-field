@@ -1776,7 +1776,13 @@
     .pet-strip { display: flex; gap: 6px; overflow-x: auto; margin: 8px 0; min-height: 54px; }
     .pet-strip button { min-width: 72px; background: #1e3a28; color: #f3e6c8; border: 1px solid #c9a227; border-radius: 10px; }
     .pet-strip svg { width: 48px; height: 36px; display: block; margin: 0 auto; transform: scaleX(-1); }
-#btn-forest, #btn-mine {
+
+    #btn-work-mine, #btn-work-forest, #btn-work-lake {
+      background: #8a5a32; color: #fff6e8; font-weight: 800; font-size: 16px;
+      min-height: 48px; flex: 1 1 100%; order: 12;
+      box-shadow: 0 0 0 2px #c4a574;
+    }
+    #btn-forest, #btn-mine {
       background: #c9a227; color: #1c140e; font-weight: 800; font-size: 16px;
       min-height: 48px; flex: 1 1 100%; order: 10;
       box-shadow: 0 0 0 2px #e8c36a;
@@ -2213,6 +2219,51 @@
     #fight-stage .hp i { position:absolute; left:0; top:0; height:100%; border-radius:11px; }
     #fight-stage .hp-num { position:absolute; left:0; right:0; top:0; height:22px; display:flex; align-items:center; justify-content:center; font-size:12px; line-height:22px; color:#fff; text-shadow:0 1px 1px #000; pointer-events:none; }
 
+  
+    #barn-panel.open {
+      display: flex !important;
+      flex-direction: column;
+      position: fixed !important;
+      inset: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      top: 0 !important;
+      transform: none !important;
+      width: 100% !important;
+      max-height: none !important;
+      z-index: 1200;
+      background: #1a140e;
+      border: 0;
+      border-radius: 0;
+      padding: calc(var(--safe-top) + 16px) 16px calc(var(--safe-bot) + 16px);
+      overflow: hidden;
+    }
+    #barn-panel.open h3 { font-size: 22px; margin: 0 0 4px; }
+    #barn-panel.open {
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+    }
+    #barn-panel.open #barn-list {
+      flex: none;
+      overflow: visible;
+      touch-action: pan-y;
+      margin: 12px 0 40px;
+    }
+    #barn-panel.open #barn-close { width: 100%; min-height: 44px; }
+
+  
+#barn-panel.open {
+  display:flex; flex-direction:column; position:fixed; inset:0; z-index:1400;
+  background:#1a140e; color:#efe6cf; padding:18px 14px 24px; overflow:hidden;
+}
+#barn-panel.open h3 { margin:0 0 4px; font-size:28px; color:#e8c36a; }
+#barn-panel.open #barn-list {
+  flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain; touch-action:pan-y; margin:12px 0;
+}
+
   </style>
 </head>
 <body>
@@ -2453,12 +2504,12 @@
           <div class="rock"></div>
         </div>
         <div class="mine-bar"><i id="mine-bar"></i></div>
-        <p id="mine-status">Tap Fight!.</p>
+        <p id="mine-status"></p>
         <div class="scene-actions">
         <button type="button" id="btn-gear" class="btn-inv">Inventory</button>
         <button type="button" id="btn-mine">Fight!</button>
-        <button type="button" id="btn-work-mine">Work</button>
         <button type="button" id="btn-stats" class="btn-st">Stats</button>
+        <button type="button" id="btn-work-mine">Work</button>
         </div>
         <div id="stats-box" hidden>
           <p>Miner stats</p>
@@ -2583,7 +2634,7 @@
 
       <div id="work-panel" aria-hidden="true">
         <h3 id="work-title">Work</h3>
-        <p id="work-note">Send him to work. Demo hour is 12 seconds. Real game is 1 hour, cap 4.</p>
+        <p id="work-note"></p>
         <div class="modes" id="work-hours">
           <button type="button" data-h="1">1h</button>
           <button type="button" data-h="2">2h</button>
@@ -2644,7 +2695,7 @@
             <div class="hp-num" id="hp-miner-n"></div>
           </div>
           <div class="fight-side">
-            <div class="fight-name">Chapter Boss <span class="pop" id="pop-mob"></span></div>
+            <div class="fight-name" id="foe-name">Beast <span class="pop" id="pop-mob"></span></div>
             <div class="fight-mob"></div>
             <div class="hp-wrap"><div class="hp mob"><i id="hp-mob"></i></div></div>
             <div class="hp-num" id="hp-mob-n"></div>
@@ -3718,7 +3769,7 @@ if (!state.demoSmithMats) {
       const ul = document.getElementById("shed-up-label");
       if (up) up.disabled = shedLvl(state.shed) >= 2;
       if (ul) ul.textContent = shedLvl(state.shed) >= 2 ? "Level 2 · 10 cows · 3×3" : "Lvl 1 · 5 cows · 2×2 → Lvl 2 is 5⚡ + 10🪵";
-      pan.classList.add("open");
+      pan.classList.add("open"); document.body.style.overflow="hidden";
       pan.setAttribute("aria-hidden", "false");
     }
     function closeShed() {
@@ -6050,7 +6101,7 @@ function autoTick() {
       if (foeName) {
         const pop = foeName.querySelector(".pop");
         var foePace = beastStyle(state.wildBeast);
-        foeName.textContent = (boss ? "Chapter Boss" : (wild ? wild.name : "Beast")) + " · Lv " + (state.mobLevel || 1);
+        var realBoss = !!(state.bossFight && (state.mobLevel || 1) % 5 === 0); foeName.textContent = (realBoss ? "Chapter Boss" : (wild ? wild.name : "Beast")) + " · Lv " + (state.mobLevel || 1);
         if (pop) foeName.appendChild(pop);
       }
     }
@@ -6446,6 +6497,22 @@ function autoTick() {
           } else if (box) { box.classList.remove("open"); box.classList.remove("on"); box.style.display = "none"; box.setAttribute("aria-hidden", "true"); }
           state.lastFightWin = !!win;
           if (st) st.textContent = win ? "Creature down." : "Miner is down.";
+          setTimeout(function () {
+            var oldPop = document.getElementById("loot-force");
+            if (oldPop) oldPop.remove();
+            var pop = document.createElement("div");
+            pop.id = "loot-force";
+            pop.style.cssText = "position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:16px";
+            var rows = (state.lootParts || []).filter(function (part) { return part && part.kind && part.kind !== "hurt"; });
+            if (!rows.length && win) rows = [{ kind: "ironOre", n: 1, name: "Iron ore" }];
+            var list = rows.map(function (part) {
+              var icon = typeof lootIcon === "function" ? lootIcon(part.kind || "ironOre") : "";
+              return '<div style="display:flex;align-items:center;gap:10px;margin:8px 0;justify-content:center"><div style="width:48px;height:40px;flex:none">' + icon + '</div><div style="font-weight:700">' + (part.n || 1) + "x " + (part.name || part.kind) + "</div></div>";
+            }).join("");
+            pop.innerHTML = '<div style="width:min(280px,92vw);background:#1c140e;border:2px solid #e8c36a;border-radius:14px;padding:16px;text-align:center"><style>#loot-force svg{width:48px;height:40px}</style><div style="font-size:28px;font-weight:900;color:' + (win ? "#e8a04a" : "#b388ff") + '">' + (win ? "WIN" : "LOST") + '</div>' + list + '<button type="button" id="loot-force-take" style="margin-top:12px;width:100%;min-height:44px">Take</button></div>';
+            document.body.appendChild(pop);
+            pop.querySelector("#loot-force-take").onclick = function () { pop.remove(); };
+          }, 700);
           if (win) {
             const forest = state.fightKind === "forest";
             const lake = state.fightKind === "lake";
@@ -6474,8 +6541,9 @@ function autoTick() {
               state.fish = (state.fish || 0) + n;
               if (n) parts.push({ kind: "fish", n: n, label: n + " lake fish" });
             } else {
-              state.rocks = (state.rocks || 0) + n;
-              if (n) parts.push({ kind: "rocks", n: n, label: n + " rock" + (n === 1 ? "" : "s") });
+              n = Math.max(1, n || 1);
+              state.ironOre = (state.ironOre || 0) + n;
+              parts.push({ kind: "ironOre", n: n, name: "Iron ore" });
             }
             if (leatherN) {
               state.leather = (state.leather || 0) + leatherN;
@@ -6496,7 +6564,7 @@ function autoTick() {
             const hurt = (state.pets || []).find(function (pet) { return pet.id === state.equippedPet; });
             if (hurt && (hurt.hp == null || hurt.hp > 0)) {
               hurt.hp = Math.max(0, Math.round(m));
-              if (petOut(hurt)) parts.push({ kind: "hurt", n: 1, label: beastForm(hurt) + " is under 30% — out until a herb or a free bed" });
+              
             }
             try { grantChapterLoot(parts); } catch (e) {}
             if (metalSet() === "gold") {
@@ -6504,6 +6572,14 @@ function autoTick() {
               state.sats = (state.sats || 0) + sats;
               parts.push({ kind: "sats", n: sats, label: sats + " sats" });
             }
+            var merged = [];
+            parts.forEach(function (part) {
+              if (!part || part.kind === "hurt") return;
+              var hit = merged.find(function (row) { return row.kind === part.kind; });
+              if (hit) hit.n += part.n || 0;
+              else merged.push({ kind: part.kind, n: part.n || 1, name: part.name || part.kind });
+            });
+            parts = merged;
             state.lootParts = parts;
             state.pendingLootN = parts.reduce(function (a, x) { return a + x.n; }, 0);
             state.pendingLoot = parts.length ? ("You found " + parts.map(function (x) { return x.label; }).join(", ") + ".") : "No loot this time.";
@@ -6524,7 +6600,49 @@ function autoTick() {
           const lootN = state.pendingLootN;
           setTimeout(function () {
             if (box) { box.classList.remove("open"); box.classList.remove("on"); box.style.display = "none"; box.setAttribute("aria-hidden", "true"); }
-            openLoot(lootText, lootN, true);
+            var loot = document.getElementById("loot-box");
+            var art = document.getElementById("loot-art");
+            var title = loot && loot.querySelector("h3");
+            var won = state.lastFightWin !== false;
+            if (title) { title.textContent = won ? "WIN" : "LOST"; title.style.color = won ? "#e8a04a" : "#b388ff"; }
+            if (art) {
+              var parts = (state.lootParts || []).filter(function (part) { return part && part.kind && part.kind !== "hurt"; });
+              if (!parts.length && won) parts = [{ kind: "ironOre", n: 1, name: "Iron ore" }];
+              art.innerHTML = parts.map(function (part) {
+                return '<div style="display:flex;align-items:center;gap:10px;margin:8px 0"><div style="width:48px">' + (typeof lootIcon === "function" ? lootIcon(part.kind) : "") + '</div><div>' + (part.n || 1) + "x " + (part.name || part.kind) + "</div></div>";
+              }).join("");
+            }
+            if (loot) { if (loot.parentElement !== document.body) document.body.appendChild(loot); loot.style.display = "flex"; loot.style.position = "fixed"; loot.style.inset = "0"; loot.style.zIndex = "2600"; loot.style.alignItems = "center"; loot.style.justifyContent = "center"; loot.style.background = "rgba(0,0,0,.72)"; loot.classList.add("open"); loot.setAttribute("aria-hidden", "false"); }
+            try { openLoot(lootText, lootN, true);
+            setTimeout(function () {
+              var old = document.getElementById("loot-force");
+              if (old) old.remove();
+              var pop = document.createElement("div");
+              pop.id = "loot-force";
+              pop.style.cssText = "position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center";
+              var rows = (state.lootParts || []).filter(function (part) { return part && part.kind && part.kind !== "hurt"; });
+              if (!rows.length && win) rows = [{ n: 1, name: "Iron ore" }];
+              var body = rows.map(function (part) { var icon = (typeof lootIcon === "function") ? lootIcon(part.kind || "ironOre") : "";
+              if (!icon) icon = '<svg viewBox="0 0 64 48" width="36" height="28"><polygon points="32,4 54,24 32,44 10,24" fill="#c8c0b0"/></svg>';
+              return '<div style="display:flex;align-items:center;gap:10px;margin:8px 0;font-weight:700"><span style="width:36px;height:28px;flex:none">' + icon + '</span><span>' + (part.n || 1) + "x " + (part.name || part.kind) + "</span></div>"; }).join("");
+              pop.innerHTML = '<div style="width:min(280px,90vw);background:#1c2418;border:1px solid #e8c36a;border-radius:14px;padding:16px;text-align:center;color:#efe6cf"><div style="font-size:28px;font-weight:900;color:' + (win ? "#e8a04a" : "#b388ff") + '">' + (win ? "WIN" : "LOST") + '</div>' + body + '<button type="button" id="loot-force-take" style="margin-top:12px;width:100%;min-height:44px">Take</button></div>';
+              document.body.appendChild(pop);
+              pop.querySelector("#loot-force-take").onclick = function () { pop.remove(); };
+            }, 1600);
+ } catch (e) {}
+            var loot = document.getElementById("loot-box");
+            if (loot) {
+              if (loot.parentElement !== document.body) document.body.appendChild(loot);
+              loot.style.display = "flex";
+              loot.style.position = "fixed";
+              loot.style.inset = "0";
+              loot.style.zIndex = "2000";
+              loot.style.alignItems = "center";
+              loot.style.justifyContent = "center";
+              loot.style.background = "rgba(0,0,0,.72)";
+              loot.classList.add("open");
+              loot.setAttribute("aria-hidden", "false");
+            }
           }, 1400);
           const fs = document.getElementById("fight-song");
           if (fs) { fs.pause(); try { fs.currentTime = 0; } catch (e) {} }
@@ -6572,7 +6690,9 @@ function autoTick() {
       return scaleLoot(Math.floor(Math.random() * 3));
     }
     function lootIcon(kind) {
-      if (typeof zoneIcon === "function") { const z = zoneIcon(kind); if (z) return z; }
+      if (kind === "ironOre" || kind === "iron") return '<svg viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="34" cy="30" rx="18" ry="12" fill="#2c333c"/><ellipse cx="22" cy="26" rx="12" ry="9" fill="#8d97a3"/><ellipse cx="42" cy="28" rx="10" ry="8" fill="#1a1e24"/><path fill="#e7edf2" d="M20 22 l8-8 5 4-4 7z"/><path fill="#b7c0ca" d="M36 18 l6 2-2 6-6-2z"/></svg>';
+      if (kind === "mushroom" || kind === "mushrooms") return '<svg viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="32" cy="22" rx="20" ry="12" fill="#c45a3a"/><ellipse cx="24" cy="18" rx="4" ry="3" fill="#f0d2b0"/><ellipse cx="38" cy="16" rx="3" ry="2" fill="#f0d2b0"/><rect x="28" y="26" width="8" height="12" rx="3" fill="#efe6cf"/></svg>';
+      if (typeof zoneIcon === "function" && kind !== "ironOre") { const z = zoneIcon(kind); if (z && kind !== "square") return z; }
       if (kind === "lumber") return '<svg viewBox="0 0 64 48" aria-hidden="true"><rect x="8" y="22" width="48" height="12" rx="4" fill="#8b5a2b"/><rect x="12" y="16" width="40" height="10" rx="4" fill="#a36a32"/><rect x="16" y="28" width="36" height="10" rx="4" fill="#6e4220"/></svg>';
       if (kind === "leather") return '<svg viewBox="0 0 64 48" aria-hidden="true"><rect x="8" y="18" width="48" height="7" rx="3" fill="#a56b3c"/><rect x="12" y="27" width="40" height="6" rx="3" fill="#6b4220"/><rect x="16" y="11" width="32" height="5" rx="2" fill="#d4b48a"/><circle cx="14" cy="21" r="1.4" fill="#3a2414"/><circle cx="50" cy="30" r="1.4" fill="#3a2414"/></svg>';
       if (kind === "iron") return '<svg viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="34" cy="30" rx="18" ry="12" fill="#2c333c"/><ellipse cx="22" cy="26" rx="12" ry="9" fill="#5c6773"/><ellipse cx="42" cy="28" rx="10" ry="8" fill="#1a1e24"/><path fill="#d5dee8" d="M20 22 l8-8 5 4-4 7z"/><path fill="#8a96a3" d="M36 18 l6 2-2 6-6-2z"/></svg>';
@@ -6592,7 +6712,7 @@ function autoTick() {
     function openLoot(text, n, force) {
       if (state.blockLoot && !force) return;
       const box = document.getElementById("loot-box");
-      if (box && box.classList.contains("open")) return;
+      if (box && box.classList.contains("open") && !force) return;
       const p = document.getElementById("loot-text");
       const art = document.getElementById("loot-art");
       const title = box && box.querySelector("h3");
@@ -6601,16 +6721,16 @@ function autoTick() {
         title.textContent = lost ? "LOST" : "WIN";
         title.style.color = lost ? "#b388ff" : "#e8a04a";
       }
-      if (p) p.textContent = text;
+      if (p) { p.textContent = ""; p.style.display = "none"; }
       if (art) {
-        const parts = state.lootParts || [];
-        if (parts.length) {
-          art.innerHTML = parts.map(function (part) {
-            return '<span class="loot-bit">' + lootIcon(part.kind) + '<small>×' + part.n + '</small></span>';
-          }).join("");
-        } else art.innerHTML = "";
+        var parts = (state.lootParts || []).filter(function (part) { return part && part.kind && part.kind !== "hurt"; });
+        if (!parts.length && state.lastFightWin !== false) parts = [{ kind: "ironOre", n: 1, name: "Iron ore" }];
+        art.innerHTML = parts.map(function (part) {
+          var name = part.name || part.kind;
+          return '<div style="display:flex;align-items:center;gap:10px;margin:6px 0"><div style="width:48px;flex:none">' + lootIcon(part.kind) + '</div><div style="color:#efe6cf;font-weight:700">' + part.n + "x " + name + "</div></div>";
+        }).join("");
       }
-      if (box) { if (box.parentElement !== document.body) document.body.appendChild(box); box.style.zIndex = "1200"; box.classList.add("open"); box.setAttribute("aria-hidden", "false");
+      if (box) { if (box.parentElement !== document.body) document.body.appendChild(box); box.style.zIndex = "2200"; box.style.display = "flex"; box.style.display = "flex"; box.classList.add("open"); box.setAttribute("aria-hidden", "false");
         dressMiner();
       }
     }
@@ -6696,9 +6816,11 @@ function autoTick() {
     function pantsArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#3d4a73" d="M8 6 h16 v8 l-3 16 h-4 l-1-14-1 14 h-4 L8 14z"/><path fill="#2a334f" d="M15 6 h2 v8 h-2z"/></svg>'; }
     function shirtArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#6b8f4a" d="M6 10 L12 6 h8 l6 4-4 4 h-2 v12 H12 V14 H8z"/><circle cx="16" cy="8" r="3" fill="#e8c3b0"/></svg>'; }
     function beanieArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#c44b3a" d="M6 16c0-7 4.5-12 10-12s10 5 10 12v2H6z"/><circle cx="22" cy="8" r="3" fill="#e8e0d4"/></svg>'; }
-function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="sb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2f0ea"/><stop offset="0.45" stop-color="#b9b6ae"/><stop offset="1" stop-color="#6f6c66"/></linearGradient><linearGradient id="sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c48a4a"/><stop offset="1" stop-color="#5a3214"/></linearGradient></defs><path fill="url(#sb)" stroke="#4a4742" stroke-width="0.7" d="M16 2.2 L20.6 8.4 19.2 18.8 16 21.2 12.8 18.8 11.4 8.4 Z"/><path fill="#eceae3" opacity="0.85" d="M16 3.4 L18.4 8.6 17.6 17.6 16 19.4 16 3.4z"/><path fill="none" stroke="#8d8980" stroke-width="0.45" d="M13.2 7.2 L16 9.2 18.8 7.2 M12.6 11.6 L16 13.4 19.4 11.6 M13.4 15.6 L16 16.8 18.6 15.6"/><path fill="#3d3a36" d="M13.2 19.6 h5.6 l1.2 2.2 H12z"/><rect x="14.2" y="21.4" width="3.6" height="6.4" rx="0.9" fill="url(#sh)" stroke="#3a2410" stroke-width="0.45"/><path fill="#8b5a2b" d="M14.4 22.2 h3.2 v1.1 H14.4z M14.4 24.2 h3.2 v1.1 H14.4z M14.4 26.2 h3.2 v0.9 H14.4z"/><ellipse cx="16" cy="28.6" rx="2.2" ry="1.3" fill="#4a2c14" stroke="#2a180c" stroke-width="0.4"/><ellipse cx="16" cy="28.4" rx="1.2" ry="0.6" fill="#c9a35a"/></svg>'; }
-    function glovesArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#6b8f4a" d="M7 14 h6 v10 h-6z"/><path fill="#5a7a3c" d="M8 12 h4 v3 h-4z"/><path fill="#6b8f4a" d="M19 14 h6 v10 h-6z"/><path fill="#5a7a3c" d="M20 12 h4 v3 h-4z"/></svg>'; }
-    function bootsArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#4e5d86" d="M6 12 h8 v8 H6z"/><path fill="#3d4a73" d="M6 18 h12 v4 H6z"/><path fill="#4e5d86" d="M18 12 h8 v8 h-8z"/><path fill="#3d4a73" d="M16 18 h12 v4 H16z"/></svg>'; }
+function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width="4" height="18" rx="1" fill="#d9dde2"/><rect x="10" y="20" width="12" height="3" rx="1" fill="#e8c36a"/><rect x="14" y="23" width="4" height="5" fill="#6b4226"/></svg>'; }
+    function shirtArt() { return '<svg viewBox="0 0 32 32"><path fill="#efe6cf" d="M8 10 l8-4 8 4 4 4-4 3-2-2v11H10V15l-2 2-4-3z"/></svg>'; }
+    function beanieArt() { return '<svg viewBox="0 0 32 32"><path fill="#c45c3e" d="M8 16c0-6 4-10 8-10s8 4 8 10v4H8z"/><rect x="8" y="18" width="16" height="4" fill="#8a3a28"/></svg>'; }
+    function glovesArt() { return '<svg viewBox="0 0 32 32"><rect x="6" y="12" width="6" height="12" rx="2" fill="#efe6cf"/><rect x="13" y="8" width="6" height="16" rx="2" fill="#e8c36a"/><rect x="20" y="12" width="6" height="12" rx="2" fill="#efe6cf"/></svg>'; }
+    function bootsArt() { return '<svg viewBox="0 0 32 32"><path fill="#6b4226" d="M8 8 h8 v10 h8 v6 H8z"/></svg>'; }
     function leatherArt(kind) {
       const body = kind === "cap" ? '<path fill="#8a5a32" d="M6 16c0-7 4.5-11 10-11s10 4 10 11v2H6z"/><path fill="#5c3a1e" d="M6 16 h20 v3 H6z"/>' : kind === "vest" ? '<path fill="#a56b3c" d="M6 10 L12 6 h8 l6 4-4 4 h-2 v12 H12 V14 H8z"/><path fill="#6e4524" d="M14 10 h4 v12 h-4z"/>' : kind === "pants" ? '<path fill="#8a5a32" d="M8 6 h16 v8 l-3 16 h-4 l-1-14-1 14 h-4 L8 14z"/><path fill="#5c3a1e" d="M15 6 h2 v10 h-2z"/>' : kind === "gloves" ? '<path fill="#a56b3c" d="M6 14 h7 v10 H6z M19 14 h7 v10 h-7z"/><path fill="#6e4524" d="M7 12 h4 v3 H7z M20 12 h4 v3 h-4z"/>' : '<path fill="#8a5a32" d="M5 12 h8 v7 H5z M18 12 h8 v7 h-8z"/><path fill="#5c3a1e" d="M4 18 h12 v4 H4z M16 18 h12 v4 H16z"/>';
       return '<svg viewBox="0 0 32 32" aria-hidden="true">' + body + '<path fill="none" stroke="#e0c49a" stroke-width="0.6" d="M10 8 h12 M9 20 h14"/></svg>';
@@ -7065,7 +7187,8 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       ];
       ul.innerHTML = rows.map(function (r) {
         const full = String(r[1]).indexOf("Woolworks") >= 0 || String(r[1]).indexOf("Hidebound") >= 0;
-        return "<li class='" + (full ? "set-full" : "") + "'><span>" + r[0] + "</span><span>" + r[1] + "</span></li>";
+        if (!full && Number(r[2]) === 0) return "";
+        return "<li class='" + (full ? "set-full" : "") + "' style='display:flex;align-items:center;gap:8px'><span>" + r[0] + "</span><span style='margin-left:auto'>" + r[1] + "</span></li>";
       }).join("");
       if (typeof paintMetalSlots === "function") paintMetalSlots();
     }
@@ -7306,8 +7429,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
         pct = 0;
         const fishing = state.inAdventure && state.fightKind === "lake";
         if (stage) stage.classList.toggle("fishing", fishing);
-        if (st && !state.mineReady) st.textContent = "Tap Start mining.";
-        if (st && state.mineReady) st.textContent = "Last run finished.";
+        if (st) st.textContent = (state.work && state.work.until > Date.now()) ? (Math.ceil((state.work.until - Date.now()) / 1000) + "s") : "";
         if (btn) { btn.disabled = false; btn.textContent = (state.inAdventure && state.fightKind === "lake") ? "Fight!" : "Fight!"; }
       }
       if (bar) bar.style.width = pct + "%";
@@ -7518,6 +7640,9 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       closeAllTabs();
       if (wasOpen && !force) return;
       if (!pan) return;
+      document.body.style.overflow = "hidden";
+      var field = document.getElementById("field-wrap");
+      if (field) field.style.overflow = "hidden";
       fillBarn();
       fillMarketInv();
       if (typeof fillCraftLabels === 'function') fillCraftLabels();
@@ -10387,6 +10512,10 @@ async function buySilo() {
       state.hideZero = !state.hideZero;
       fillBarn();
       save();
+      var list = document.getElementById("barn-list");
+      var pan = document.getElementById("barn-panel");
+      if (pan) { pan.style.overflow = "hidden"; pan.style.touchAction = "pan-y"; }
+      if (list) { list.style.overflowY = "auto"; list.style.webkitOverflowScrolling = "touch"; list.style.touchAction = "pan-y"; list.style.flex = "1 1 auto"; list.style.minHeight = "0"; }
     };
     document.getElementById("craft-pudding").onclick = craftPudding;
     const wcs = document.getElementById("wear-cloth-set");
@@ -10550,15 +10679,20 @@ async function buySilo() {
 
     function zoneIcon(kind) {
       const mats = {
-        ironOre: ["#b9b1a2", "ore"], copperOre: ["#c46a3a", "ore"], silverOre: ["#d5dbe2", "ore"], goldOre: ["#e8c36a", "ore"], blackStone: ["#2c2c30", "ore"],
+        ironOre: ["#b9b1a2", "ore"], copperOre: ["#c46a3a", "circle"], silverOre: ["#d5dbe2", "diamond"], goldOre: ["#e8c36a", "star"], blackStone: ["#2c2c30", "triangle"],
         softwood: ["#c4a574", "wood"], hardwood: ["#8a5a32", "wood"], ironwood: ["#6d7358", "wood"], heartwood: ["#a33b32", "wood"], worldroot: ["#3d5c38", "wood"],
         shoreGlass: ["#9fd8e8", "gem"], lilyJade: ["#3dba8a", "gem"], tideCrystal: ["#6ec8e0", "gem"], wreckAmber: ["#e09a3a", "gem"], moonscale: ["#c9b6f2", "gem"]
       };
-      const swords = { ironSwords: "#b9b1a2", copperSwords: "#c46a3a", silverSwords: "#d5dbe2", goldSwords: "#e8c36a", blackSwords: "#2c2c30" };
+      const swords = { ironSwords: "#b9b1a2", copperSwords: "#c46a3a", silverSwords: "#d5dbe2", goldSwords: "#e8c36a", blackSwords: "#2c2c30", ironCaps: "#b9b1a2", ironVests: "#8d8678", ironPants: "#6e675c", ironGloves: "#c4b8a4", ironBoots: "#5c564c" };
       if (mats[kind]) {
         const col = mats[kind][0], shape = mats[kind][1];
         if (shape === "wood") return '<svg class="loot-ico" viewBox="0 0 32 32"><rect x="4" y="12" width="24" height="8" rx="3" fill="' + col + '"/><rect x="7" y="8" width="18" height="6" rx="2" fill="#efe6cf" opacity="0.35"/></svg>';
         if (shape === "gem") return '<svg class="loot-ico" viewBox="0 0 32 32"><polygon points="16,4 26,12 22,26 10,26 6,12" fill="' + col + '"/></svg>';
+        if (shape === "square") return '<svg class="loot-ico" viewBox="0 0 32 32"><rect x="7" y="7" width="18" height="18" rx="2" fill="' + col + '"/></svg>';
+        if (shape === "circle") return '<svg class="loot-ico" viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="' + col + '"/></svg>';
+        if (shape === "diamond") return '<svg class="loot-ico" viewBox="0 0 32 32"><polygon points="16,4 28,16 16,28 4,16" fill="' + col + '"/></svg>';
+        if (shape === "star") return '<svg class="loot-ico" viewBox="0 0 32 32"><polygon points="16,3 19,12 29,12 21,18 24,28 16,22 8,28 11,18 3,12 13,12" fill="' + col + '"/></svg>';
+        if (shape === "triangle") return '<svg class="loot-ico" viewBox="0 0 32 32"><polygon points="16,5 28,27 4,27" fill="' + col + '"/></svg>';
         return '<svg class="loot-ico" viewBox="0 0 32 32"><path d="M8 18 L14 6 L22 10 L26 20 L16 28 Z" fill="' + col + '"/></svg>';
       }
       if (swords[kind]) return '<svg class="loot-ico" viewBox="0 0 32 32"><rect x="14" y="4" width="4" height="18" fill="' + swords[kind] + '"/><rect x="10" y="20" width="12" height="3" fill="#6a5030"/><rect x="15" y="23" width="2" height="5" fill="#6a5030"/></svg>';
@@ -10875,7 +11009,7 @@ async function buySilo() {
       if (mine) mine.classList.toggle("working", !!(job && (job.area === "mine" || job.area === "lake")));
       if (forest) forest.classList.toggle("working", !!(job && job.area === "forest"));
       const st = document.getElementById(job && job.area === "forest" ? "forest-status" : "mine-status");
-      if (job && st) st.textContent = "Working the " + job.area + " · " + Math.ceil((job.until - Date.now()) / 1000) + "s left";
+      if (job && st) st.textContent = Math.ceil((job.until - Date.now()) / 1000) + "s";
       if (typeof syncPickHits === "function") syncPickHits(mineOn() || (job && job.area !== "forest"));
       if (typeof syncChopHits === "function") syncChopHits(forestOn() || (job && job.area === "forest"));
     }
@@ -10891,9 +11025,9 @@ async function buySilo() {
       let line = "Chapter " + ch + " · " + ch + " " + res.name + " an hour · cap " + cap + "h.";
       if (job) {
         const left = Math.max(0, job.until - Date.now());
-        line += " Working the " + job.area + " · " + Math.ceil(left / 1000) + "s left in demo · paid " + (job.paid || 0) + ".";
+        line = Math.ceil(left / 1000) + "s";
       }
-      if (note) note.textContent = line + " Demo hour is 12s.";
+      if (note) note.textContent = job ? (Math.ceil(Math.max(0, job.until - Date.now()) / 1000) + "s") : "";
       const take = document.getElementById("work-take");
       if (take) take.disabled = !job;
     }
@@ -10946,22 +11080,17 @@ async function buySilo() {
       if (typeof fillBarn === "function") fillBarn();
     }
     function startWork(boost) {
+        const area = state.workPick || "mine";
         const hours = Math.min(workCap(), state.workHours || 1);
         const ch = workChapter(area);
         state.work = { area: area, started: Date.now(), until: Date.now() + hours * WORK_HOUR_MS, rate: ch * (boost ? 2 : 1), paid: 0, chapter: ch, boost: !!boost, shown: false };
-        toast((boost ? "Enhanced" : "Job") + " · " + area + " · " + hours + " demo hours");
+        toast((boost ? "Enhanced job" : "Job") + " started");
         try { save(); } catch (e) {}
-        paintWork(area);
+        try { paintWork(area); } catch (e) {}
       }
-      if (go) go.onclick = async function () {
-        if (!(await askYes("Send him to work for " + (state.workHours || 1) + " hours?"))) return;
-        startWork(false);
-      };
+      if (go) go.onclick = function () { startWork(false); };
       const adBtn = document.getElementById("work-ad");
-      if (adBtn) adBtn.onclick = async function () {
-        if (!(await askYes("Watch an ad and boost your job?"))) return;
-        playAd(function () { startWork(true); });
-      };
+      if (adBtn) adBtn.onclick = function () { playAd(function () { startWork(true); }); };
       const abort = document.getElementById("work-abort");
       if (abort) abort.onclick = async function () { if (await askYes("Abort the job and drop the pay?")) abortWork(); };
       const take = document.getElementById("work-take");
@@ -12012,6 +12141,219 @@ document.addEventListener("click", function (ev) {
 }, true);
 </script>
 
+
+<style id="barn-screen">
+  #barn-panel.open {
+    display: flex !important;
+    flex-direction: column;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100dvh !important;
+    max-height: none !important;
+    transform: none !important;
+    z-index: 2000;
+    overflow: hidden !important;
+    background: #1a140e;
+    padding: calc(env(safe-area-inset-top, 12px) + 16px) 16px calc(env(safe-area-inset-bottom, 10px) + 16px);
+    touch-action: auto;
+  }
+  #barn-panel.open { overflow-y: auto !important; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+  #barn-panel.open #barn-list {
+    flex: none;
+    min-height: 60vh;
+    overflow: visible;
+    touch-action: pan-y;
+  }
+  #barn-panel.open svg { width: 36px; height: 36px; display: block; }
+</style>
+<style id="barn-scroll">
+#barn-panel.open{display:block!important;position:fixed!important;inset:0!important;z-index:1600!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important;touch-action:pan-y!important;background:#1a140e!important;padding:18px 14px 40px!important}
+</style>
+
+<style id="barn-fix">
+#barn-panel.open { touch-action: pan-y !important; overflow-y: auto !important; height: 100dvh !important; }
+#barn-list { touch-action: pan-y !important; overflow-y: auto !important; max-height: none !important; }
+#barn-list svg, #gear-box svg, #barn-panel svg { width: 28px !important; height: 28px !important; }
+</style>
+<script>
+document.addEventListener("click", function (ev) {
+  var t = ev.target;
+  if (!t || !t.closest) return;
+  if (t.closest("#btn-barn") || t.closest("[data-open='barn']")) {
+    document.body.style.touchAction = "pan-y";
+  }
+  if (t.closest("#barn-close")) document.body.style.touchAction = "none";
+}, true);
+</script>
+
+<script>
+(function () {
+  var lastY = 0;
+  document.addEventListener("touchstart", function (ev) {
+    var list = document.getElementById("barn-list");
+    if (!list || !list.contains(ev.target)) return;
+    lastY = ev.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener("touchmove", function (ev) {
+    var pan = document.getElementById("barn-panel");
+    if (!pan || !pan.classList.contains("open") || !pan.contains(ev.target)) return;
+    var y = ev.touches[0].clientY;
+    pan.scrollTop += lastY - y;
+    lastY = y;
+    if (ev.cancelable) ev.preventDefault();
+  }, { passive: false });
+})();
+</script>
+
+<script>
+(function () {
+  function barnScroll() {
+    var pan = document.getElementById("barn-panel");
+    var list = document.getElementById("barn-list");
+    if (!pan) return;
+    pan.style.overflow = "hidden";
+    pan.style.height = "100dvh";
+    if (list) {
+      list.style.display = "block";
+      list.style.height = "calc(100dvh - 150px)";
+      list.style.overflowY = "scroll";
+      list.style.webkitOverflowScrolling = "touch";
+      list.style.touchAction = "pan-y";
+    }
+  }
+  document.addEventListener("click", function (ev) {
+    var t = ev.target;
+    if (t && t.closest && (t.closest("#btn-barn") || t.id === "barn-hide-zero")) setTimeout(barnScroll, 40);
+  }, true);
+})();
+</script>
+
+<style id="barn-scroll-fix">
+  #barn-panel.open {
+    position: fixed !important;
+    inset: 0 !important;
+    height: 100dvh !important;
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y !important;
+    z-index: 2500;
+  }
+  #barn-panel.open #barn-list { overflow: visible !important; touch-action: pan-y; }
+</style>
+
+<script>
+(function () {
+  setInterval(function () {
+    var note = document.getElementById("work-note");
+    var st = window.FFState || window.state;
+    if (!note || !st || !st.work) return;
+    note.textContent = Math.max(0, Math.ceil((st.work.until - Date.now()) / 1000)) + "s";
+  }, 400);
+  function startJob(boost) {
+    var st = window.FFState || window.state;
+    if (!st) return;
+    var area = st.workPick || "mine";
+    var hours = st.workHours || 1;
+    st.work = { area: area, started: Date.now(), until: Date.now() + hours * 12000, rate: boost ? 2 : 1, paid: 0, boost: !!boost };
+    var note = document.getElementById("work-note");
+    if (note) note.textContent = Math.ceil((st.work.until - Date.now()) / 1000) + "s";
+    if (typeof toast === "function") toast((boost ? "Enhanced job" : "Job") + " started");
+    try { save(); } catch (e) {}
+  }
+  function bind() {
+    var go = document.getElementById("work-go");
+    var ad = document.getElementById("work-ad");
+    if (go) go.onclick = function () { startJob(false); };
+    if (ad) ad.onclick = function () {
+      if (typeof playAd === "function") playAd(function () { startJob(true); });
+      
+    };
+  }
+  bind();
+  document.addEventListener("click", function (ev) {
+    var t = ev.target;
+    if (!t) return;
+    if (t.id === "work-go") { ev.preventDefault(); startJob(false); }
+    
+  }, true);
+})();
+</script>
+
+<script>
+(function () {
+  function begin(boost) {
+    var area = (window.state && state.workPick) || "mine";
+    var hours = (window.state && state.workHours) || 1;
+    state.work = { area: area, started: Date.now(), until: Date.now() + hours * 12000, rate: boost ? 2 : 1, paid: 0, boost: !!boost };
+    var note = document.getElementById("work-note") || document.getElementById("mine-status");
+    if (note) note.textContent = Math.ceil(hours * 12) + "s";
+    try { if (window.toast) toast((boost ? "Enhanced job" : "Job") + " started"); } catch (e) {}
+    try { if (typeof paintWork === "function") paintWork(area); } catch (e) {}
+  }
+  document.addEventListener("click", function (ev) {
+    var t = ev.target;
+    if (!t) return;
+    if (t.id === "work-go") { ev.preventDefault(); begin(false); }
+    if (t.id === "work-ad") {
+      ev.preventDefault();
+      var box = document.getElementById("ad-break");
+      if (box) {
+        if (box.parentElement !== document.body) document.body.appendChild(box);
+        box.style.display = "flex";
+        box.style.zIndex = "4000";
+        box.classList.add("open");
+      }
+      setTimeout(function () {
+        if (box) { box.style.display = "none"; box.classList.remove("open"); }
+        begin(true);
+      }, 5000);
+    }
+  });
+})();
+</script>
+
+<script>
+(function () {
+  function showAd(done) {
+    var box = document.getElementById("ad-break");
+    var count = document.getElementById("ad-count");
+    if (!box) { done(); return; }
+    if (box.parentElement !== document.body) document.body.appendChild(box);
+    box.style.display = "flex";
+    box.style.zIndex = "4000";
+    box.classList.add("open");
+    var left = 5;
+    if (count) count.textContent = "5";
+    var tick = setInterval(function () {
+      left -= 1;
+      if (count) count.textContent = String(Math.max(0, left));
+      if (left <= 0) {
+        clearInterval(tick);
+        box.style.display = "none";
+        box.classList.remove("open");
+        done();
+      }
+    }, 1000);
+  }
+  function begin(boost) {
+    var area = (window.state && state.workPick) || "mine";
+    var hours = (window.state && state.workHours) || 1;
+    state.work = { area: area, started: Date.now(), until: Date.now() + hours * 12000, rate: boost ? 2 : 1, paid: 0, boost: !!boost };
+    var note = document.getElementById("work-note") || document.getElementById("mine-status");
+    if (note) note.textContent = Math.ceil((state.work.until - Date.now()) / 1000) + "s";
+    try { toast(boost ? "Enhanced job started" : "Job started"); } catch (e) {}
+  }
+  function bind() {
+    var go = document.getElementById("work-go");
+    var ad = document.getElementById("work-ad");
+    if (go) go.onclick = function (ev) { if (ev) ev.preventDefault(); begin(false); };
+    if (ad) ad.onclick = function (ev) { if (ev) ev.preventDefault(); showAd(function () { begin(true); }); };
+  }
+  bind();
+  setTimeout(bind, 400);
+})();
+</script>
 </body>
 </html>
 dow.openPetCard) openPetCard(pet.id); } catch (e) { toast("Could not open pet"); }
