@@ -2432,6 +2432,9 @@
         <div class="evo-row" id="pet-card-evos"></div>
         <button type="button" id="pet-card-bring">Bring</button>
         <button type="button" id="pet-card-herb">Consume herb · 0</button>
+        <button type="button" id="pet-card-elder">Consume Elder flower</button>
+        <button type="button" id="pet-card-flower">Consume Elder flower</button>
+        <button type="button" id="pet-card-evolve" style="display:none;background:#e8c36a;color:#1c140e;font-weight:800">Evolve!</button>
         <button type="button" id="pet-card-breed">Breed</button>
         <div id="pet-breed-pick" style="display:none;margin:8px 0"></div>
         <button type="button" class="ghost" id="pet-card-close">Close</button>
@@ -5384,10 +5387,11 @@ function autoTick() {
       return '<svg viewBox="0 0 120 96"><path d="M74 56 Q108 70 118 86" stroke="#1e3a28" fill="none" stroke-width="5"/><path d="M34 24 L42 8 L50 22 L58 6 L66 22 L76 10 L72 28 Z" fill="#6a5030"/><ellipse cx="52" cy="52" rx="22" ry="16" fill="#3d6b45"/><ellipse cx="46" cy="58" rx="10" ry="8" fill="#f3e6c8"/><path d="M58 42 Q88 28 100 62 Q74 64 58 50 Z" fill="#c9a227"/><circle cx="34" cy="46" r="8" fill="#2a4a32"/><circle cx="31" cy="45" r="2.2" fill="#f0c84a"/><path d="M18 46 L32 50" stroke="#c9a227" stroke-width="3"/></svg>';
     }
 
+    function petForm(pet) { return pet && pet.form ? pet.form : 0; }
     function beastForm(pet) {
       const spec = BEASTS[pet.species];
-      const lvl = pet.lvl || 1;
-      return spec.evo[lvl >= 10 ? 2 : lvl >= 5 ? 1 : 0];
+      const form = petForm(pet);
+      return spec.evo[Math.min(2, form)];
     }
     function beastDmg(pet) {
       const bonus = 0.2 * ((pet.lvl || 1) - 1);
@@ -5474,6 +5478,108 @@ function autoTick() {
       return { tag: row.tag, dmg: dmg, speed: speed, hp: row.hp };
     }
     function xpToNext(lvl) { return 100 * (lvl || 1); }
+
+    function playEvolve(pet, before, after) {
+      const form = petForm(pet);
+      const oldLvl = form >= 2 ? 5 : 1;
+      const newLvl = form >= 2 ? 10 : 5;
+      const pop = document.createElement("div");
+      pop.style.cssText = "position:fixed;inset:0;z-index:1800;background:rgba(4,3,2,.92);display:flex;align-items:center;justify-content:center;";
+      pop.innerHTML = '<div style="text-align:center;color:#fff1a8;width:min(320px,92vw)"><div id="evo-line" style="font-size:16px;font-weight:800;margin-bottom:10px">Something is happening!</div><div id="evo-stage" style="position:relative;width:220px;height:180px;margin:0 auto"><div id="evo-glow" style="position:absolute;inset:20px;border-radius:50%"></div><div id="evo-sprite" style="position:absolute;inset:0"></div></div><div id="evo-word" style="font-size:36px;font-weight:900;letter-spacing:.12em;margin-top:8px;opacity:0;color:#e8c36a">EVOLVED</div><div id="evo-names" style="font-size:16px;color:#efe6cf;margin-top:6px;opacity:0">' + before + " → " + after + '</div><button type="button" id="evo-skip" style="margin-top:16px">Skip</button></div>';
+      document.body.appendChild(pop);
+      const stage = pop.querySelector("#evo-stage");
+      const slot = pop.querySelector("#evo-sprite");
+      const glow = pop.querySelector("#evo-glow");
+      const word = pop.querySelector("#evo-word");
+      const names = pop.querySelector("#evo-names");
+      let done = false;
+      const timers = [];
+      function finish() {
+        if (done) return;
+        done = true;
+        timers.forEach(clearTimeout);
+        try { pop.remove(); } catch (e) {}
+      }
+      const skip = pop.querySelector("#evo-skip");
+      if (skip) skip.onclick = finish;
+      slot.innerHTML = '<div id="evo-old" style="position:absolute;inset:0">' + beastSkin(pet.species, oldLvl) + '</div><div id="evo-new" style="position:absolute;inset:0;opacity:0">' + beastSkin(pet.species, newLvl) + '</div>';
+      const oldEl = pop.querySelector("#evo-old");
+      const newEl = pop.querySelector("#evo-new");
+      function spark() {
+        if (done) return;
+        const s = document.createElement("div");
+        s.textContent = "✦";
+        s.style.cssText = "position:absolute;left:" + (20 + Math.random() * 160) + "px;top:" + (10 + Math.random() * 140) + "px;color:#fff1a8;font-size:18px;pointer-events:none";
+        stage.appendChild(s);
+        s.animate([{ opacity: 0, transform: "translateY(8px) scale(.6)" }, { opacity: 1, offset: 0.3 }, { opacity: 0, transform: "translateY(-18px) scale(1.2)" }], { duration: 700 });
+        timers.push(setTimeout(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 720));
+      }
+      [800, 1800, 3000, 4200, 5400, 6600, 7800, 9000].forEach(function (t) { timers.push(setTimeout(spark, t)); });
+      if (glow) glow.animate([
+        { boxShadow: "0 0 0 0 rgba(232,195,106,0)", offset: 0 },
+        { boxShadow: "0 0 18px 4px rgba(232,195,106,.5)", offset: 0.2 },
+        { boxShadow: "0 0 8px 0 rgba(232,195,106,.2)", offset: 0.28 },
+        { boxShadow: "0 0 36px 10px rgba(232,195,106,.7)", offset: 0.5 },
+        { boxShadow: "0 0 12px 2px rgba(232,195,106,.3)", offset: 0.58 },
+        { boxShadow: "0 0 70px 20px rgba(255,241,168,.95)", offset: 0.86 },
+        { boxShadow: "0 0 24px 6px rgba(232,195,106,.45)", offset: 1 }
+      ], { duration: 12000, fill: "forwards" });
+      if (stage) stage.animate([
+        { transform: "translateX(0)" },
+        { transform: "translateX(-4px)", offset: 0.42 },
+        { transform: "translateX(4px)", offset: 0.46 },
+        { transform: "translateX(-3px)", offset: 0.5 },
+        { transform: "translateX(0)", offset: 0.56 },
+        { transform: "translateX(-6px)", offset: 0.82 },
+        { transform: "translateX(6px)", offset: 0.86 },
+        { transform: "translateX(0)", offset: 0.92 }
+      ], { duration: 12000 });
+      if (oldEl) oldEl.animate([
+        { transform: "scale(1)", filter: "brightness(1)", opacity: 1, offset: 0 },
+        { transform: "scale(1.02)", filter: "brightness(1.08)", opacity: 1, offset: 0.5 },
+        { transform: "scale(1.04)", filter: "brightness(1.2)", opacity: 1, offset: 0.62 },
+        { transform: "scale(1.05)", filter: "brightness(1.3)", opacity: 0.92, offset: 0.72 },
+        { transform: "scale(1.04)", filter: "brightness(1.25)", opacity: 0.7, offset: 0.82 },
+        { transform: "scale(1.02)", filter: "brightness(1.1)", opacity: 0.4, offset: 0.92 },
+        { opacity: 0, transform: "scale(1)", offset: 1 }
+      ], { duration: 14000, easing: "linear", fill: "forwards" });
+      if (newEl) newEl.animate([
+        { opacity: 0, transform: "scale(0.98)", offset: 0 },
+        { opacity: 0.06, transform: "scale(0.99)", offset: 0.5 },
+        { opacity: 0.16, transform: "scale(1)", offset: 0.62 },
+        { opacity: 0.3, transform: "scale(1.01)", filter: "brightness(1.15)", offset: 0.72 },
+        { opacity: 0.48, transform: "scale(1.02)", offset: 0.8 },
+        { opacity: 0.7, transform: "scale(1.02)", offset: 0.9 },
+        { opacity: 1, transform: "scale(1)", filter: "brightness(1)", offset: 1 }
+      ], { duration: 14000, easing: "linear", fill: "forwards" });
+      timers.push(setTimeout(function () {
+        if (done) return;
+        if (word) word.animate([{ opacity: 0, transform: "scale(.7)" }, { opacity: 1, transform: "scale(1.08)", offset: 0.7 }, { opacity: 1, transform: "scale(1)" }], { duration: 700, fill: "forwards" });
+        if (names) names.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 700, fill: "forwards" });
+      }, 11200));
+      timers.push(setTimeout(function () {
+        if (done) return;
+        const ring = pop.querySelector("#evo-ring");
+        const line = pop.querySelector("#evo-line");
+        const word = pop.querySelector("#evo-word");
+        const names = pop.querySelector("#evo-names");
+        const oldEl = pop.querySelector("#evo-old");
+        if (ring) { ring.style.display = "none"; ring.style.boxShadow = "none"; ring.style.opacity = "0"; try { ring.remove(); } catch (e) {} }
+        const glow = pop.querySelector("#evo-glow");
+        if (glow) { try { glow.getAnimations().forEach(function (a) { a.cancel(); }); } catch (e) {} glow.style.opacity = "0"; glow.style.boxShadow = "none"; try { glow.remove(); } catch (e) {} }
+        if (line) line.style.opacity = "0";
+        if (word) word.style.opacity = "0";
+        if (names) names.style.opacity = "0";
+        if (oldEl) oldEl.style.opacity = "0";
+        const fresh = pop.querySelector("#evo-new");
+        if (fresh) { fresh.style.filter = "none"; fresh.style.boxShadow = "none"; }
+      }, 12500));
+      timers.push(setTimeout(function () {
+        var g = pop.querySelector("#evo-glow");
+        if (g) g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 800, fill: "forwards" });
+      }, 11800));
+      timers.push(setTimeout(finish, 15000));
+    }
     function grantPetXp(amount) {
       if (!state.equippedPet || !amount) return;
       const pet = (state.pets || []).find(function (p) { return p.id === state.equippedPet; });
@@ -5481,8 +5587,9 @@ function autoTick() {
       pet.xp = (pet.xp || 0) + amount;
       while ((pet.lvl || 1) < 100 && pet.xp >= xpToNext(pet.lvl || 1)) {
         pet.xp -= xpToNext(pet.lvl || 1);
+        const before = beastForm(pet);
         pet.lvl = (pet.lvl || 1) + 1;
-        if (pet.lvl === 5 || pet.lvl === 10) toast(beastForm(pet) + " evolved");
+        if ((pet.lvl === 5 || pet.lvl === 10) && typeof toast === "function") toast(beastForm(pet) + " can evolve");
       }
     }
     function rollWildBeast(kind, lvl, boss) {
@@ -5584,7 +5691,7 @@ function autoTick() {
       };
       const spec = BEASTS[pet.species];
       const lvl = pet.lvl || 1;
-      const stage = lvl >= 10 ? 2 : lvl >= 5 ? 1 : 0;
+      const stage = petForm(pet);
       document.getElementById("pet-card-name").textContent = beastForm(pet);
       const paint = document.getElementById("pet-card-paint");
       try {
@@ -5630,12 +5737,53 @@ function autoTick() {
         step.innerHTML = beastSkin(pet.species, showLvl) + "<small>" + name + "</small>";
         row.appendChild(step);
       });
+      const flower = document.getElementById("pet-card-flower");
+      if (flower) flower.onclick = function () {
+        pet.lvl = (pet.lvl || 1) + 1;
+        save();
+        toast(beastForm(pet) + " is level " + pet.lvl);
+        openPetCard(pet.id);
+      };
+      const evolve = document.getElementById("pet-card-evolve");
+      const need = petForm(pet) === 0 ? 5 : 10;
+      const can = petForm(pet) < 2 && (pet.lvl || 1) >= need;
+      if (evolve) {
+        evolve.style.display = can ? "inline-block" : "none";
+        evolve.onclick = function (ev) {
+          if (ev) ev.stopPropagation();
+          const before = beastForm(pet);
+          pet.form = Math.min(2, petForm(pet) + 1);
+          save();
+          playEvolve(pet, before, beastForm(pet));
+        };
+      }
       const herbBtn = document.getElementById("pet-card-herb");
       if (herbBtn) {
         herbBtn.textContent = "Consume herb · " + (state.herbs || 0);
         herbBtn.onclick = function () {
           consumeHerbOn(pet.id);
           openPetCard(id);
+        };
+      }
+      const elder = document.getElementById("pet-card-elder");
+      if (elder) elder.onclick = function () {
+        pet.lvl = (pet.lvl || 1) + 1;
+        save();
+        openPetCard(id);
+        toast(beastForm(pet) + " is level " + pet.lvl);
+      };
+      const evoBtn = document.getElementById("pet-card-evolve");
+      if (evoBtn) {
+        const ready = ((pet.lvl || 1) >= 5 && (pet.form || 0) < 1) || ((pet.lvl || 1) >= 10 && (pet.form || 0) < 2);
+        evoBtn.style.display = ready ? "inline-block" : "none";
+        evoBtn.onclick = function (ev) {
+          if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+          const before = beastForm(pet);
+          pet.form = (pet.form || 0) + 1;
+          if (pet.form > 2) pet.form = 2;
+          save();
+          try { playEvolve(pet, before, beastForm(pet)); } catch (err) { toast("Evolve failed"); }
+          setTimeout(function () { try { openPetCard(pet.id); } catch (e) {} }, 14500);
         };
       }
       const bring = document.getElementById("pet-card-bring");
@@ -11845,6 +11993,28 @@ document.getElementById("beast-page-close").onclick = function () {
       state.equippedPet = pet.id;
       try { save(); } catch (e) {}
       try { if (window.openPetCard) openPetCard(pet.id); } catch (e) { toast("Could not open pet"); }
+    });
+  }
+  shutOverlays();
+})();
+</script>
+
+
+<script>
+document.addEventListener("click", function (ev) {
+  var t = ev.target;
+  if (!t) return;
+  if (t.id === "pet-heal-pop" || t.id === "ask-box" || t.id === "fight-box") {
+    t.style.display = "none";
+    t.classList.remove("open");
+    t.setAttribute("aria-hidden", "true");
+  }
+}, true);
+</script>
+
+</body>
+</html>
+dow.openPetCard) openPetCard(pet.id); } catch (e) { toast("Could not open pet"); }
     });
   }
   shutOverlays();
