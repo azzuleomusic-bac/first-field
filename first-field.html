@@ -1791,7 +1791,7 @@
     .scene-pet { position: absolute; left: 86px; bottom: 16px; width: 56px; height: 46px; z-index: 4; pointer-events: none; }
     .scene-pet svg { width: 56px; height: 46px; display: block; }
     .mine-stage.on .scene-pet { animation: minerBob 0.42s ease-in-out infinite; }
-    #pet-card { display: none; position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 140; width: min(420px, 94vw); max-height: 88vh; overflow: auto; background: #1c140e; color: #f3e6c8; border: 1px solid #c9a227; border-radius: 14px; padding: 14px; }
+    #pet-card { display: none; position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 1600; width: min(420px, 94vw); max-height: 88vh; overflow: auto; background: #1c140e; color: #f3e6c8; border: 1px solid #c9a227; border-radius: 14px; padding: 14px; }
     #pet-card.open { display: block; }
     body.in-adventure #pet-card.open { visibility: visible !important; z-index: 600 !important; pointer-events: auto !important; }
     #pet-card h3 { margin: 0 0 6px; color: #e8c36a; }
@@ -1799,7 +1799,7 @@
     .evo-step { flex: 1; text-align: center; background: #12180f; border-radius: 10px; padding: 6px 4px; border: 1px solid #3a4a32; }
     .evo-step.now { border-color: #c9a227; }
     .evo-step svg { width: 100%; height: 64px; }
-    .evo-step.locked svg { filter: brightness(0); opacity: 0.42; }
+    .evo-step.locked svg, .evo-step.locked img { filter: brightness(0); opacity: 0.45; } .evo-step:nth-child(2) svg { transform: scale(1.08); } .evo-step:nth-child(3) svg { transform: scale(1.16); }
     .evo-step small { display: block; min-height: 2.4em; font-size: 11px; }
     #beast-inv-list li { cursor: pointer; }
 
@@ -2181,21 +2181,20 @@
     .dmg-float.bad { color:#ff6a4a; }
     .dmg-float.crit { color:#fff; font-size:40px; }
     @keyframes dmgUp { 0% { transform: translate(-50%,0) scale(1.2); opacity:1; } 100% { transform: translate(-50%,-48px) scale(1); opacity:0; } }
-    #fight-stage .hp-wrap { position:absolute; top:8px; width:44%; z-index:5; margin:0; }
-    
-    #fight-stage #hp-miner-n, #fight-stage #hp-mob-n { position:absolute; top:26px; width:44%; font-size:11px; font-weight:800; color:#f4ead4; z-index:6; }
-    #fight-stage #hp-miner-n { left:8px; text-align:left; }
-    #fight-stage #hp-mob-n { right:8px; text-align:right; }
+    #fight-stage .hp-wrap { position:absolute; top:8px; width:42%; height:22px; z-index:5; margin:0; }
+    #fight-stage .hp-wrap.pet-bar { left:6px; }
+    #fight-stage .hp-wrap.foe-bar { right:6px; }
+    #fight-stage .hp { height:22px; position:relative; overflow:hidden; }
+    #fight-stage #hp-miner-n, #fight-stage #hp-mob-n {
+      position:absolute; inset:0; width:100%; height:22px; margin:0; padding:0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:11px; line-height:22px; font-weight:800; color:#fff;
+      text-shadow:0 1px 0 #000; pointer-events:none; text-align:center; z-index:6;
+    }
 
     
-    #fight-stage .hp-wrap { height: 22px; }
-    #fight-stage .hp { height: 22px; position: relative; }
-    #fight-stage #hp-miner-n, #fight-stage #hp-mob-n {
-      position: absolute; top: 0; left: 0; width: 100%; height: 22px; margin: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 800; color: #fff; text-shadow: 0 1px 0 #000;
-      pointer-events: none; text-align: center;
-    }
+    #fight-stage .hp { height: 20px; }
+    
 
     #fight-stage .hp-wrap.pet-bar { left:8px; }
     #fight-stage .hp-wrap.foe-bar { right:8px; }
@@ -2203,6 +2202,10 @@
     #fight-stage .hp i { display:block; height:100%; width:100%; background:#7dba4a; }
     #fight-stage .hp.mob i { background:#c45a3a; }
     #fight-stage .hp-num { font-size:13px; font-weight:800; color:#f4ead4; text-shadow:0 1px 0 #000; }
+
+  
+    #pet-card:not(.open), #fight-box:not(.open), #ask-box:not(.open), #roster-panel:not(.open), #mine-panel:not(.open) { pointer-events: none !important; }
+    #unlock-page { position:fixed; right:10px; bottom:10px; z-index:2000; }
 
   </style>
 </head>
@@ -5010,6 +5013,8 @@ function autoTick() {
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Oct 6 — Level 1 fight is slower. A fast mouse waits about 1.2s. x2 still halves that.",
+      "Oct 6 — Each stage has its own look. Card shows all three forms for the demo.",
       "Oct 6 — Under 30% HP, Fight opens a popup: heal this pet, or choose another.",
       "Oct 6 — A pet under 30% HP cannot start a fight until a herb or a free bed heals it.",
       "Oct 6 — Hit numbers float on the sprite. Pet HP bar sits on the stage and drops when the beast lands.",
@@ -5260,15 +5265,15 @@ function autoTick() {
       bird: { zone: "forest", chapter: 1, wild: true, name: "Thicket Bird", evo: ["Thicket Bird", "Canopy Bird", "Grove Hawk"] },
       rock: { zone: "mine", chapter: 1, wild: true, name: "Pebble", evo: ["Pebble", "Boulder Pup", "Vein Golem"] },
       skull: { zone: "mine", chapter: 1, wild: true, name: "Skull Bit", evo: ["Skull Bit", "Jawling", "Mine Skull"] },
-      sprout: { zone: "forest", wild: false, name: "Fern Mouse", evo: ["Fern Mouse", "Fern Mouse", "Fern Mouse"] },
-      grav: { zone: "mine", wild: false, name: "Grave Pebble", evo: ["Grave Pebble", "Grave Pebble", "Grave Pebble"] },
-      hare: { zone: "forest", chapter: 1, wild: true, name: "Sprig Hare", evo: ["Sprig Hare", "Sprig Hare", "Sprig Hare"] },
-      beetle: { zone: "forest", chapter: 1, wild: true, name: "Bark Beetle", evo: ["Bark Beetle", "Bark Beetle", "Bark Beetle"] },
-      grub: { zone: "mine", chapter: 1, wild: true, name: "Lamp Grub", evo: ["Lamp Grub", "Lamp Grub", "Lamp Grub"] },
-      imp: { zone: "mine", chapter: 1, wild: true, name: "Coal Imp", evo: ["Coal Imp", "Coal Imp", "Coal Imp"] },
+      sprout: { zone: "forest", wild: false, name: "Fern Mouse", evo: ["Fern Mouse", "Fern Runner", "Fern Lord"] },
+      grav: { zone: "mine", wild: false, name: "Grave Pebble", evo: ["Grave Pebble", "Grave Stone", "Grave Golem"] },
+      hare: { zone: "forest", chapter: 1, wild: true, name: "Sprig Hare", evo: ["Sprig Hare", "Brush Hare", "Sprig Lord"] },
+      beetle: { zone: "forest", chapter: 1, wild: true, name: "Bark Beetle", evo: ["Bark Beetle", "Plate Beetle", "Bark Lord"] },
+      grub: { zone: "mine", chapter: 1, wild: true, name: "Lamp Grub", evo: ["Lamp Grub", "Glow Grub", "Lamp Lord"] },
+      imp: { zone: "mine", chapter: 1, wild: true, name: "Coal Imp", evo: ["Coal Imp", "Cinder Imp", "Coal Lord"] },
       reedminnow: { zone: "lake", chapter: 1, wild: true, element: "water", name: "Reed Minnow", evo: ["Reed Minnow", "Reed School", "Reed King"] },
-      shorecrab: { zone: "lake", chapter: 1, wild: true, element: "water", name: "Shore Crab", evo: ["Shore Crab", "Shelf Crab", "Pier Crab"] },
-      lilynewt: { zone: "lake", chapter: 2, wild: true, element: "water", name: "Lily Newt", evo: ["Lily Newt", "Pad Newt", "Lily Lord"] },
+      shorecrab: { zone: "lake", chapter: 1, wild: true, element: "water", name: "Shore Crab", evo: ["Salt Crab", "Shelf Crab", "Salt Lord"] },
+      lilynewt: { zone: "lake", chapter: 2, wild: true, element: "water", name: "Lily Newt", evo: ["Crystal Newt", "Glass Newt", "Crystal Lord"] },
       padturtle: { zone: "lake", chapter: 2, wild: true, element: "water", name: "Pad Turtle", evo: ["Pad Turtle", "Shelf Turtle", "Lily Shell"] },
       currenteel: { zone: "lake", chapter: 3, wild: true, element: "water", name: "Current Eel", evo: ["Current Eel", "Black Eel", "Current Lord"] },
       wavepike: { zone: "lake", chapter: 3, wild: true, element: "water", name: "Wave Pike", evo: ["Wave Pike", "Cut Pike", "Wave Tyrant"] },
@@ -5276,22 +5281,22 @@ function autoTick() {
       anchorskull: { zone: "lake", chapter: 4, wild: true, element: "water", name: "Anchor Skull", evo: ["Anchor Skull", "Chain Skull", "Wreck Skull"] },
       moonkoi: { zone: "lake", chapter: 5, wild: true, element: "water", name: "Moon Koi", evo: ["Moon Koi", "Still Koi", "Moon Lord"] },
       lakewarden: { zone: "lake", chapter: 5, wild: true, element: "water", name: "Lake Warden", evo: ["Lake Warden", "Heart Warden", "Still Heart"] },
-      toad: { zone: "forest", chapter: 2, wild: true, name: "Moss Toad", evo: ["Moss Toad", "Moss Toad", "Moss Toad"] },
-      lizard: { zone: "forest", chapter: 2, wild: true, name: "Vine Lizard", evo: ["Vine Lizard", "Vine Lizard", "Vine Lizard"] },
+      toad: { zone: "forest", chapter: 2, wild: true, name: "Moss Toad", evo: ["Moss Toad", "Bog Toad", "Moss Lord"] },
+      lizard: { zone: "forest", chapter: 2, wild: true, name: "Vine Lizard", evo: ["Vine Lizard", "Thorn Lizard", "Vine Lord"] },
       newt: { zone: "mine", chapter: 2, wild: true, name: "Crystal Newt", evo: ["Crystal Newt", "Crystal Newt", "Crystal Newt"] },
-      pebble: { zone: "mine", chapter: 2, wild: true, name: "Lantern Pebble", evo: ["Lantern Pebble", "Lantern Pebble", "Lantern Pebble"] },
-      fox: { zone: "forest", chapter: 3, wild: true, name: "Thorn Fox", evo: ["Thorn Fox", "Thorn Fox", "Thorn Fox"] },
-      kit: { zone: "forest", chapter: 3, wild: true, name: "Bramble Kit", evo: ["Bramble Kit", "Bramble Kit", "Bramble Kit"] },
-      leech: { zone: "mine", chapter: 3, wild: true, name: "Flood Leech", evo: ["Flood Leech", "Flood Leech", "Flood Leech"] },
+      pebble: { zone: "mine", chapter: 2, wild: true, name: "Lantern Pebble", evo: ["Lantern Pebble", "Lantern Rock", "Lantern Golem"] },
+      fox: { zone: "forest", chapter: 3, wild: true, name: "Thorn Fox", evo: ["Thorn Fox", "Briar Fox", "Thorn Lord"] },
+      kit: { zone: "forest", chapter: 3, wild: true, name: "Bramble Kit", evo: ["Bramble Kit", "Bramble Fox", "Bramble Lord"] },
+      leech: { zone: "mine", chapter: 3, wild: true, name: "Flood Leech", evo: ["Flood Leech", "Dark Leech", "Flood Lord"] },
       crab: { zone: "mine", chapter: 3, wild: true, name: "Salt Crab", evo: ["Salt Crab", "Salt Crab", "Salt Crab"] },
-      mask: { zone: "forest", chapter: 4, wild: true, name: "Hollow Mask", evo: ["Hollow Mask", "Hollow Mask", "Hollow Mask"] },
-      orb: { zone: "forest", chapter: 4, wild: true, name: "Briar Orb", evo: ["Briar Orb", "Briar Orb", "Briar Orb"] },
-      tick: { zone: "mine", chapter: 4, wild: true, name: "Iron Tick", evo: ["Iron Tick", "Iron Tick", "Iron Tick"] },
-      mourner: { zone: "mine", chapter: 4, wild: true, name: "Lamp Mourner", evo: ["Lamp Mourner", "Lamp Mourner", "Lamp Mourner"] },
-      seed: { zone: "forest", chapter: 5, wild: true, name: "Seed Imp", evo: ["Seed Imp", "Seed Imp", "Seed Imp"] },
-      rootlamp: { zone: "forest", chapter: 5, wild: true, name: "Root Lantern", evo: ["Root Lantern", "Root Lantern", "Root Lantern"] },
-      maw: { zone: "mine", chapter: 5, wild: true, name: "Maw Grub", evo: ["Maw Grub", "Maw Grub", "Maw Grub"] },
-      jaw: { zone: "mine", chapter: 5, wild: true, name: "Jaw Lamp", evo: ["Jaw Lamp", "Jaw Lamp", "Jaw Lamp"] }
+      mask: { zone: "forest", chapter: 4, wild: true, name: "Hollow Mask", evo: ["Hollow Mask", "Bone Mask", "Hollow Lord"] },
+      orb: { zone: "forest", chapter: 4, wild: true, name: "Briar Orb", evo: ["Briar Orb", "Thorn Orb", "Briar Lord"] },
+      tick: { zone: "mine", chapter: 4, wild: true, name: "Iron Tick", evo: ["Iron Tick", "Plate Tick", "Iron Lord"] },
+      mourner: { zone: "mine", chapter: 4, wild: true, name: "Lamp Mourner", evo: ["Lamp Mourner", "Deep Mourner", "Lamp Saint"] },
+      seed: { zone: "forest", chapter: 5, wild: true, name: "Seed Imp", evo: ["Seed Imp", "Sprout Imp", "Seed Lord"] },
+      rootlamp: { zone: "forest", chapter: 5, wild: true, name: "Root Lantern", evo: ["Root Lantern", "Heart Lantern", "Root Lord"] },
+      maw: { zone: "mine", chapter: 5, wild: true, name: "Maw Grub", evo: ["Maw Grub", "Jaw Grub", "Maw Lord"] },
+      jaw: { zone: "mine", chapter: 5, wild: true, name: "Jaw Lamp", evo: ["Jaw Lamp", "Maw Lamp", "Jaw Lord"] }
     };
     const WILD_SKIN = {
       hare: '<svg viewBox="0 0 120 96"><ellipse cx="58" cy="62" rx="22" ry="16" fill="#6a8f52"/><ellipse cx="40" cy="28" rx="4" ry="16" fill="#8a6a3a"/><ellipse cx="52" cy="24" rx="4" ry="18" fill="#8a6a3a"/><circle cx="34" cy="52" r="7" fill="#4e6b38"/><circle cx="32" cy="51" r="2" fill="#f0c84a"/></svg>',
@@ -5326,9 +5331,25 @@ function autoTick() {
       lakewarden: '<svg viewBox="0 0 120 96"><ellipse cx="60" cy="58" rx="28" ry="18" fill="#1d4e5c"/><path d="M40 40 L60 18 L80 40" fill="#7fd0c8"/><circle cx="50" cy="54" r="3" fill="#f0c84a"/><circle cx="70" cy="54" r="3" fill="#f0c84a"/><path d="M48 66 Q60 74 72 66" stroke="#e8c36a" fill="none" stroke-width="2"/></svg>'
     };
 
+    function stageMark(svg, stage) {
+      if (!svg || !stage) return svg;
+      const mid = '<path d="M70 34 L80 14 L90 34" fill="#e8c36a"/><circle cx="80" cy="30" r="4" fill="#fff1a8"/>';
+      const lord = '<path d="M62 36 L80 6 L98 36" fill="#c9a227"/><circle cx="80" cy="22" r="6" fill="#fff1a8"/><ellipse cx="60" cy="80" rx="30" ry="5" fill="#e8c36a" opacity="0.55"/>';
+      return svg.replace("</svg>", (stage === 1 ? mid : lord) + "</svg>");
+    }
     function beastSkin(species, lvl) {
-      if (WILD_SKIN[species]) return WILD_SKIN[species];
       const stage = (lvl || 1) >= 10 ? 2 : (lvl || 1) >= 5 ? 1 : 0;
+      if (species === "sprout") {
+        if (stage === 0) return '<svg viewBox="0 0 120 96"><ellipse cx="58" cy="64" rx="20" ry="14" fill="#3d6b45"/><ellipse cx="48" cy="68" rx="9" ry="7" fill="#d7e7c8"/><circle cx="36" cy="54" r="8" fill="#2f5a38"/><circle cx="33" cy="53" r="2" fill="#f0c84a"/><path d="M30 58 Q18 64 22 70" stroke="#2f5a38" fill="none" stroke-width="3"/></svg>';
+        if (stage === 1) return '<svg viewBox="0 0 120 96"><ellipse cx="62" cy="66" rx="26" ry="14" fill="#3d6b45"/><ellipse cx="46" cy="70" rx="10" ry="7" fill="#d7e7c8"/><path d="M40 40 L52 22 L58 40 L70 18 L66 44 Z" fill="#6f9a55"/><circle cx="34" cy="52" r="8" fill="#2f5a38"/><circle cx="31" cy="51" r="2" fill="#f0c84a"/><path d="M78 62 Q98 50 92 70" stroke="#2f5a38" fill="none" stroke-width="4"/></svg>';
+        return '<svg viewBox="0 0 120 96"><ellipse cx="60" cy="70" rx="28" ry="14" fill="#2f5a38"/><ellipse cx="46" cy="72" rx="10" ry="7" fill="#d7e7c8"/><path d="M18 58 Q34 40 46 56 Q34 62 18 70 Z" fill="#6f9a55"/><path d="M102 58 Q86 40 74 56 Q86 62 102 70 Z" fill="#6f9a55"/><path d="M48 36 L60 8 L72 36 L84 14 L70 42 Z" fill="#8fb86a"/><circle cx="32" cy="50" r="8" fill="#244a2e"/><circle cx="29" cy="49" r="2.2" fill="#f0c84a"/></svg>';
+      }
+      if (species === "grav") {
+        if (stage === 0) return '<svg viewBox="0 0 120 96"><ellipse cx="60" cy="62" rx="22" ry="18" fill="#8a8178"/><ellipse cx="60" cy="58" rx="12" ry="10" fill="#d9d0c4"/><circle cx="54" cy="56" r="2" fill="#1a120c"/><circle cx="66" cy="56" r="2" fill="#1a120c"/><path d="M56 64 Q60 67 64 64" stroke="#1a120c" fill="none"/></svg>';
+        if (stage === 1) return '<svg viewBox="0 0 120 96"><ellipse cx="60" cy="66" rx="30" ry="18" fill="#6e675f"/><ellipse cx="60" cy="58" rx="16" ry="12" fill="#cfc6ba"/><path d="M40 50 L52 62 M70 48 L60 64" stroke="#c9a227" stroke-width="2"/><circle cx="52" cy="56" r="2.4" fill="#1a120c"/><circle cx="68" cy="56" r="2.4" fill="#1a120c"/><path d="M48 78 L44 88 M72 78 L76 88" stroke="#5a534c" stroke-width="4"/></svg>';
+        return '<svg viewBox="0 0 120 96"><ellipse cx="60" cy="78" rx="26" ry="10" fill="#5a534c"/><rect x="46" y="40" width="28" height="34" rx="8" fill="#8a8178"/><rect x="28" y="48" width="14" height="22" rx="6" fill="#6e675f"/><rect x="78" y="48" width="14" height="22" rx="6" fill="#6e675f"/><ellipse cx="60" cy="34" rx="14" ry="12" fill="#d9d0c4"/><circle cx="54" cy="33" r="2" fill="#1a120c"/><circle cx="66" cy="33" r="2" fill="#1a120c"/><path d="M44 46 L56 58 M76 44 L64 60" stroke="#e8c36a" stroke-width="2"/></svg>';
+      }
+            if (WILD_SKIN[species]) return stageMark(WILD_SKIN[species], stage);
       if (species === "rock") {
         if (stage === 0) return '<svg viewBox="0 0 120 96"><ellipse cx="58" cy="60" rx="26" ry="18" fill="#6d6256"/><ellipse cx="46" cy="66" rx="12" ry="8" fill="#cbbfa6"/><circle cx="34" cy="52" r="8" fill="#5a5048"/><circle cx="31" cy="50" r="2" fill="#c9a227"/></svg>';
         if (stage === 1) return '<svg viewBox="0 0 120 96"><ellipse cx="58" cy="68" rx="30" ry="16" fill="#5a5048"/><ellipse cx="58" cy="50" rx="24" ry="16" fill="#6d6256"/><ellipse cx="46" cy="56" rx="12" ry="8" fill="#cbbfa6"/><circle cx="34" cy="42" r="8" fill="#5a5048"/><circle cx="31" cy="40" r="2" fill="#c9a227"/><path d="M40 78 L36 88 M76 78 L80 88" stroke="#4a4038" stroke-width="4"/></svg>';
@@ -5538,11 +5559,13 @@ function autoTick() {
       return need;
     }
     function openPetCard(id) {
+      try { repairPetHp(); } catch (e) {}
       const pet = (state.pets || []).find(function (p) { return p.id === id; });
       const card = document.getElementById("pet-card");
       if (!pet || !card) return;
       document.body.appendChild(card);
       card.classList.add("open");
+      card.onclick = function (ev) { if (ev.target === card && window.closePetCard) window.closePetCard(); };
       card.style.display = "block";
       card.style.pointerEvents = "auto";
       card.style.zIndex = "980";
@@ -5579,10 +5602,11 @@ function autoTick() {
           skin.style.display = art ? "none" : "block";
         }
       } catch (err) {}
+      if (!spec) { toast("No data for this pet"); return; }
       const zoneName = spec.zone === "forest" ? "Forest" : spec.zone === "lake" ? "Lake · water" : "Mine";
       const hp = pet.hp == null ? 20 : pet.hp;
       var grown = (typeof growStyle === "function") ? growStyle(pet.species, lvl) : { tag: "even", dmg: 1, speed: 1 };
-      var gap = Math.max(0.3, Math.round(900 / grown.speed) / 1000);
+      var gap = Math.max(0.3, Math.round(2200 / grown.speed) / 1000);
       document.getElementById("pet-card-stats").innerHTML = "Lv " + lvl + (petOut(pet) ? " · out until 30%" : "") + "<br>HP " + petPct(pet) + "% · " + petHp(pet) + "/" + petMax(pet) + "<br>XP " + (pet.xp || 0) + "/" + xpToNext(lvl) + "<br>" + grown.dmg + " dmg · " + gap.toFixed(1) + "s";
       const when = document.getElementById("pet-card-when");
       if (stage >= 2) when.textContent = "Final form. No further evolution.";
@@ -5595,10 +5619,9 @@ function autoTick() {
       row.innerHTML = "";
       spec.evo.forEach(function (name, i) {
         const step = document.createElement("div");
-        step.className = "evo-step" + (i === stage ? " now" : "") + (i > stage ? " locked" : "");
+        step.className = "evo-step" + (i === stage ? " now" : "");
         const showLvl = i === 0 ? 1 : i === 1 ? 5 : 10;
-        var paintSrc = (typeof PET_PAINT !== "undefined" && PET_PAINT[pet.species]) || "";
-        step.innerHTML = (paintSrc ? "<img src=\"" + paintSrc + "\" alt=\"\" style=\"width:100%;height:auto;display:block;border-radius:8px\">" : beastSkin(pet.species, showLvl)) + "<small>" + (i > stage ? "Not yet" : name) + "</small>";
+        step.innerHTML = beastSkin(pet.species, showLvl) + "<small>" + name + "</small>";
         row.appendChild(step);
       });
       const herbBtn = document.getElementById("pet-card-herb");
@@ -5698,17 +5721,13 @@ function autoTick() {
         const evo = spec.evo.join(" → ");
         li.innerHTML = art + "<span><b>" + name + "</b><br>" + line + "<br><small>" + (seen ? evo : spec.zone) + "</small></span>";
         if (owned) {
-          const b = document.createElement("button");
-          b.type = "button";
-          b.textContent = state.equippedPet === owned.id ? "Equipped" : "Equip";
-          b.onclick = function () {
+          li.style.cursor = "pointer";
+          li.onclick = function () {
             state.equippedPet = owned.id;
             save();
-            paintBeastWindow();
-            if (typeof bindPetSlot === "function") bindPetSlot();
-            if (typeof fillGearSlots === "function") fillGearSlots();
+            try { bindPetSlot(); } catch (e) {}
+            try { openPetCard(owned.id); } catch (e) { toast("Could not open that pet"); }
           };
-          li.appendChild(b);
         }
         book.appendChild(li);
       });
@@ -6038,6 +6057,7 @@ function autoTick() {
       return true;
     }
     function startFight() {
+      try { repairPetHp(); } catch (e) {}
       const worn = (state.pets || []).find(function (p) { return p.id === state.equippedPet; });
       if (worn && petOut(worn)) {
         state.pendingFight = false;
@@ -6082,12 +6102,13 @@ function autoTick() {
         if (box.parentElement !== document.body) document.body.appendChild(box);
         box.style.zIndex = "800";
         box.classList.add("open");
-        box.style.display = "flex"; window.fightPhase = "style"; window.petAt = Date.now() + 480; window.beastAt = Date.now() + 700;
+        box.style.display = "flex"; window.fightPhase = "style"; window.petAt = Date.now() + 1400; window.beastAt = Date.now() + 700;
         box.setAttribute("aria-hidden", "false");
         try { dressMiner(); } catch (e) {}
       }
       const petNow = (state.pets || []).find(function (p) { return p.id === state.equippedPet; });
       const mMax = petNow ? petMax(petNow) : 12;
+      if (petNow && (petNow.hp == null || petNow.hp <= 0)) petNow.hp = mMax;
       let m = petNow ? petHp(petNow) : mMax;
       const cMax = Math.round((boss ? 18 + chapter * 4 : 12 + lvl * 2) * beastStyle(state.wildBeast).hp);
       let c = cMax;
@@ -6160,11 +6181,11 @@ function autoTick() {
           const foePace = beastStyle(state.wildBeast);
           const nowHit = Date.now();
           if (!window.petAt) window.petAt = nowHit + 480;
-          if (!window.beastAt) window.beastAt = nowHit + Math.round(900 / growStyle(state.wildBeast, lvl).speed);
+          if (!window.beastAt) window.beastAt = nowHit + Math.round(2200 / growStyle(state.wildBeast, lvl).speed);
           const clash = c > 0 && m > 0 && nowHit >= window.petAt && nowHit >= window.beastAt;
           if (clash) { try { showClash(); } catch (e) {} }
           if (c > 0 && m > 0 && nowHit >= window.petAt) {
-            window.petAt = nowHit + Math.round(900 / growStyle(petHit && petHit.species, (petHit && petHit.lvl) || 1).speed);
+            window.petAt = nowHit + Math.round(2200 / growStyle(petHit && petHit.species, (petHit && petHit.lvl) || 1).speed);
             window._strikeSpeed = growStyle(petHit && petHit.species, (petHit && petHit.lvl) || 1).speed; try { playStrike(fp, mobEl, 1); } catch (e) {}
             const lvlN = (petHit && petHit.lvl) || 1;
             const grown = growStyle(petHit && petHit.species, lvlN);
@@ -6173,14 +6194,14 @@ function autoTick() {
             const hit = clash ? asCrit(rollHit(base)) : rollHit(base);
             c -= hit.dmg;
             if (c < 0) c = 0;
-            state.petFightXp = (state.petFightXp || 0) + hit.dmg;
+            state.petFightXp = (state.petFightXp || 0) + hit.dmg; try { grantPetXp(hit.dmg); save(); } catch (e) {} try { grantPetXp(hit.dmg); } catch (e) {}
             if (po) { po.textContent = (hit.crit ? "CRIT " : "") + "-" + hit.dmg; po.classList.toggle("crit", hit.crit); }
             floatHit(mobEl, hit.dmg, hit.crit, false);
             paintHp();
             if (st) st.textContent = (petHit ? beastForm(petHit) : "Pet") + " · " + petPace.tag;
           }
           if (c > 0 && m > 0 && nowHit >= window.beastAt) {
-            window.beastAt = nowHit + Math.round(900 / growStyle(state.wildBeast, lvl).speed);
+            window.beastAt = nowHit + Math.round(2200 / growStyle(state.wildBeast, lvl).speed);
             window._strikeSpeed = growStyle(state.wildBeast, lvl).speed; try { playStrike(mobEl, fp, -1); } catch (e) {}
             const foeGrown = growStyle(state.wildBeast, lvl);
             window._strikeSpeed = foeGrown.speed;
@@ -6190,7 +6211,7 @@ function autoTick() {
             m -= taken;
             if (m < 0) m = 0;
             const hurtPet = (state.pets || []).find(function (p) { return p.id === state.equippedPet; });
-            if (hurtPet) hurtPet.hp = Math.max(0, Math.round(m));
+            if (hurtPet) { hurtPet.hp = Math.max(0, Math.round(m)); hurtPet.ko = m <= 0; save(); }
             if (pm) { pm.textContent = (hit.crit ? "CRIT " : "") + "-" + taken; pm.classList.toggle("crit", hit.crit); }
             floatHit(fp, taken, hit.crit, true);
             paintHp();
@@ -6221,7 +6242,7 @@ function autoTick() {
             const pd = Math.max(1, Math.round(beastDmg(pet)));
             c -= pd;
             if (c < 0) c = 0;
-            state.petFightXp = (state.petFightXp || 0) + pd;
+            state.petFightXp = (state.petFightXp || 0) + pd; try { grantPetXp(pd); } catch (e) {}
             if (po) po.textContent = "pet -" + pd;
             if (st) st.textContent = beastForm(pet) + " attacks";
           }
@@ -6277,8 +6298,10 @@ function autoTick() {
             else if (lake) state.lakeWins = (state.lakeWins || 0) + 1;
             else state.mineWins = (state.mineWins || 0) + 1;
             try { captureWildBeast(); } catch (e) {}
+            if (state.petFightXp) { toast("Pet xp " + ((state.pets || []).find(function (p) { return p.id === state.equippedPet; }) || {}).xp); state.petFightXp = 0; }
+            if (petNow) petNow.hp = Math.max(0, Math.round(m));
             try { save(); } catch (e) {}
-            if (state.petFightXp) { grantPetXp(state.petFightXp); toast("Pet +" + state.petFightXp + " xp"); state.petFightXp = 0; }
+            try { if (window.openPetCard && state.equippedPet) openPetCard(state.equippedPet); } catch (e) {}
             const clearKey = forest ? "forestClear" : lake ? "lakeClear" : "mineClear";
             const wonLevel = state.mobLevel || 1;
             if (wonLevel % 5 === 0) { if (state.bossFight) state[clearKey] = Math.max(state[clearKey] || 0, wonLevel); }
@@ -8220,8 +8243,14 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       if (style.tag === "heavy") return 17;
       return 15;
     }
+    function repairPetHp() {
+      (state.pets || []).forEach(function (pet) {
+        if (pet && pet.hp === 0) pet.hp = null;
+      });
+    }
     function petHp(pet) {
       if (!pet) return 0;
+      if (pet.hp === 0 && !pet.ko) pet.hp = null;
       const max = petMax(pet);
       return pet.hp == null ? max : Math.max(0, Math.min(max, pet.hp));
     }
@@ -11737,6 +11766,73 @@ document.getElementById("beast-page-close").onclick = function () {
     filter: grayscale(1) brightness(.6) !important;
   }
 </style>
+
+<script>
+    function unlockPage() {
+      ["pet-card","fight-box","ask-box","roster-panel","mine-panel","pet-heal-pop"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove("open");
+        el.style.display = "none";
+        el.style.pointerEvents = "none";
+      });
+    }
+    window.unlockPage = unlockPage;
+    document.addEventListener("click", function (ev) {
+      var t = ev.target;
+      if (t && t.id === "unlock-page") unlockPage();
+    });
+    var unlockBtn = document.createElement("button");
+    unlockBtn.id = "unlock-page";
+    unlockBtn.type = "button";
+    unlockBtn.textContent = "Close";
+    unlockBtn.onclick = unlockPage;
+    document.body.appendChild(unlockBtn);
+</script>
+
+<script>
+(function () {
+  function shutOverlays() {
+    ["ask-box", "pet-heal-pop", "heal-box"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = "none";
+      el.classList.remove("open");
+      el.setAttribute("aria-hidden", "true");
+    });
+  }
+  function shutCard() {
+    var card = document.getElementById("pet-card");
+    if (!card) return;
+    card.classList.remove("open");
+    card.style.display = "none";
+    card.setAttribute("aria-hidden", "true");
+  }
+  document.addEventListener("click", function (ev) {
+    var t = ev.target;
+    if (!t || !t.closest) return;
+    if (t.closest("#pet-card-close")) { ev.preventDefault(); shutCard(); }
+    if (t.id === "pet-heal-pop" || t.id === "ask-box") shutOverlays();
+  }, true);
+  var list = document.getElementById("beast-inv-list");
+  if (list) {
+    list.addEventListener("click", function (ev) {
+      var li = ev.target.closest && ev.target.closest("li");
+      if (!li || !list.contains(li)) return;
+      var name = li.querySelector("b");
+      var label = name ? name.textContent : "";
+      var pet = (window.state && state.pets || []).find(function (p) {
+        return (typeof beastForm === "function" ? beastForm(p) : "") === label;
+      });
+      if (!pet) return;
+      state.equippedPet = pet.id;
+      try { save(); } catch (e) {}
+      try { if (window.openPetCard) openPetCard(pet.id); } catch (e) { toast("Could not open pet"); }
+    });
+  }
+  shutOverlays();
+})();
+</script>
 
 </body>
 </html>
