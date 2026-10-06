@@ -2399,10 +2399,17 @@
   <audio id="adventure-song" src="" preload="auto" loop playsinline></audio>
 <audio id="fight-song" src="" preload="auto" playsinline loop></audio>
 </div>
-  <div id="boot">
+  <script id="boot-start-fix">
+window.__ffStart = function () {
+  window.__ffStartRequested = true;
+  var boot = document.getElementById("boot");
+  if (boot) boot.classList.add("fade");
+};
+</script>
+<div id="boot">
     <h1>FIRST FIELD</h1>
     <p>test farm · offline</p>
-    <button type="button" id="boot-start">Start</button>
+    <button type="button" id="boot-start" onclick="if(window.__ffStart)window.__ffStart()">Start</button>
     <button type="button" id="boot-mute" aria-label="Mute">🔊 Sound on</button>
     <p class="legal">This game is in development. Anything you see is subject to change.</p>
     <p class="copy">© 2026 AZZULEO. All rights reserved.</p>
@@ -2654,7 +2661,7 @@
           <ul id="miner-stats"></ul>
         </div>
         <div id="gear-box" hidden>
-          <p>Miner gear</p>
+          <div class="inv-head"><p>Inventory</p><button type="button" id="inv-close">Close</button></div>
           <div class="row"><span id="herb-inv">🌿 10 herbs</span><button type="button" id="consume-herb">Consume</button></div>
           <div class="row"><span id="loot-inv">🍄 4 mushrooms · 🐟 4 fish</span></div>
           <p id="set-banner" hidden></p>
@@ -3035,11 +3042,11 @@
       silos: [{ id: "s1", x: 0.86, y: 0.14, upgrades: 0 }],
       market: { x: 0.78, y: 0.78 },
       plots: [
-        { id: "p1", x: 0.30, y: 0.14, crop: null },
-        { id: "p2", x: 0.46, y: 0.14, crop: null },
-        { id: "p3", x: 0.62, y: 0.14, crop: null },
+        { id: "p1", x: 0.30, y: 0.14, crop: { type: "carrot", stage: "growing", plantedAt: Date.now() - 4000, readyAt: Date.now() + 6000 } },
+        { id: "p2", x: 0.46, y: 0.14, crop: { type: "corn", stage: "growing", plantedAt: Date.now() - 4000, readyAt: Date.now() + 6000 } },
+        { id: "p3", x: 0.62, y: 0.14, crop: { type: "carrot", stage: "ready", plantedAt: Date.now() - 20000, readyAt: Date.now() - 1000 } },
         { id: "p4", x: 0.30, y: 0.30, crop: null },
-        { id: "p5", x: 0.46, y: 0.30, crop: null },
+        { id: "p5", x: 0.46, y: 0.30, crop: { type: "corn", stage: "ready", plantedAt: Date.now() - 20000, readyAt: Date.now() - 1000 } },
         { id: "p6", x: 0.62, y: 0.30, crop: null }
       ]
     };
@@ -9575,6 +9582,7 @@ async function buySilo() {
       });
     }
     function render() {
+      try {
       if (typeof tickPetBeds === "function") tickPetBeds();
       if (typeof tickPonds === "function") tickPonds();
       paintPetStrip();
@@ -9587,6 +9595,7 @@ async function buySilo() {
       paintMine();
       paintForest();
       if (typeof paintXpBar === "function") paintXpBar();
+      } catch (e) {}
       const sw = document.getElementById("stat-water");
       if (sw) sw.textContent = "💧 " + state.water + "/" + waterMax();
       const sc = document.getElementById("stat-corn-top");
@@ -12180,44 +12189,40 @@ async function buySilo() {
     }
     const offBtn = document.getElementById("set-off");
     if (offBtn) offBtn.onclick = toggleMusicOff;
-    if (bootBtn) {
-      let held = false;
-      bootBtn.addEventListener("pointerdown", function (ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        held = true;
-        bootBtn.classList.add("pressed");
-        try { bootBtn.setPointerCapture(ev.pointerId); } catch (e) {}
-      });
-      function releaseStart(go) {
-        if (!held && go) held = true;
-        if (!held) return;
-        held = false;
-        bootBtn.classList.remove("pressed");
-        if (!go) return;
-        setTimeout(function () {
-          const boot = document.getElementById("boot");
-          boot.classList.add("fade");
-          setTimeout(function () {
-            boot.classList.add("off");
-            started = true;
-            startBootTune();
-            const fs = document.getElementById("fight-song");
-            if (fs) { fs.pause(); try { fs.currentTime = 0; } catch (e) {} }
-            last = now();
-            layout();
-            render();
-          }, 480);
-        }, 140);
+    function releaseStart(go) {
+      if (!go) {
+        if (bootBtn) bootBtn.classList.remove("pressed");
+        return;
       }
-      bootBtn.addEventListener("click", function () { if (!bootEl.classList.contains("fade")) releaseStart(true); });
-      bootBtn.addEventListener("pointerup", function (ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        releaseStart(true);
-      });
-      bootBtn.addEventListener("pointercancel", function () { releaseStart(false); });
+      const boot = document.getElementById("boot");
+      if (bootBtn) bootBtn.classList.remove("pressed");
+      if (boot) boot.classList.add("fade");
+      if (boot && boot.dataset.starting === "1") return;
+      if (boot) boot.dataset.starting = "1";
+      setTimeout(function () {
+        if (boot) boot.classList.add("off");
+        started = true;
+        try { startBootTune(); } catch (e) {}
+        const fs = document.getElementById("fight-song");
+        if (fs) { fs.pause(); try { fs.currentTime = 0; } catch (e) {} }
+        last = now();
+        try { layout(); } catch (e) {}
+        try { render(); } catch (e) {}
+      }, 180);
     }
+    window.__ffStart = function () { releaseStart(true); };
+    if (bootBtn) {
+      bootBtn.addEventListener("pointerdown", function () {
+        bootBtn.classList.add("pressed");
+      });
+      bootBtn.addEventListener("pointerup", function () { releaseStart(true); });
+      bootBtn.addEventListener("pointercancel", function () {
+        bootBtn.classList.remove("pressed");
+      });
+      bootBtn.addEventListener("click", function () { releaseStart(true); });
+    }
+    try { layout(); render(); } catch (e) {}
+    if (window.__ffStartRequested) releaseStart(true);
     
     var leave = document.getElementById("fight-leave");
     if (leave) leave.onclick = function () {
@@ -12851,7 +12856,7 @@ document.addEventListener("click", function (ev) {
     gallery.id = "barn-gallery";
     var foot = document.createElement("div");
     foot.className = "barn-foot";
-    foot.innerHTML = '<button type="button" id="barn-empty-toggle">Show empty</button><button type="button" class="barn-done" id="barn-done">Close barn</button>';
+    foot.innerHTML = '<button type="button" id="barn-empty-toggle">Show empty</button>';
     pan.textContent = "";
     pan.appendChild(top);
     pan.appendChild(tools);
@@ -13008,14 +13013,10 @@ document.addEventListener("click", function (ev) {
     mount();
     var pan = document.getElementById("barn-panel");
     if (pan) mo.observe(pan, { attributes: true, attributeFilter: ["class"] });
-    var foot = document.querySelector("#barn-panel .barn-foot");
-    if (foot && !document.getElementById("barn-sample")) {
-      var s = document.createElement("button");
-      s.type = "button";
-      s.id = "barn-sample";
-      s.textContent = "Sample shelves";
-      foot.insertBefore(s, foot.firstChild);
-    }
+    var sample = document.getElementById("barn-sample");
+    if (sample) sample.remove();
+    showEmpty = false;
+    if (window.state) window.state.hideZero = true;
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
@@ -13410,3 +13411,187 @@ document.addEventListener("click", function (ev) {
 </style>
 </body>
 </html>
+
+<style id="inv-clean">
+#barn-sample, #barn-done, #barn-hide-zero, #barn-panel .barn-note { display: none !important; }
+#barn-panel.open {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100svh !important;
+  overflow: hidden !important;
+}
+#barn-panel.open #barn-gallery {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  padding-bottom: 8px !important;
+}
+#barn-panel.open .barn-foot {
+  position: relative !important;
+  flex: 0 0 auto !important;
+  z-index: 3;
+  background: #16140f;
+}
+#barn-panel.open:not(.show-empty) .barn-card.empty { display: none !important; }
+#barn-panel.open .barn-sec {
+  grid-column: 1 / -1;
+  margin: 8px 2px 0;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #e8c36a;
+}
+#gear-box.open { padding: 14px; }
+#gear-box.open > p:first-child { margin: 0 0 10px; font-size: 18px; font-weight: 800; color: #e8c36a; }
+#gear-box .gear-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+#gear-box .row[hidden], #gear-box button[hidden] { display: none !important; }
+</style>
+<script id="inv-clean-js">
+(function () {
+  function sets() {
+    return {
+      "wear-cloth-set": ["shirts", "pants", "beanies", "gloves", "boots"],
+      "wear-leather-set": ["leatherCaps", "leatherVests", "leatherPants", "leatherGloves", "leatherBoots"],
+      "wear-iron-set": ["ironCaps", "ironVests", "ironPants", "ironGloves", "ironBoots"],
+      "wear-copper-set": ["copperCaps", "copperVests", "copperPants", "copperGloves", "copperBoots"],
+      "wear-silver-set": ["silverCaps", "silverVests", "silverPants", "silverGloves", "silverBoots"],
+      "wear-gold-set": ["goldCaps", "goldVests", "goldPants", "goldGloves", "goldBoots"],
+      "wear-black-set": ["blackCaps", "blackVests", "blackPants", "blackGloves", "blackBoots"]
+    };
+  }
+  function cleanInv() {
+    var box = document.getElementById("gear-box");
+    if (!box) return;
+    var title = box.querySelector("p");
+    if (title && title.id !== "set-banner") title.textContent = "Inventory";
+    var s = window.state || {};
+    var map = sets();
+    Object.keys(map).forEach(function (id) {
+      var btn = document.getElementById(id);
+      if (!btn) return;
+      var own = map[id].some(function (k) { return Number(s[k] || 0) > 0; });
+      btn.hidden = !own;
+    });
+    var herb = document.getElementById("herb-inv");
+    if (herb && herb.parentElement) herb.parentElement.hidden = Number(s.herbs || 0) <= 0;
+    var loot = document.getElementById("loot-inv");
+    if (loot && loot.parentElement) loot.parentElement.hidden = Number(s.mushrooms || 0) + Number(s.fish || 0) <= 0;
+  }
+  document.addEventListener("click", function (ev) {
+    var t = ev.target;
+    if (!t || !t.closest) return;
+    if (t.closest(".btn-inv")) setTimeout(cleanInv, 40);
+    if (t.closest("#barn-empty-toggle")) {
+      var pan = document.getElementById("barn-panel");
+      if (pan) pan.classList.toggle("show-empty", !!window.state && window.state.hideZero === false);
+    }
+    if (t.closest("#tool-barn")) {
+      setTimeout(function () {
+        var pan = document.getElementById("barn-panel");
+        if (pan) pan.classList.remove("show-empty");
+        var sample = document.getElementById("barn-sample");
+        if (sample) sample.remove();
+      }, 60);
+    }
+  }, true);
+})();
+</script>
+
+<style id="adv-inv-clean">
+#gear-box.open {
+  display: flex !important;
+  flex-direction: column;
+  gap: 10px;
+  left: 10px !important;
+  right: 10px !important;
+  bottom: 10px !important;
+  max-height: 74vh !important;
+  padding: 14px 14px 16px !important;
+  border-radius: 18px !important;
+  background: #16140f !important;
+  border: 1px solid rgba(232,195,106,.7) !important;
+}
+#gear-box .inv-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+#gear-box .inv-head p { margin: 0; font-size: 20px; font-weight: 800; color: #e8c36a; }
+#gear-box #inv-close {
+  min-height: 36px; padding: 0 14px; border-radius: 999px;
+  border: 0; background: #e8c36a; color: #1c140e; font-weight: 800;
+}
+#gear-box.open .gear-grid {
+  order: 1;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0;
+}
+#gear-box .gear-slot {
+  min-height: 74px;
+  border-radius: 14px;
+  border: 1px solid rgba(232,195,106,.28);
+  background: #243024;
+  color: #efe6cf;
+  font-weight: 700;
+}
+#gear-box .gear-slot small { color: rgba(239,230,207,.62); }
+#gear-box.open #gear-stats { display: none !important; }
+#gear-box.open .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; }
+#gear-box.open .row button { flex: 0 0 auto; min-height: 36px; border-radius: 10px; }
+#gear-box.open .inv-sets {
+  display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch;
+}
+#gear-box.open .inv-sets button {
+  flex: 0 0 auto; min-height: 36px; border-radius: 999px; padding: 0 12px; font-size: 13px;
+}
+#gear-box button[hidden], #gear-box .row[hidden] { display: none !important; }
+</style>
+<script id="adv-inv-clean-js">
+(function () {
+  var SETS = {
+    "wear-cloth-set": ["shirts", "pants", "beanies", "gloves", "boots"],
+    "wear-leather-set": ["leatherCaps", "leatherVests", "leatherPants", "leatherGloves", "leatherBoots"],
+    "wear-iron-set": ["ironCaps", "ironVests", "ironPants", "ironGloves", "ironBoots"],
+    "wear-copper-set": ["copperCaps", "copperVests", "copperPants", "copperGloves", "copperBoots"],
+    "wear-silver-set": ["silverCaps", "silverVests", "silverPants", "silverGloves", "silverBoots"],
+    "wear-gold-set": ["goldCaps", "goldVests", "goldPants", "goldGloves", "goldBoots"],
+    "wear-black-set": ["blackCaps", "blackVests", "blackPants", "blackGloves", "blackBoots"]
+  };
+  function clean() {
+    var box = document.getElementById("gear-box");
+    if (!box) return;
+    var s = window.state || {};
+    var sets = box.querySelector(".inv-sets");
+    if (!sets) {
+      sets = document.createElement("div");
+      sets.className = "inv-sets";
+      box.appendChild(sets);
+    }
+    Object.keys(SETS).forEach(function (id) {
+      var btn = document.getElementById(id);
+      if (!btn) return;
+      if (btn.parentElement !== sets) sets.appendChild(btn);
+      var own = SETS[id].some(function (k) { return Number(s[k] || 0) > 0; });
+      btn.hidden = !own;
+    });
+    var herb = document.getElementById("herb-inv");
+    if (herb && herb.parentElement) herb.parentElement.hidden = Number(s.herbs || 0) <= 0;
+    var loot = document.getElementById("loot-inv");
+    if (loot && loot.parentElement) loot.parentElement.hidden = (Number(s.mushrooms || 0) + Number(s.fish || 0)) <= 0;
+    var stats = document.getElementById("gear-stats");
+    if (stats) stats.hidden = true;
+  }
+  function shut() {
+    var box = document.getElementById("gear-box");
+    if (!box) return;
+    box.classList.remove("open");
+    box.hidden = true;
+    document.querySelectorAll(".btn-inv").forEach(function (b) { b.textContent = "Inventory"; });
+  }
+  document.addEventListener("click", function (ev) {
+    var t = ev.target;
+    if (!t || !t.closest) return;
+    if (t.closest("#inv-close")) { ev.preventDefault(); shut(); return; }
+    if (t.closest(".btn-inv")) setTimeout(clean, 40);
+  }, true);
+})();
+</script>
