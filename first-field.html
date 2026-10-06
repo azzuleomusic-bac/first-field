@@ -2265,6 +2265,132 @@
 }
 
   </style>
+
+<style id="barn-shelf">
+#barn-panel.open {
+  display: flex !important;
+  flex-direction: column;
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  background: linear-gradient(180deg, #1c2618 0%, #12180f 42%, #1a140e 100%);
+  color: #efe6cf;
+  padding: calc(12px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
+  overflow: hidden;
+}
+#barn-panel.open .barn-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+#barn-panel.open h3 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: 0.04em;
+  color: #e8c36a;
+}
+#barn-panel.open #barn-sub {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: rgba(239,230,207,0.72);
+}
+#barn-panel.open #barn-close {
+  width: auto;
+  min-width: 84px;
+  min-height: 44px;
+  margin: 0;
+  border-radius: 999px;
+  border: 1.5px solid #e8c36a;
+  background: #e8c36a;
+  color: #1a2418;
+  font-weight: 700;
+  font-size: 15px;
+}
+#barn-panel.open .barn-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  flex: 0 0 auto;
+  padding: 12px 0 8px;
+  -webkit-overflow-scrolling: touch;
+}
+#barn-panel.open .barn-chip {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(232,195,106,0.35);
+  background: transparent;
+  color: #efe6cf;
+  font-size: 13px;
+  font-weight: 650;
+}
+#barn-panel.open .barn-chip.on {
+  background: #e8c36a;
+  color: #1a2418;
+  border-color: #e8c36a;
+}
+#barn-panel.open #barn-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-content: start;
+  margin: 4px 0 10px;
+  padding-bottom: 8px;
+}
+#barn-panel.open .barn-card {
+  background: rgba(255,248,230,0.04);
+  border: 1px solid rgba(232,195,106,0.22);
+  border-radius: 16px;
+  padding: 12px 10px 10px;
+  min-height: 108px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+#barn-panel.open .barn-ico {
+  font-size: 22px;
+  line-height: 1;
+  min-height: 28px;
+}
+#barn-panel.open .barn-ico svg { width: 28px; height: 28px; }
+#barn-panel.open .barn-name {
+  margin-top: 8px;
+  font-size: 13px;
+  color: rgba(239,230,207,0.86);
+}
+#barn-panel.open .barn-n {
+  margin-top: 2px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #e8c36a;
+  letter-spacing: 0.01em;
+}
+#barn-panel.open .barn-empty {
+  grid-column: 1 / -1;
+  margin: 28px 8px;
+  text-align: center;
+  color: rgba(239,230,207,0.7);
+}
+#barn-panel.open #barn-hide-zero {
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #e8c36a;
+  border: 1px solid rgba(232,195,106,0.45);
+  font-weight: 650;
+}
+</style>
 </head>
 <body>
   <div id="boot-audio" hidden aria-hidden="true">
@@ -2454,11 +2580,23 @@
         <ul id="market-history"></ul>
       </div>
       <div id="barn-panel" aria-hidden="true">
-        <h3>Barn</h3>
-        <p>Your inventory</p>
-        <button type="button" id="barn-hide-zero">Hide 0 balances</button>
-        <ul id="barn-list"></ul>
-        <button type="button" class="ghost" id="barn-close">Close</button>
+        <div class="barn-top barn-head">
+          <div>
+            <p class="barn-kicker">Shelves</p>
+            <h3>Barn</h3>
+            <p id="barn-sub">What you have gathered</p>
+            <p id="barn-count"></p>
+          </div>
+          <button type="button" class="barn-x" id="barn-close" aria-label="Close barn">Close</button>
+        </div>
+        <div class="barn-tools">
+          <input id="barn-search" type="search" placeholder="Find an item" autocomplete="off" enterkeyhint="search">
+          <div class="barn-chips" id="barn-chips" role="tablist"></div>
+        </div>
+        <div id="barn-gallery">
+          <div id="barn-list" class="barn-grid"></div>
+        </div>
+        <button type="button" id="barn-hide-zero">Showing what you own</button>
       </div>
 
       <div id="roster-panel" aria-hidden="true">
@@ -2820,7 +2958,7 @@
       mushroom: { emoji: "🍄", growMs: FF.carrotGrowMs, waterCost: 1, seedKey: "mushrooms", cropKey: "mushrooms", label: "mushroom", yield: 1 }
     };
 
-    const state = {
+    const state = window.state = {
       mode: "farm",
       tool: "carrot",
       water: 6,
@@ -5073,6 +5211,7 @@ function autoTick() {
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Oct 6 — Barn is a shelf. Close stays on top. Crops, stock, materials, gear, charms.",
       "Oct 6 — Level 1 fight is slower. A fast mouse waits about 1.2s. x2 still halves that.",
       "Oct 6 — Each stage has its own look. Card shows all three forms for the demo.",
       "Oct 6 — Under 30% HP, Fight opens a popup: heal this pet, or choose another.",
@@ -5243,52 +5382,136 @@ function autoTick() {
       ul.innerHTML = allUpdates().map((line) => "<li>" + line + "</li>").join("");
     }
     function fillBarn() {
+      window.state = state;
+      window.fillBarn = fillBarn;
       const ul = document.getElementById("barn-list");
       if (!ul) return;
+      if (!state.barnCat) state.barnCat = "owned";
+      const qty = function (key) { return Number(state[key] || 0); };
+      const art = function (fn) {
+        try { return typeof fn === "function" ? fn() : ""; } catch (e) { return ""; }
+      };
       const rows = [
-        ["💧 Water", state.water, state.water + " / " + waterMax()],
-        ["🥕 Carrots", state.carrots, state.carrots],
-        ["🌽 Corn", state.corn, state.corn + " / " + cornMax()],
-        ["🍎 Apples", state.apples || 0, state.apples || 0],
-        ["🥛 Milk", state.milk, state.milk],
-        ["🥚 Eggs", state.eggs || 0, state.eggs || 0],
-        [hairMark(true) + " Horse hair", state.horseHair || 0, state.horseHair || 0],
-        [woolArt() + " Wool", state.wool || 0, state.wool || 0],
-        ["🍄 Truffles", state.truffles || 0, state.truffles || 0],
-        ["🍮 Pudding", state.pudding || 0, state.pudding || 0],
-        [pantsArt() + " Pants", state.pants || 0, state.pants || 0],
-        [(typeof swordArt === "function" ? swordArt() : "") + " Stone sword", state.swords || 0, state.swords || 0],
-        [shirtArt() + " Shirt", state.shirts || 0, state.shirts || 0],
-        [beanieArt() + " Beanie", state.beanies || 0, state.beanies || 0],
-        [glovesArt() + " Cloth gloves", state.gloves || 0, state.gloves || 0],
-        [bootsArt() + " Cloth boots", state.boots || 0, state.boots || 0],
-        [leatherArt("cap") + " Leather cap", state.leatherCaps || 0, state.leatherCaps || 0],
-        [leatherArt("vest") + " Leather vest", state.leatherVests || 0, state.leatherVests || 0],
-        [leatherArt("pants") + " Leather pants", state.leatherPants || 0, state.leatherPants || 0],
-        [leatherArt("gloves") + " Leather gloves", state.leatherGloves || 0, state.leatherGloves || 0],
-        [leatherArt("boots") + " Leather boots", state.leatherBoots || 0, state.leatherBoots || 0],
-        [ironSwordArt() + " Iron sword", state.ironSwords || 0, state.ironSwords || 0],
-        ["🪨 Rocks", state.rocks || 0, state.rocks || 0],
-        ["🪵 Lumber", state.lumber || 0, state.lumber || 0],
-        [leatherStripArt() + " Leather strips", state.leather || 0, state.leather || 0],
-        [ironOreArt() + " Iron ore", state.ironOre || 0, state.ironOre || 0],
-        [leatherSheetArt() + " Leather", state.leatherSheets || 0, state.leatherSheets || 0],
-        [ingotArt() + " Iron ingot", state.ironIngots || 0, state.ironIngots || 0],
-        ["🌱 Carrot seeds", state.carrotSeeds, state.carrotSeeds],
-        ["🌱 Corn seeds", state.cornSeeds, state.cornSeeds],
-        ["⚡ Sats", state.sats, state.sats]
+        { cat: "crops", name: "Water", icon: "💧", n: qty("water"), label: qty("water") + " / " + waterMax() },
+        { cat: "crops", name: "Carrots", icon: "🥕", n: qty("carrots"), label: String(qty("carrots")) },
+        { cat: "crops", name: "Corn", icon: "🌽", n: qty("corn"), label: qty("corn") + " / " + cornMax() },
+        { cat: "crops", name: "Apples", icon: "🍎", n: qty("apples"), label: String(qty("apples")) },
+        { cat: "crops", name: "Carrot seeds", icon: "🌱", n: qty("carrotSeeds"), label: String(qty("carrotSeeds")) },
+        { cat: "crops", name: "Corn seeds", icon: "🌱", n: qty("cornSeeds"), label: String(qty("cornSeeds")) },
+        { cat: "stock", name: "Milk", icon: "🥛", n: qty("milk"), label: String(qty("milk")) },
+        { cat: "stock", name: "Eggs", icon: "🥚", n: qty("eggs"), label: String(qty("eggs")) },
+        { cat: "stock", name: "Horse hair", icon: art(function () { return hairMark(true); }), n: qty("horseHair"), label: String(qty("horseHair")) },
+        { cat: "stock", name: "Wool", icon: art(woolArt), n: qty("wool"), label: String(qty("wool")) },
+        { cat: "stock", name: "Truffles", icon: "🍄", n: qty("truffles"), label: String(qty("truffles")) },
+        { cat: "kitchen", name: "Pudding", icon: "🍮", n: qty("pudding"), label: String(qty("pudding")) },
+        { cat: "gear", name: "Pants", icon: art(pantsArt), n: qty("pants"), label: String(qty("pants")) },
+        { cat: "weapons", name: "Stone sword", icon: art(function () { return typeof swordArt === "function" ? swordArt() : "🗡️"; }), n: qty("swords"), label: String(qty("swords")) },
+        { cat: "gear", name: "Shirt", icon: art(shirtArt), n: qty("shirts"), label: String(qty("shirts")) },
+        { cat: "gear", name: "Beanie", icon: art(beanieArt), n: qty("beanies"), label: String(qty("beanies")) },
+        { cat: "gear", name: "Cloth gloves", icon: art(glovesArt), n: qty("gloves"), label: String(qty("gloves")) },
+        { cat: "gear", name: "Cloth boots", icon: art(bootsArt), n: qty("boots"), label: String(qty("boots")) },
+        { cat: "gear", name: "Leather cap", icon: art(function () { return leatherArt("cap"); }), n: qty("leatherCaps"), label: String(qty("leatherCaps")) },
+        { cat: "gear", name: "Leather vest", icon: art(function () { return leatherArt("vest"); }), n: qty("leatherVests"), label: String(qty("leatherVests")) },
+        { cat: "gear", name: "Leather pants", icon: art(function () { return leatherArt("pants"); }), n: qty("leatherPants"), label: String(qty("leatherPants")) },
+        { cat: "gear", name: "Leather gloves", icon: art(function () { return leatherArt("gloves"); }), n: qty("leatherGloves"), label: String(qty("leatherGloves")) },
+        { cat: "gear", name: "Leather boots", icon: art(function () { return leatherArt("boots"); }), n: qty("leatherBoots"), label: String(qty("leatherBoots")) },
+        { cat: "weapons", name: "Iron sword", icon: art(ironSwordArt), n: qty("ironSwords"), label: String(qty("ironSwords")) },
+        { cat: "materials", name: "Rocks", icon: "🪨", n: qty("rocks"), label: String(qty("rocks")) },
+        { cat: "materials", name: "Lumber", icon: "🪵", n: qty("lumber"), label: String(qty("lumber")) },
+        { cat: "materials", name: "Leather strips", icon: art(leatherStripArt), n: qty("leather"), label: String(qty("leather")) },
+        { cat: "materials", name: "Iron ore", icon: art(ironOreArt), n: qty("ironOre"), label: String(qty("ironOre")) },
+        { cat: "materials", name: "Leather", icon: art(leatherSheetArt), n: qty("leatherSheets"), label: String(qty("leatherSheets")) },
+        { cat: "materials", name: "Iron ingot", icon: art(ingotArt), n: qty("ironIngots"), label: String(qty("ironIngots")) },
+        { cat: "sats", name: "Sats", icon: "⚡", n: qty("sats"), label: String(qty("sats")) }
       ];
-      const hide = !!state.hideZero;
-      const shown = hide ? rows.filter((r) => Number(r[1]) > 0) : rows;
+      if (typeof ZONE_MATS === "object" && ZONE_MATS) {
+        ["mine", "forest", "lake"].forEach(function (zone) {
+          (ZONE_MATS[zone] || []).forEach(function (m) {
+            if (m.key === "ironOre") return;
+            rows.push({ cat: "materials", name: m.name, icon: typeof zoneIcon === "function" ? zoneIcon(m.key) : "◆", n: qty(m.key), label: String(qty(m.key)) });
+          });
+        });
+      }
+      if (typeof WEAPONS !== "undefined") {
+        WEAPONS.forEach(function (w) {
+          if (w.key === "ironSwords") return;
+          rows.push({ cat: "weapons", name: w.name, icon: typeof zoneIcon === "function" ? zoneIcon(w.key) : "🗡️", n: qty(w.key), label: qty(w.key) + " · +" + w.dmg });
+        });
+      }
+      const armorRows = [["ironCaps","Iron cap"],["ironVests","Iron vest"],["ironPants","Iron pants"],["ironGloves","Iron gloves"],["ironBoots","Iron boots"],["copperCaps","Copper cap"],["copperVests","Copper vest"],["copperPants","Copper pants"],["copperGloves","Copper gloves"],["copperBoots","Copper boots"],["silverCaps","Silver cap"],["silverVests","Silver vest"],["silverPants","Silver pants"],["silverGloves","Silver gloves"],["silverBoots","Silver boots"],["goldCaps","Gold cap"],["goldVests","Gold vest"],["goldPants","Gold pants"],["goldGloves","Gold gloves"],["goldBoots","Gold boots"],["blackCaps","Black stone cap"],["blackVests","Black stone vest"],["blackPants","Black stone pants"],["blackGloves","Black stone gloves"],["blackBoots","Black stone boots"]];
+      armorRows.forEach(function (row) {
+        rows.push({ cat: "gear", name: row[1], icon: typeof zoneIcon === "function" ? zoneIcon(row[0]) : "🛡️", n: qty(row[0]), label: String(qty(row[0])) });
+      });
+      if (typeof CHARMS !== "undefined") {
+        CHARMS.forEach(function (c) {
+          const n = Number((state.charms && state.charms[c.id]) || 0);
+          rows.push({ cat: "charms", name: c.name || c.id, icon: "✧", n: n, label: String(n) });
+        });
+      }
+      const cats = [
+        ["owned", "Owned"],
+        ["crops", "Crops"],
+        ["stock", "Stock"],
+        ["materials", "Materials"],
+        ["gear", "Gear"],
+        ["charms", "Charms"],
+        ["sats", "Sats"]
+      ];
+      const chips = document.getElementById("barn-chips");
+      if (chips) {
+        chips.innerHTML = cats.map(function (c) {
+          return '<button type="button" class="barn-chip' + (state.barnCat === c[0] ? " on" : "") + '" data-cat="' + c[0] + '">' + c[1] + "</button>";
+        }).join("");
+        chips.querySelectorAll(".barn-chip").forEach(function (btn) {
+          btn.onclick = function () {
+            state.barnCat = btn.getAttribute("data-cat");
+            fillBarn();
+          };
+        });
+      }
+      const hide = state.hideZero !== false;
+      const q = String((document.getElementById("barn-search") || {}).value || state.barnQ || "").trim().toLowerCase();
+      state.barnQ = q;
+      var chipOn = document.querySelector("#barn-cats button.on, #barn-chips button.on");
+      var chipName = chipOn ? String(chipOn.textContent || "").trim() : "";
+      var chipMap = { All: "owned", Owned: "owned", Crops: "crops", Animals: "stock", "Animal products": "stock", Kitchen: "kitchen", Gear: "gear", Materials: "materials", Weapons: "weapons", Charms: "charms", Sats: "sats" };
+      if (chipName && chipMap[chipName]) state.barnCat = chipMap[chipName];
+      let shown = rows.filter(function (r) {
+        if (q && String(r.name).toLowerCase().indexOf(q) < 0) return false;
+        var shelf = state.barnCat || "owned";
+        if (shelf === "owned" || shelf === "All") return r.n > 0;
+        if (shelf === "weapons") return /sword/i.test(r.name) && (hide ? r.n > 0 : true);
+        if (shelf === "kitchen") return (r.cat === "kitchen" || /pudding|herb|mushroom|fish/i.test(r.name)) && (hide ? r.n > 0 : true);
+        if (shelf === "stock") return r.cat === "stock" && !/pudding/i.test(r.name) && (hide ? r.n > 0 : true);
+        if (shelf === "gear" && /sword/i.test(r.name)) return false;
+        if (shelf !== r.cat) return false;
+        return hide ? r.n > 0 : true;
+      });
+      const sub = document.getElementById("barn-sub");
+      if (sub) {
+        const owned = rows.filter(function (r) { return r.n > 0; }).length;
+        sub.textContent = owned + " kinds on the shelves";
+      }
       ul.innerHTML = shown.length
-        ? shown.map((r) => "<li><span>" + r[0] + "</span><span>" + r[2] + "</span></li>").join("")
-        : "<li><span>Nothing in the barn</span><span></span></li>";
-      if (typeof paintZoneBarn === "function") paintZoneBarn(ul);
+        ? shown.map(function (r) {
+            return '<article class="barn-card"><div class="ico barn-ico">' + (r.icon || "") + '</div><b class="barn-name">' + r.name + '</b><span class="qty barn-n">' + r.label + "</span></article>";
+          }).join("")
+        : '<p class="barn-empty">Nothing on this shelf yet.</p>';
+      const search = document.getElementById("barn-search");
+      if (search && !search.dataset.bound) {
+        search.dataset.bound = "1";
+        search.value = state.barnQ || "";
+        search.addEventListener("input", function () {
+          state.barnQ = search.value;
+          fillBarn();
+          const again = document.getElementById("barn-search");
+          if (again) { again.focus(); const n = again.value.length; try { again.setSelectionRange(n, n); } catch (e) {} }
+        });
+      }
       const box = document.getElementById("barn-hide-zero");
       if (box) {
-        box.classList.toggle("on", hide);
-        box.textContent = hide ? "Hiding 0 balances" : "Hide 0 balances";
-      if (typeof paintBestiary === 'function') paintBestiary();
+        box.classList.toggle("on", !hide);
+        box.textContent = hide ? "Showing what you own" : "Showing empty shelves";
       }
     }
 
@@ -10509,7 +10732,7 @@ async function buySilo() {
     if (worthCl) worthCl.onclick = closeAllTabs;
     const hideZeroBox = document.getElementById("barn-hide-zero");
     if (hideZeroBox) hideZeroBox.onclick = function () {
-      state.hideZero = !state.hideZero;
+      state.hideZero = state.hideZero === false;
       fillBarn();
       save();
       var list = document.getElementById("barn-list");
@@ -12142,40 +12365,6 @@ document.addEventListener("click", function (ev) {
 </script>
 
 
-<style id="barn-screen">
-  #barn-panel.open {
-    display: flex !important;
-    flex-direction: column;
-    position: fixed !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100dvh !important;
-    max-height: none !important;
-    transform: none !important;
-    z-index: 2000;
-    overflow: hidden !important;
-    background: #1a140e;
-    padding: calc(env(safe-area-inset-top, 12px) + 16px) 16px calc(env(safe-area-inset-bottom, 10px) + 16px);
-    touch-action: auto;
-  }
-  #barn-panel.open { overflow-y: auto !important; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
-  #barn-panel.open #barn-list {
-    flex: none;
-    min-height: 60vh;
-    overflow: visible;
-    touch-action: pan-y;
-  }
-  #barn-panel.open svg { width: 36px; height: 36px; display: block; }
-</style>
-<style id="barn-scroll">
-#barn-panel.open{display:block!important;position:fixed!important;inset:0!important;z-index:1600!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important;touch-action:pan-y!important;background:#1a140e!important;padding:18px 14px 40px!important}
-</style>
-
-<style id="barn-fix">
-#barn-panel.open { touch-action: pan-y !important; overflow-y: auto !important; height: 100dvh !important; }
-#barn-list { touch-action: pan-y !important; overflow-y: auto !important; max-height: none !important; }
-#barn-list svg, #gear-box svg, #barn-panel svg { width: 28px !important; height: 28px !important; }
-</style>
 <script>
 document.addEventListener("click", function (ev) {
   var t = ev.target;
@@ -12187,39 +12376,20 @@ document.addEventListener("click", function (ev) {
 }, true);
 </script>
 
-<script>
-(function () {
-  var lastY = 0;
-  document.addEventListener("touchstart", function (ev) {
-    var list = document.getElementById("barn-list");
-    if (!list || !list.contains(ev.target)) return;
-    lastY = ev.touches[0].clientY;
-  }, { passive: true });
-  document.addEventListener("touchmove", function (ev) {
-    var pan = document.getElementById("barn-panel");
-    if (!pan || !pan.classList.contains("open") || !pan.contains(ev.target)) return;
-    var y = ev.touches[0].clientY;
-    pan.scrollTop += lastY - y;
-    lastY = y;
-    if (ev.cancelable) ev.preventDefault();
-  }, { passive: false });
-})();
-</script>
+
 
 <script>
 (function () {
   function barnScroll() {
     var pan = document.getElementById("barn-panel");
-    var list = document.getElementById("barn-list");
     if (!pan) return;
     pan.style.overflow = "hidden";
     pan.style.height = "100dvh";
+    var list = document.getElementById("barn-list");
     if (list) {
-      list.style.display = "block";
-      list.style.height = "calc(100dvh - 150px)";
-      list.style.overflowY = "scroll";
-      list.style.webkitOverflowScrolling = "touch";
-      list.style.touchAction = "pan-y";
+      list.style.display = "";
+      list.style.height = "auto";
+      list.style.overflow = "visible";
     }
   }
   document.addEventListener("click", function (ev) {
@@ -12228,19 +12398,6 @@ document.addEventListener("click", function (ev) {
   }, true);
 })();
 </script>
-
-<style id="barn-scroll-fix">
-  #barn-panel.open {
-    position: fixed !important;
-    inset: 0 !important;
-    height: 100dvh !important;
-    overflow-y: scroll !important;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-y !important;
-    z-index: 2500;
-  }
-  #barn-panel.open #barn-list { overflow: visible !important; touch-action: pan-y; }
-</style>
 
 <script>
 (function () {
@@ -12354,8 +12511,683 @@ document.addEventListener("click", function (ev) {
   setTimeout(bind, 400);
 })();
 </script>
-</body>
-</html>
+
+<style id="barn-pristine">
+  #barn-panel.open {
+    display: flex !important;
+    flex-direction: column !important;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100dvh !important;
+    max-height: none !important;
+    transform: none !important;
+    z-index: 4000 !important;
+    overflow: hidden !important;
+    background:
+      radial-gradient(120% 60% at 50% -10%, rgba(232,195,106,.16), transparent 55%),
+      #14110d !important;
+    color: #f3e6c8 !important;
+    padding: 0 !important;
+    touch-action: auto !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+  #barn-panel .barn-top {
+    flex: none;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    padding: calc(env(safe-area-inset-top, 12px) + 14px) 16px 10px;
+    background: rgba(20,17,13,.92);
+    border-bottom: 1px solid rgba(232,195,106,.28);
+  }
+  #barn-panel .barn-kicker {
+    margin: 0;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    font-size: 11px;
+    color: #c9a227;
+  }
+  #barn-panel .barn-top h3 {
+    margin: 2px 0 0 !important;
+    font-size: 28px !important;
+    color: #f3e6c8 !important;
+    font-weight: 700;
+  }
+  #barn-panel #barn-count { margin: 2px 0 0; color: #d9c7a2; font-size: 13px; }
+  #barn-panel #barn-close,
+  #barn-panel .barn-x {
+    flex: none;
+    min-width: 84px;
+    min-height: 44px;
+    border-radius: 999px;
+    border: 1px solid #e8c36a;
+    background: #e8c36a;
+    color: #1c140e;
+    font-weight: 800;
+    font-size: 16px;
+    padding: 0 16px;
+  }
+  #barn-panel .barn-tools {
+    flex: none;
+    padding: 10px 16px 8px;
+    background: #14110d;
+  }
+  #barn-panel #barn-search {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 44px;
+    border-radius: 12px;
+    border: 1px solid rgba(232,195,106,.35);
+    background: #221c16;
+    color: #f3e6c8;
+    font-size: 16px;
+    padding: 0 12px;
+  }
+  #barn-panel #barn-cats {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 10px 0 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+  #barn-panel #barn-cats button {
+    flex: none;
+    min-height: 36px;
+    border-radius: 999px;
+    border: 1px solid rgba(232,195,106,.35);
+    background: transparent;
+    color: #f3e6c8;
+    padding: 0 12px;
+    font-size: 14px;
+  }
+  #barn-panel #barn-cats button.on {
+    background: #e8c36a;
+    color: #1c140e;
+    font-weight: 800;
+  }
+  #barn-panel #barn-gallery {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    padding: 6px 14px 18px;
+  }
+  #barn-panel .barn-sec {
+    margin: 14px 0 8px;
+    font-size: 12px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #c9a227;
+  }
+  #barn-panel .barn-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  #barn-panel .barn-card {
+    background: #241c14;
+    border: 1px solid rgba(232,195,106,.28);
+    border-radius: 14px;
+    min-height: 108px;
+    padding: 10px 8px 8px;
+    text-align: center;
+    color: #f3e6c8;
+  }
+  #barn-panel .barn-card b {
+    display: block;
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.2;
+    margin-top: 4px;
+  }
+  #barn-panel .barn-card .qty {
+    display: block;
+    margin-top: 4px;
+    color: #e8c36a;
+    font-weight: 800;
+    font-size: 16px;
+  }
+  #barn-panel .barn-card .ico { font-size: 28px; line-height: 1; }
+  #barn-panel .barn-card.empty { opacity: .38; }
+  #barn-panel .barn-note, #barn-panel .barn-empty {
+    margin: 8px 0;
+    color: #d9c7a2;
+    font-size: 14px;
+  }
+  #barn-panel .barn-foot {
+    flex: none;
+    display: flex;
+    gap: 8px;
+    padding: 10px 14px calc(env(safe-area-inset-bottom, 10px) + 12px);
+    background: rgba(20,17,13,.96);
+    border-top: 1px solid rgba(232,195,106,.28);
+  }
+  #barn-panel .barn-foot button {
+    flex: 1;
+    min-height: 48px;
+    border-radius: 12px;
+    border: 1px solid rgba(232,195,106,.4);
+    background: #2a2218;
+    color: #f3e6c8;
+    font-weight: 700;
+    font-size: 15px;
+  }
+  #barn-panel .barn-foot .barn-done {
+    background: #e8c36a;
+    color: #1c140e;
+    border-color: #e8c36a;
+    font-weight: 800;
+  }
+  #barn-panel #barn-list, #barn-panel #barn-hide-zero { display: none !important; }
+
+  #barn-panel.open .barn-chips { display:flex; gap:8px; overflow-x:auto; padding:10px 0 2px; }
+  #barn-panel.open .barn-chip { flex:none; min-height:36px; border-radius:999px; border:1px solid rgba(232,195,106,.35); background:transparent; color:#f3e6c8; padding:0 12px; font-size:14px; }
+  #barn-panel.open .barn-chip.on { background:#e8c36a; color:#1c140e; font-weight:800; }
+  #barn-panel.open #barn-hide-zero { flex:none; margin:0 16px 12px; }
+  #barn-panel.open #barn-list { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+</style>
+<script id="barn-pristine-js">
+(function () {
+  var CATS = ["All", "Crops", "Animal products", "Kitchen", "Gear", "Materials", "Weapons"];
+  var ITEMS = [
+    { cat: "Crops", name: "Water", key: "water", icon: "💧" },
+    { cat: "Crops", name: "Carrots", key: "carrots", icon: "🥕" },
+    { cat: "Crops", name: "Corn", key: "corn", icon: "🌽" },
+    { cat: "Crops", name: "Apples", key: "apples", icon: "🍎" },
+    { cat: "Crops", name: "Carrot seeds", key: "carrotSeeds", icon: "🌱" },
+    { cat: "Crops", name: "Corn seeds", key: "cornSeeds", icon: "🌱" },
+    { cat: "Animal products", name: "Milk", key: "milk", icon: "🥛" },
+    { cat: "Animal products", name: "Eggs", key: "eggs", icon: "🥚" },
+    { cat: "Animal products", name: "Horse hair", key: "horseHair", icon: "🐴" },
+    { cat: "Animal products", name: "Wool", key: "wool", icon: "🧶" },
+    { cat: "Animal products", name: "Truffles", key: "truffles", icon: "🍄" },
+    { cat: "Kitchen", name: "Pudding", key: "pudding", icon: "🍮" },
+    { cat: "Kitchen", name: "Herbs", key: "herbs", icon: "🌿" },
+    { cat: "Kitchen", name: "Mushrooms", key: "mushrooms", icon: "🍄" },
+    { cat: "Kitchen", name: "Fish", key: "fish", icon: "🐟" },
+    { cat: "Gear", name: "Pants", key: "pants", icon: "👖" },
+    { cat: "Gear", name: "Shirt", key: "shirts", icon: "👕" },
+    { cat: "Gear", name: "Beanie", key: "beanies", icon: "🧢" },
+    { cat: "Gear", name: "Cloth gloves", key: "gloves", icon: "🧤" },
+    { cat: "Gear", name: "Cloth boots", key: "boots", icon: "👢" },
+    { cat: "Gear", name: "Leather cap", key: "leatherCaps", icon: "🧢" },
+    { cat: "Gear", name: "Leather vest", key: "leatherVests", icon: "🦺" },
+    { cat: "Gear", name: "Leather pants", key: "leatherPants", icon: "👖" },
+    { cat: "Gear", name: "Leather gloves", key: "leatherGloves", icon: "🧤" },
+    { cat: "Gear", name: "Leather boots", key: "leatherBoots", icon: "👢" },
+    { cat: "Gear", name: "Leather strips", key: "leather", icon: "🟫" },
+    { cat: "Gear", name: "Leather", key: "leatherSheets", icon: "🟫" },
+    { cat: "Materials", name: "Rocks", key: "rocks", icon: "🪨" },
+    { cat: "Materials", name: "Lumber", key: "lumber", icon: "🪵" },
+    { cat: "Materials", name: "Iron ore", key: "ironOre", icon: "⛏️" },
+    { cat: "Materials", name: "Copper ore", key: "copperOre", icon: "🟠" },
+    { cat: "Materials", name: "Silver ore", key: "silverOre", icon: "⚪" },
+    { cat: "Materials", name: "Gold ore", key: "goldOre", icon: "🟡" },
+    { cat: "Materials", name: "Black stone", key: "blackStone", icon: "⬛" },
+    { cat: "Materials", name: "Iron ingot", key: "ironIngots", icon: "🔩" },
+    { cat: "Materials", name: "Softwood", key: "softwood", icon: "🌲" },
+    { cat: "Materials", name: "Hardwood", key: "hardwood", icon: "🌳" },
+    { cat: "Materials", name: "Ironwood", key: "ironwood", icon: "🪵" },
+    { cat: "Materials", name: "Heartwood", key: "heartwood", icon: "🤎" },
+    { cat: "Materials", name: "Worldroot", key: "worldroot", icon: "🌿" },
+    { cat: "Materials", name: "Shore glass", key: "shoreGlass", icon: "💠" },
+    { cat: "Materials", name: "Lily jade", key: "lilyJade", icon: "🟢" },
+    { cat: "Materials", name: "Tide crystal", key: "tideCrystal", icon: "🔷" },
+    { cat: "Materials", name: "Wreck amber", key: "wreckAmber", icon: "🟧" },
+    { cat: "Materials", name: "Moonscale", key: "moonscale", icon: "🌙" },
+    { cat: "Weapons", name: "Stone sword", key: "swords", icon: "🗡️" },
+    { cat: "Weapons", name: "Iron sword", key: "ironSwords", icon: "⚔️" },
+    { cat: "Weapons", name: "Copper sword", key: "copperSwords", icon: "⚔️" },
+    { cat: "Weapons", name: "Silver sword", key: "silverSwords", icon: "⚔️" },
+    { cat: "Weapons", name: "Gold sword", key: "goldSwords", icon: "⚔️" },
+    { cat: "Weapons", name: "Black stone sword", key: "blackSwords", icon: "⚔️" },
+    { cat: "Gear", name: "Iron cap", key: "ironCaps", icon: "🪖" },
+    { cat: "Gear", name: "Iron vest", key: "ironVests", icon: "🦺" },
+    { cat: "Gear", name: "Iron pants", key: "ironPants", icon: "👖" },
+    { cat: "Gear", name: "Iron gloves", key: "ironGloves", icon: "🧤" },
+    { cat: "Gear", name: "Iron boots", key: "ironBoots", icon: "👢" },
+    { cat: "Gear", name: "Copper cap", key: "copperCaps", icon: "🪖" },
+    { cat: "Gear", name: "Copper vest", key: "copperVests", icon: "🦺" },
+    { cat: "Gear", name: "Copper pants", key: "copperPants", icon: "👖" },
+    { cat: "Gear", name: "Copper gloves", key: "copperGloves", icon: "🧤" },
+    { cat: "Gear", name: "Copper boots", key: "copperBoots", icon: "👢" },
+    { cat: "Gear", name: "Silver cap", key: "silverCaps", icon: "🪖" },
+    { cat: "Gear", name: "Silver vest", key: "silverVests", icon: "🦺" },
+    { cat: "Gear", name: "Silver pants", key: "silverPants", icon: "👖" },
+    { cat: "Gear", name: "Silver gloves", key: "silverGloves", icon: "🧤" },
+    { cat: "Gear", name: "Silver boots", key: "silverBoots", icon: "👢" },
+    { cat: "Gear", name: "Gold cap", key: "goldCaps", icon: "🪖" },
+    { cat: "Gear", name: "Gold vest", key: "goldVests", icon: "🦺" },
+    { cat: "Gear", name: "Gold pants", key: "goldPants", icon: "👖" },
+    { cat: "Gear", name: "Gold gloves", key: "goldGloves", icon: "🧤" },
+    { cat: "Gear", name: "Gold boots", key: "goldBoots", icon: "👢" },
+    { cat: "Gear", name: "Black stone cap", key: "blackCaps", icon: "🪖" },
+    { cat: "Gear", name: "Black stone vest", key: "blackVests", icon: "🦺" },
+    { cat: "Gear", name: "Black stone pants", key: "blackPants", icon: "👖" },
+    { cat: "Gear", name: "Black stone gloves", key: "blackGloves", icon: "🧤" },
+    { cat: "Gear", name: "Black stone boots", key: "blackBoots", icon: "👢" }
+  ];
+  var CHARMS = [
+    ["glass", "Glass charm", "💠"],
+    ["jade", "Jade charm", "🟢"],
+    ["tide", "Tide charm", "🔷"],
+    ["amber", "Amber charm", "🟧"],
+    ["moon", "Moonscale charm", "🌙"],
+    ["reed", "Reed glass", "💠"]
+  ];
+  var cat = "All";
+  var query = "";
+  var showEmpty = false;
+
+  function qty(item) {
+    var s = window.state || {};
+    if (item.charm) return (s.charms && s.charms[item.charm]) || 0;
+    return Number(s[item.key] || 0);
+  }
+  function ownedKinds() {
+    return ITEMS.filter(function (it) { return qty(it) > 0; }).length
+      + CHARMS.filter(function (c) { return qty({ charm: c[0] }) > 0; }).length;
+  }
+  function allItems() {
+    return ITEMS.concat(CHARMS.map(function (c) {
+      return { cat: "Gear", name: c[1], charm: c[0], icon: c[2] };
+    }));
+  }
+  function mount() {
+    var pan = document.getElementById("barn-panel");
+    if (!pan || pan.dataset.shelf === "1") return;
+    pan.dataset.shelf = "1";
+    pan.classList.add("barn-shelf");
+    var closeBtn = document.getElementById("barn-close");
+    var list = document.getElementById("barn-list");
+    var hide = document.getElementById("barn-hide-zero");
+    var top = document.createElement("div");
+    top.className = "barn-top";
+    top.innerHTML = '<div><p class="barn-kicker">Your shelves</p><h3>Barn</h3><p id="barn-count"></p></div>';
+    if (closeBtn) {
+      closeBtn.textContent = "Close";
+      closeBtn.className = "barn-x";
+      top.appendChild(closeBtn);
+    }
+    var tools = document.createElement("div");
+    tools.className = "barn-tools";
+    tools.innerHTML = '<input id="barn-search" type="search" placeholder="Find an item" autocomplete="off">'
+      + '<div id="barn-cats"></div>';
+    var gallery = document.createElement("div");
+    gallery.id = "barn-gallery";
+    var foot = document.createElement("div");
+    foot.className = "barn-foot";
+    foot.innerHTML = '<button type="button" id="barn-empty-toggle">Show empty</button><button type="button" class="barn-done" id="barn-done">Close barn</button>';
+    pan.textContent = "";
+    pan.appendChild(top);
+    pan.appendChild(tools);
+    pan.appendChild(gallery);
+    if (list) pan.appendChild(list);
+    if (hide) pan.appendChild(hide);
+    pan.appendChild(foot);
+    var cats = document.getElementById("barn-cats");
+    CATS.forEach(function (name) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = name;
+      b.dataset.cat = name;
+      if (name === "All") b.className = "on";
+      cats.appendChild(b);
+    });
+  }
+  function sample() {
+    var s = window.state;
+    if (!s) return;
+    var add = {
+      carrots: 12, corn: 8, apples: 9, carrotSeeds: 6, cornSeeds: 4,
+      milk: 4, eggs: 7, horseHair: 2, wool: 3, truffles: 5,
+      pudding: 2, herbs: 3, mushrooms: 4, fish: 6,
+      shirts: 1, beanies: 1, pants: 1, leather: 8, leatherSheets: 2, leatherCaps: 1,
+      ironOre: 6, copperOre: 3, softwood: 4, shoreGlass: 2, ironIngots: 2,
+      swords: 1, ironSwords: 1, ironCaps: 1
+    };
+    Object.keys(add).forEach(function (k) { if (!(s[k] > 0)) s[k] = add[k]; });
+    s.charms = s.charms || {};
+    if (!(s.charms.glass > 0)) s.charms.glass = 1;
+    s.barnSample = true;
+    try { if (typeof save === "function") save(); } catch (e) {}
+    paint();
+  }
+  function clearSample() {
+    var s = window.state;
+    if (!s) return;
+    ["carrots","corn","apples","carrotSeeds","cornSeeds","milk","eggs","horseHair","wool","truffles","pudding","herbs","mushrooms","fish","shirts","beanies","pants","leather","leatherSheets","leatherCaps","ironOre","copperOre","softwood","shoreGlass","ironIngots","swords","ironSwords","ironCaps"].forEach(function (k) { s[k] = 0; });
+    if (s.charms) s.charms.glass = 0;
+    s.barnSample = false;
+    try { if (typeof save === "function") save(); } catch (e) {}
+    paint();
+  }
+  function paint() {
+    mount();
+    var gallery = document.getElementById("barn-gallery");
+    var count = document.getElementById("barn-count");
+    if (!gallery) return;
+    var items = allItems().filter(function (it) {
+      if (cat !== "All" && it.cat !== cat) return false;
+      if (query && it.name.toLowerCase().indexOf(query) < 0) return false;
+      if (!showEmpty && qty(it) <= 0) return false;
+      return true;
+    });
+    var kinds = ownedKinds();
+    var pieces = allItems().reduce(function (n, it) { return n + qty(it); }, 0);
+    if (count) count.textContent = kinds + " kinds · " + pieces + " pieces";
+    var html = "";
+    if (window.state && window.state.barnSample) {
+      html += '<p class="barn-note">Sample shelves, so you can see the room. <button type="button" id="barn-clear-sample">Clear sample</button></p>';
+    }
+    if (!items.length) {
+      html += '<p class="barn-empty">Nothing on this shelf yet.</p>';
+      if (kinds < 6) html += '<p class="barn-empty">Tap Sample shelves to lay out a collection.</p>';
+    } else {
+      var last = "";
+      items.forEach(function (it) {
+        if (it.cat !== last) {
+          if (last) html += "</div>";
+          html += '<div class="barn-sec">' + it.cat + '</div><div class="barn-grid">';
+          last = it.cat;
+        }
+        var n = qty(it);
+        html += '<div class="barn-card' + (n > 0 ? "" : " empty") + '"><span class="ico">' + it.icon + '</span><b>' + it.name + '</b><span class="qty">' + n + '</span></div>';
+      });
+      if (last) html += "</div>";
+    }
+    var shelf = document.getElementById("barn-list");
+    if (!shelf) {
+      shelf = document.createElement("div");
+      shelf.id = "barn-list";
+      shelf.className = "barn-grid";
+    }
+    if (shelf.parentElement !== gallery) gallery.appendChild(shelf);
+    shelf.innerHTML = html;
+    var toggle = document.getElementById("barn-empty-toggle");
+    if (toggle) toggle.textContent = showEmpty ? "Hide empty" : "Show empty";
+  }
+  function shut() {
+    var btn = document.getElementById("barn-close");
+    if (btn && typeof btn.onclick === "function") btn.onclick();
+    var pan = document.getElementById("barn-panel");
+    if (pan) {
+      pan.classList.remove("open");
+      pan.setAttribute("aria-hidden", "true");
+    }
+    document.body.style.overflow = "";
+    document.body.style.touchAction = "";
+    var field = document.getElementById("field-wrap");
+    if (field) field.style.overflow = "";
+  }
+  document.addEventListener("click", function (ev) {
+    var t = ev.target;
+    if (!t || !t.closest) return;
+    if (t.closest("#barn-done") || t.closest("#barn-close")) {
+      ev.preventDefault();
+      shut();
+      return;
+    }
+    var chip = t.closest("#barn-cats button");
+    if (chip) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      cat = chip.dataset.cat;
+      var map = { All: "owned", Crops: "crops", Animals: "stock", "Animal products": "stock", Kitchen: "kitchen", Gear: "gear", Materials: "materials", Weapons: "weapons" };
+      var key = map[cat] || "owned";
+      window.__barnCat = key;
+      if (window.state) window.state.barnCat = key;
+      document.querySelectorAll("#barn-cats button").forEach(function (b) {
+        b.classList.toggle("on", b === chip);
+      });
+      if (chip.scrollIntoView) chip.scrollIntoView({ inline: "center", block: "nearest" });
+      if (typeof window.fillBarn === "function") window.fillBarn();
+      return;
+    }
+    if (t.closest("#barn-empty-toggle")) { showEmpty = !showEmpty; paint(); }
+    if (t.closest("#barn-sample")) sample();
+    if (t.closest("#barn-clear-sample")) clearSample();
+    if (t.closest("#tool-barn")) setTimeout(paint, 30);
+  }, true);
+  document.addEventListener("input", function (ev) {
+    if (ev.target && ev.target.id === "barn-search") {
+      query = String(ev.target.value || "").trim().toLowerCase();
+      paint();
+    }
+  });
+  var mo = new MutationObserver(function () {
+    var pan = document.getElementById("barn-panel");
+    if (pan && pan.classList.contains("open")) paint();
+  });
+  function boot() {
+    mount();
+    var pan = document.getElementById("barn-panel");
+    if (pan) mo.observe(pan, { attributes: true, attributeFilter: ["class"] });
+    var foot = document.querySelector("#barn-panel .barn-foot");
+    if (foot && !document.getElementById("barn-sample")) {
+      var s = document.createElement("button");
+      s.type = "button";
+      s.id = "barn-sample";
+      s.textContent = "Sample shelves";
+      foot.insertBefore(s, foot.firstChild);
+    }
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+  setTimeout(boot, 400);
+})();
+</script>
+
+<style id="barn-swipe">
+  #barn-panel.open {
+    display: grid !important;
+    grid-template-rows: auto auto minmax(0, 1fr) auto !important;
+    overflow: hidden !important;
+    touch-action: manipulation !important;
+    height: 100dvh !important;
+    height: 100svh !important;
+    max-height: 100svh !important;
+  }
+  #barn-panel.open #barn-gallery {
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow-x: hidden !important;
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+    overscroll-behavior: contain !important;
+    padding-bottom: 24px !important;
+    transform: translateZ(0);
+  }
+  #barn-panel.open #barn-cats,
+  #barn-panel.open #barn-chips,
+  #barn-panel.open .barn-chips {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    touch-action: pan-x !important;
+    overscroll-behavior-x: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  #barn-panel.open #barn-cats button,
+  #barn-panel.open .barn-chip {
+    flex: 0 0 auto !important;
+  }
+  #barn-panel.open #barn-list {
+    display: grid !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+</style>
+<script id="barn-swipe-js">
+(function () {
+  function scroller(el, axis) {
+    if (!el || el.dataset.swipe === "1") return;
+    el.dataset.swipe = "1";
+    var last = 0, vel = 0, raf = 0, lastT = 0;
+    el.addEventListener("touchstart", function (ev) {
+      if (!ev.touches[0]) return;
+      cancelAnimationFrame(raf);
+      last = axis === "x" ? ev.touches[0].clientX : ev.touches[0].clientY;
+      lastT = Date.now();
+      vel = 0;
+    }, { passive: true });
+    el.addEventListener("touchmove", function (ev) {
+      ev.stopPropagation();
+    }, { passive: true });
+    el.addEventListener("touchend", function () {
+      function step() {
+        if (Math.abs(vel) < 0.35) return;
+        if (axis === "x") el.scrollLeft += vel;
+        else el.scrollTop += vel;
+        vel *= 0.9;
+        raf = requestAnimationFrame(step);
+      }
+      step();
+    }, { passive: true });
+  }
+  function arm() {
+    var pan = document.getElementById("barn-panel");
+    if (!pan || !pan.classList.contains("open")) return;
+    if (pan.parentElement !== document.body) document.body.appendChild(pan);
+    var g = document.getElementById("barn-gallery");
+    var cats = document.getElementById("barn-cats") || document.getElementById("barn-chips");
+    var used = 0;
+    [".barn-top", ".barn-tools", ".barn-foot"].forEach(function (sel) {
+      var n = pan.querySelector(sel);
+      if (n) used += n.offsetHeight;
+    });
+    var list = document.getElementById("barn-list");
+    if (g && list && list.parentElement !== g) g.appendChild(list);
+    if (g) {
+      g.style.height = "";
+      g.style.maxHeight = "";
+      g.style.overflowY = "scroll";
+      g.style.overflowX = "hidden";
+      g.style.webkitOverflowScrolling = "touch";
+      g.style.touchAction = "pan-y";
+      scroller(g, "y");
+    }
+    if (cats) {
+      cats.style.overflowX = "auto";
+      cats.style.touchAction = "pan-x";
+      scroller(cats, "x");
+    }
+  }
+  document.addEventListener("touchstart", function (ev) {
+    var pan = document.getElementById("barn-panel");
+    if (pan && pan.classList.contains("open") && pan.contains(ev.target)) ev.stopPropagation();
+  }, true);
+  document.addEventListener("touchmove", function (ev) {
+    var pan = document.getElementById("barn-panel");
+    if (pan && pan.classList.contains("open") && pan.contains(ev.target)) ev.stopPropagation();
+  }, true);
+  function boot() {
+    var pan = document.getElementById("barn-panel");
+    if (pan && !pan.dataset.swipeWatch) {
+      pan.dataset.swipeWatch = "1";
+      new MutationObserver(arm).observe(pan, { attributes: true, attributeFilter: ["class"] });
+    }
+    arm();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+  setTimeout(boot, 400);
+  document.addEventListener("click", function (ev) {
+    var t = ev.target;
+    if (t && t.closest && t.closest("#tool-barn")) setTimeout(arm, 80);
+  }, true);
+  window.addEventListener("resize", arm);
+})();
+</script>
+
+<style id="barn-fit">
+  #barn-panel.open {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    zoom: 1 !important;
+    transform: none !important;
+  }
+  #barn-panel.open, #barn-panel.open * { box-sizing: border-box; }
+  #barn-panel.open .barn-top,
+  #barn-panel.open .barn-tools,
+  #barn-panel.open .barn-foot,
+  #barn-panel.open #barn-gallery {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+  #barn-panel.open .barn-grid,
+  #barn-panel.open #barn-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  #barn-panel.open .barn-card {
+    min-width: 0 !important;
+    overflow: hidden;
+  }
+  #barn-panel.open .barn-card b { overflow-wrap: anywhere; }
+  #barn-panel.open .barn-foot {
+    display: flex !important;
+    width: 100% !important;
+  }
+  #barn-panel.open .barn-foot button {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    padding: 0 6px !important;
+  }
+  #barn-panel.open #barn-search { max-width: 100% !important; }
+</style>
+<script id="barn-fit-js">
+(function () {
+  function fit() {
+    var pan = document.getElementById("barn-panel");
+    if (!pan || !pan.classList.contains("open")) return;
+    var vv = window.visualViewport;
+    var w = Math.round((vv && vv.width) || window.innerWidth);
+    var h = Math.round((vv && vv.height) || window.innerHeight);
+    pan.style.width = w + "px";
+    pan.style.maxWidth = w + "px";
+    pan.style.height = h + "px";
+    pan.style.left = Math.round((vv && vv.offsetLeft) || 0) + "px";
+    pan.style.top = Math.round((vv && vv.offsetTop) || 0) + "px";
+    pan.style.right = "auto";
+    pan.style.transform = "none";
+    document.documentElement.style.overflowX = "hidden";
+    document.body.style.overflowX = "hidden";
+  }
+  window.addEventListener("resize", fit);
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", fit);
+  document.addEventListener("click", function (ev) {
+    var t = ev.target;
+    if (t && t.closest && t.closest("#tool-barn")) setTimeout(fit, 40);
+  }, true);
+  var boot = function () {
+    var pan = document.getElementById("barn-panel");
+    if (pan && !pan.dataset.fitWatch) {
+      pan.dataset.fitWatch = "1";
+      new MutationObserver(fit).observe(pan, { attributes: true, attributeFilter: ["class"] });
+    }
+    fit();
+  };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+})();
+</script>
+<!-- cont -->
 dow.openPetCard) openPetCard(pet.id); } catch (e) { toast("Could not open pet"); }
     });
   }
@@ -12376,5 +13208,137 @@ document.addEventListener("click", function (ev) {
 }, true);
 </script>
 
+
+<style id="barn-fit">
+  #barn-panel.open {
+    position: fixed !important;
+    inset: 0 !important;
+    left: 0 !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    transform: none !important;
+    zoom: 1 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+  #barn-panel.open, #barn-panel.open * { box-sizing: border-box; }
+  #barn-panel.open .barn-top,
+  #barn-panel.open .barn-tools,
+  #barn-panel.open .barn-foot,
+  #barn-panel.open #barn-gallery {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  #barn-panel.open #barn-gallery {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+  #barn-panel.open .barn-grid,
+  #barn-panel.open #barn-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  #barn-panel.open .barn-card { min-width: 0 !important; width: auto !important; overflow: hidden; }
+  #barn-panel.open .barn-foot {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  #barn-panel.open .barn-foot button { flex: 1 1 42% !important; min-width: 0 !important; }
+  #barn-panel.open .barn-foot .barn-done,
+  #barn-panel.open #barn-close.barn-x {
+    max-width: none;
+  }
+  #barn-panel.open #barn-search { font-size: 16px !important; width: 100% !important; }
+  #barn-panel.open #barn-cats, #barn-panel.open .barn-chips {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    touch-action: pan-x;
+  }
+</style>
+<script id="barn-fit-js">
+(function () {
+  function fit() {
+    var pan = document.getElementById("barn-panel");
+    if (!pan || !pan.classList.contains("open")) return;
+    if (pan.parentElement !== document.body) document.body.appendChild(pan);
+    var vv = window.visualViewport;
+    var w = vv ? vv.width : window.innerWidth;
+    var h = vv ? vv.height : window.innerHeight;
+    var x = vv ? vv.offsetLeft : 0;
+    var y = vv ? vv.offsetTop : 0;
+    pan.style.position = "fixed";
+    pan.style.left = x + "px";
+    pan.style.top = y + "px";
+    pan.style.width = w + "px";
+    pan.style.height = h + "px";
+    pan.style.maxWidth = w + "px";
+    pan.style.maxHeight = h + "px";
+    pan.style.right = "auto";
+    pan.style.bottom = "auto";
+    pan.style.transform = "none";
+    pan.style.zoom = "1";
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    document.body.style.zoom = "1";
+    var foot = pan.querySelector(".barn-foot");
+    if (foot) {
+      var done = foot.querySelector(".barn-done") || document.getElementById("barn-close");
+      if (done && done.parentElement === foot) {
+        done.style.flex = "1 1 100%";
+        done.style.width = "100%";
+      }
+    }
+  }
+  document.addEventListener("click", function (ev) {
+    var t = ev.target;
+    if (t && t.closest && t.closest("#tool-barn")) setTimeout(fit, 60);
+  }, true);
+  if (window.visualViewport) {
+    visualViewport.addEventListener("resize", fit);
+    visualViewport.addEventListener("scroll", fit);
+  }
+  window.addEventListener("resize", fit);
+  setInterval(function () {
+    var pan = document.getElementById("barn-panel");
+    if (pan && pan.classList.contains("open")) fit();
+  }, 700);
+})();
+</script>
+
+<script id="barn-cats-fix">
+(function () {
+  var map = { All: "owned", Owned: "owned", Crops: "crops", Animals: "stock", "Animal products": "stock", Kitchen: "kitchen", Gear: "gear", Materials: "materials", Weapons: "weapons", Charms: "charms", Sats: "sats" };
+  document.addEventListener("click", function (ev) {
+    var t = ev.target;
+    if (!t || !t.closest) return;
+    var chip = t.closest("#barn-cats button, #barn-chips button");
+    if (!chip) return;
+    var name = String(chip.textContent || "").trim();
+    var key = map[name] || "owned";
+    if (window.state) window.state.barnCat = key;
+    document.querySelectorAll("#barn-cats button, #barn-chips button").forEach(function (b) {
+      b.classList.toggle("on", b === chip);
+    });
+    setTimeout(function () {
+      try { if (typeof fillBarn === "function") fillBarn(); } catch (e) {}
+    }, 0);
+  }, true);
+})();
+</script>
 </body>
 </html>
