@@ -2360,7 +2360,7 @@
   line-height: 1;
   min-height: 28px;
 }
-#barn-panel.open .barn-ico svg { width: 28px; height: 28px; }
+#barn-panel.open .barn-ico svg, #barn-panel.open .loot-ico { width: 36px; height: 36px; }
 #barn-panel.open .barn-name {
   margin-top: 8px;
   font-size: 13px;
@@ -2391,7 +2391,7 @@
   font-weight: 650;
 }
 </style>
-</head>
+<style id="barn-item-icons">#barn-panel .loot-ico,#barn-panel .barn-ico svg,#barn-panel .ico svg{width:40px;height:40px;display:block;margin:0 auto}</style></head>
 <body>
   <div id="boot-audio" hidden aria-hidden="true">
 <audio id="boot-song" src="" preload="auto" playsinline></audio>
@@ -5392,9 +5392,9 @@ function autoTick() {
         try { return typeof fn === "function" ? fn() : ""; } catch (e) { return ""; }
       };
       const rows = [
-        { cat: "crops", name: "Water", icon: "💧", n: qty("water"), label: qty("water") + " / " + waterMax() },
+        { cat: "crops", name: "Water", icon: "💧", n: qty("water"), label: String(qty("water")) },
         { cat: "crops", name: "Carrots", icon: "🥕", n: qty("carrots"), label: String(qty("carrots")) },
-        { cat: "crops", name: "Corn", icon: "🌽", n: qty("corn"), label: qty("corn") + " / " + cornMax() },
+        { cat: "crops", name: "Corn", icon: "🌽", n: qty("corn"), label: String(qty("corn")) },
         { cat: "crops", name: "Apples", icon: "🍎", n: qty("apples"), label: String(qty("apples")) },
         { cat: "crops", name: "Carrot seeds", icon: "🌱", n: qty("carrotSeeds"), label: String(qty("carrotSeeds")) },
         { cat: "crops", name: "Corn seeds", icon: "🌱", n: qty("cornSeeds"), label: String(qty("cornSeeds")) },
@@ -5479,7 +5479,7 @@ function autoTick() {
       let shown = rows.filter(function (r) {
         if (q && String(r.name).toLowerCase().indexOf(q) < 0) return false;
         var shelf = state.barnCat || "owned";
-        if (shelf === "owned" || shelf === "All") return r.n > 0;
+        if (shelf === "owned" || shelf === "All") return hide ? r.n > 0 : true;
         if (shelf === "weapons") return /sword/i.test(r.name) && (hide ? r.n > 0 : true);
         if (shelf === "kitchen") return (r.cat === "kitchen" || /pudding|herb|mushroom|fish/i.test(r.name)) && (hide ? r.n > 0 : true);
         if (shelf === "stock") return r.cat === "stock" && !/pudding/i.test(r.name) && (hide ? r.n > 0 : true);
@@ -5513,6 +5513,8 @@ function autoTick() {
         box.classList.toggle("on", !hide);
         box.textContent = hide ? "Showing what you own" : "Showing empty shelves";
       }
+      var emptyBtn = document.getElementById("barn-empty-toggle");
+      if (emptyBtn) emptyBtn.textContent = hide ? "Show empty" : "Hide empty";
     }
 
     const LOOT_TABLE = ["a stone", "copper scrap", "a shard of ore", "nothing this time"];
@@ -10908,15 +10910,43 @@ async function buySilo() {
       };
       const swords = { ironSwords: "#b9b1a2", copperSwords: "#c46a3a", silverSwords: "#d5dbe2", goldSwords: "#e8c36a", blackSwords: "#2c2c30", ironCaps: "#b9b1a2", ironVests: "#8d8678", ironPants: "#6e675c", ironGloves: "#c4b8a4", ironBoots: "#5c564c" };
       if (mats[kind]) {
-        const col = mats[kind][0], shape = mats[kind][1];
-        if (shape === "wood") return '<svg class="loot-ico" viewBox="0 0 32 32"><rect x="4" y="12" width="24" height="8" rx="3" fill="' + col + '"/><rect x="7" y="8" width="18" height="6" rx="2" fill="#efe6cf" opacity="0.35"/></svg>';
-        if (shape === "gem") return '<svg class="loot-ico" viewBox="0 0 32 32"><polygon points="16,4 26,12 22,26 10,26 6,12" fill="' + col + '"/></svg>';
-        if (shape === "square") return '<svg class="loot-ico" viewBox="0 0 32 32"><rect x="7" y="7" width="18" height="18" rx="2" fill="' + col + '"/></svg>';
-        if (shape === "circle") return '<svg class="loot-ico" viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="' + col + '"/></svg>';
-        if (shape === "diamond") return '<svg class="loot-ico" viewBox="0 0 32 32"><polygon points="16,4 28,16 16,28 4,16" fill="' + col + '"/></svg>';
-        if (shape === "star") return '<svg class="loot-ico" viewBox="0 0 32 32"><polygon points="16,3 19,12 29,12 21,18 24,28 16,22 8,28 11,18 3,12 13,12" fill="' + col + '"/></svg>';
-        if (shape === "triangle") return '<svg class="loot-ico" viewBox="0 0 32 32"><polygon points="16,5 28,27 4,27" fill="' + col + '"/></svg>';
-        return '<svg class="loot-ico" viewBox="0 0 32 32"><path d="M8 18 L14 6 L22 10 L26 20 L16 28 Z" fill="' + col + '"/></svg>';
+        const icons = {
+          ironOre: '<svg class="loot-ico" viewBox="0 0 32 32"><path d="M6 20 L10 10 L18 8 L26 14 L24 24 L12 26 Z" fill="#8d8678"/><path d="M12 14 L18 12 L22 18 L16 22 Z" fill="#d9d3c7"/><path d="M8 18 L12 16 L10 22 Z" fill="#5c564c"/></svg>',
+          copperOre: '<svg class="loot-ico" viewBox="0 0 32 32"><path d="M5 21 L11 11 L20 9 L27 16 L23 25 L10 26 Z" fill="#6e5848"/><circle cx="14" cy="16" r="3.2" fill="#c46a3a"/><circle cx="20" cy="18" r="2.4" fill="#e08a4a"/><circle cx="16" cy="21" r="1.6" fill="#a3532c"/></svg>',
+          silverOre: '<svg class="loot-ico" viewBox="0 0 32 32"><path d="M6 21 L11 11 L19 8 L27 15 L24 25 L11 27 Z" fill="#6a6762"/><polygon points="16,10 20,16 16,23 11,16" fill="#e8eef4"/><polygon points="16,13 18,16 16,20 13,16" fill="#ffffff"/></svg>',
+          goldOre: '<svg class="loot-ico" viewBox="0 0 32 32"><path d="M5 22 L10 12 L18 9 L27 15 L24 25 L11 27 Z" fill="#6a5430"/><ellipse cx="16" cy="17" rx="5" ry="3.4" fill="#e8c36a"/><ellipse cx="20" cy="20" rx="2.2" ry="1.6" fill="#f0d78a"/></svg>',
+          blackStone: '<svg class="loot-ico" viewBox="0 0 32 32"><path d="M8 24 L6 14 L14 6 L24 8 L28 18 L20 28 L10 26 Z" fill="#1c1c20"/><path d="M14 10 L20 12 L18 20 L12 18 Z" fill="#3a3a42"/></svg>',
+          softwood: '<svg class="loot-ico" viewBox="0 0 32 32"><ellipse cx="8" cy="16" rx="4" ry="7" fill="#e4c99a"/><rect x="8" y="9" width="18" height="14" fill="#c4a574"/><ellipse cx="26" cy="16" rx="4" ry="7" fill="#ddb888"/><ellipse cx="8" cy="16" rx="2" ry="4" fill="#a67c52"/></svg>',
+          hardwood: '<svg class="loot-ico" viewBox="0 0 32 32"><ellipse cx="8" cy="16" rx="4" ry="7" fill="#a67c52"/><rect x="8" y="9" width="18" height="14" fill="#8a5a32"/><ellipse cx="26" cy="16" rx="4" ry="7" fill="#6e4528"/><ellipse cx="8" cy="16" rx="2" ry="4" fill="#4a2e1c"/></svg>',
+          ironwood: '<svg class="loot-ico" viewBox="0 0 32 32"><ellipse cx="8" cy="16" rx="4" ry="7" fill="#8a8f78"/><rect x="8" y="9" width="18" height="14" fill="#6d7358"/><ellipse cx="26" cy="16" rx="4" ry="7" fill="#555b48"/><rect x="14" y="8" width="4" height="16" fill="#b9b1a2"/></svg>',
+          heartwood: '<svg class="loot-ico" viewBox="0 0 32 32"><ellipse cx="8" cy="16" rx="4" ry="7" fill="#c46a3a"/><rect x="8" y="9" width="18" height="14" fill="#a33b32"/><ellipse cx="26" cy="16" rx="4" ry="7" fill="#7a2c28"/><circle cx="16" cy="16" r="3" fill="#e07a72"/></svg>',
+          worldroot: '<svg class="loot-ico" viewBox="0 0 32 32"><path d="M16 4 C16 12 10 14 8 22" stroke="#3d5c38" stroke-width="3" fill="none"/><path d="M16 8 C18 14 24 14 26 22" stroke="#2f4a2c" stroke-width="3" fill="none"/><path d="M16 6 C16 14 16 18 14 26" stroke="#6d8a52" stroke-width="2.4" fill="none"/></svg>',
+          shoreGlass: '<svg class="loot-ico" viewBox="0 0 32 32"><path d="M10 6 L22 8 L24 22 L16 28 L8 20 Z" fill="#9fd8e8"/><path d="M12 8 L18 9 L16 16 Z" fill="#ffffff" opacity="0.7"/></svg>',
+          lilyJade: '<svg class="loot-ico" viewBox="0 0 32 32"><ellipse cx="16" cy="18" rx="8" ry="6" fill="#1f8a62"/><ellipse cx="16" cy="17" rx="4" ry="3" fill="#7de0b4"/><path d="M16 8 C14 12 16 14 16 14 C16 14 18 12 16 8 Z" fill="#3dba8a"/></svg>',
+          tideCrystal: '<svg class="loot-ico" viewBox="0 0 32 32"><polygon points="16,3 22,14 16,28 10,14" fill="#6ec8e0"/><polygon points="16,6 19,14 16,24 13,14" fill="#d8f6ff"/><polygon points="7,16 12,12 12,22" fill="#3a9bb8"/><polygon points="25,16 20,12 20,22" fill="#3a9bb8"/></svg>',
+          wreckAmber: '<svg class="loot-ico" viewBox="0 0 32 32"><path d="M12 6 C18 4 24 10 22 18 C20 26 12 28 10 20 C8 14 8 8 12 6 Z" fill="#e09a3a"/><ellipse cx="16" cy="16" rx="3" ry="2" fill="#6a3a16"/></svg>',
+          moonscale: '<svg class="loot-ico" viewBox="0 0 32 32"><path d="M18 5 A10 10 0 1 0 18 27 A7 7 0 1 1 18 5 Z" fill="#c9b6f2"/><path d="M8 20 Q16 14 24 20 Q16 18 8 20 Z" fill="#8a74c4"/></svg>'
+        };
+        return icons[kind] || "";
+      }
+      var slot = "";
+      if (/Caps$/.test(kind)) slot = "cap";
+      else if (/Vests$/.test(kind)) slot = "vest";
+      else if (/Pants$/.test(kind)) slot = "pants";
+      else if (/Gloves$/.test(kind)) slot = "gloves";
+      else if (/Boots$/.test(kind)) slot = "boots";
+      if (slot && /^(iron|copper|silver|gold|black)/.test(kind)) {
+        var metal = kind.replace(/Caps|Vests|Pants|Gloves|Boots/, "");
+        var col = { iron: "#b9b1a2", copper: "#c46a3a", silver: "#d5dbe2", gold: "#e8c36a", black: "#2c2c30" }[metal];
+        var edge = { iron: "#6e675c", copper: "#7a3a1c", silver: "#ffffff", gold: "#fff1b8", black: "#b388ff" }[metal];
+        var gem = metal === "gold" ? '<circle cx="16" cy="14" r="1.6" fill="#fff6c8"/>' : (metal === "black" ? '<polygon points="16,8 18,12 16,11 14,12" fill="#b388ff"/>' : (metal === "silver" ? '<path d="M10 8 L16 6 L14 10 Z" fill="#fff" opacity="0.8"/>' : ""));
+        var body = "";
+        if (slot === "cap") body = '<path d="M6 16 Q16 4 26 16 L24 20 L8 20 Z" fill="' + col + '" stroke="' + edge + '" stroke-width="1.4"/><rect x="8" y="18" width="16" height="3" fill="' + edge + '"/>' + gem;
+        else if (slot === "vest") body = '<path d="M8 8 L12 6 L20 6 L24 8 L22 26 L10 26 Z" fill="' + col + '" stroke="' + edge + '" stroke-width="1.4"/><path d="M16 8 V24" stroke="' + edge + '" stroke-width="1"/>' + gem;
+        else if (slot === "pants") body = '<path d="M9 6 H23 L21 26 H17 L16 16 L15 26 H11 Z" fill="' + col + '" stroke="' + edge + '" stroke-width="1.2"/>' + gem;
+        else if (slot === "gloves") body = '<path d="M10 16 L12 8 L15 8 L15 14 L17 7 L20 7 L19 15 L22 10 L24 12 L20 20 L12 22 Z" fill="' + col + '" stroke="' + edge + '" stroke-width="1"/>';
+        else body = '<path d="M8 12 H22 L24 22 L20 26 H10 L8 22 Z" fill="' + col + '" stroke="' + edge + '" stroke-width="1.3"/><rect x="8" y="20" width="16" height="3" fill="' + edge + '"/>';
+        return '<svg class="loot-ico" viewBox="0 0 32 32">' + body + '</svg>';
       }
       if (swords[kind]) return '<svg class="loot-ico" viewBox="0 0 32 32"><rect x="14" y="4" width="4" height="18" fill="' + swords[kind] + '"/><rect x="10" y="20" width="12" height="3" fill="#6a5030"/><rect x="15" y="23" width="2" height="5" fill="#6a5030"/></svg>';
       if (String(kind).indexOf("charm:") === 0) return '<svg class="loot-ico" viewBox="0 0 32 32"><circle cx="16" cy="14" r="8" fill="#c9b6f2"/><rect x="14" y="22" width="4" height="6" fill="#e8c36a"/></svg>';
@@ -12948,7 +12978,18 @@ document.addEventListener("click", function (ev) {
       if (typeof window.fillBarn === "function") window.fillBarn();
       return;
     }
-    if (t.closest("#barn-empty-toggle")) { showEmpty = !showEmpty; paint(); }
+    if (t.closest("#barn-empty-toggle") || t.closest("#barn-hide-zero")) {
+      ev.preventDefault();
+      if (window.state) {
+        window.state.hideZero = window.state.hideZero === false;
+        showEmpty = window.state.hideZero === false;
+      } else showEmpty = !showEmpty;
+      var btn = document.getElementById("barn-empty-toggle");
+      if (btn) btn.textContent = showEmpty ? "Hide empty" : "Show empty";
+      if (typeof window.fillBarn === "function") window.fillBarn();
+      else paint();
+      return;
+    }
     if (t.closest("#barn-sample")) sample();
     if (t.closest("#barn-clear-sample")) clearSample();
     if (t.closest("#tool-barn")) setTimeout(paint, 30);
@@ -13340,5 +13381,32 @@ document.addEventListener("click", function (ev) {
   }, true);
 })();
 </script>
+
+<style id="barn-glyphs">
+#barn-panel .loot-ico, #barn-panel .barn-ico svg, #barn-panel .ico svg { width: 36px !important; height: 36px !important; display: block; margin: 0 auto; }
+</style>
+
+
+<style id="armor-tier">
+  .miner.has-iron-cap .miner-head::before, .fight-miner.has-iron-cap .miner-head::before { content:''; position:absolute; left:-2px; right:-2px; top:-7px; height:12px; background:#b9b1a2; border:1px solid #6e675c; border-radius:6px 6px 2px 2px; }
+  .miner.has-copper-cap .miner-head::before, .fight-miner.has-copper-cap .miner-head::before { content:''; position:absolute; left:-3px; right:-3px; top:-8px; height:13px; background:#c46a3a; border:1px solid #7a3a1c; border-radius:7px 7px 2px 2px; box-shadow:inset 0 -3px 0 #7a3a1c; }
+  .miner.has-silver-cap .miner-head::before, .fight-miner.has-silver-cap .miner-head::before { content:''; position:absolute; left:-3px; right:-3px; top:-8px; height:13px; background:linear-gradient(#fff,#d5dbe2); border:1px solid #fff; border-radius:8px 8px 2px 2px; }
+  .miner.has-gold-cap .miner-head::before, .fight-miner.has-gold-cap .miner-head::before { content:''; position:absolute; left:-4px; right:-4px; top:-9px; height:14px; background:linear-gradient(#fff1b8,#e8c36a); border:1px solid #fff6c8; border-radius:8px 8px 2px 2px; box-shadow:0 0 6px #e8c36a; }
+  .miner.has-black-cap .miner-head::before, .fight-miner.has-black-cap .miner-head::before { content:''; position:absolute; left:-4px; right:-4px; top:-10px; height:15px; background:#1c1c20; border:1px solid #b388ff; border-radius:8px 8px 2px 2px; box-shadow:0 0 8px #b388ff; }
+  .miner.has-iron-vest .miner-torso, .fight-miner.has-iron-vest .miner-torso { background:linear-gradient(#d9d3c7,#8d8678); box-shadow:inset 0 0 0 1px #6e675c; }
+  .miner.has-copper-vest .miner-torso, .fight-miner.has-copper-vest .miner-torso { background:linear-gradient(#e08a4a,#c46a3a); box-shadow:inset 0 0 0 1px #7a3a1c, inset 4px 8px 0 #7a3a1c; }
+  .miner.has-silver-vest .miner-torso, .fight-miner.has-silver-vest .miner-torso { background:linear-gradient(#fff,#b7c0c8); box-shadow:inset 0 0 0 1px #fff, 0 0 4px #d5dbe2; }
+  .miner.has-gold-vest .miner-torso, .fight-miner.has-gold-vest .miner-torso { background:linear-gradient(#fff1b8,#e8c36a 40%,#b8882a); box-shadow:inset 0 0 0 2px #fff6c8, 0 0 8px #e8c36a; }
+  .miner.has-black-vest .miner-torso, .fight-miner.has-black-vest .miner-torso { background:linear-gradient(#3a3a42,#1c1c20); box-shadow:inset 0 0 0 1px #b388ff, 0 0 10px #b388ff; }
+  .miner.has-iron-pants .miner-legs-wrap, .fight-miner.has-iron-pants .miner-legs-wrap { background:#8d8678; }
+  .miner.has-copper-pants .miner-legs-wrap, .fight-miner.has-copper-pants .miner-legs-wrap { background:#c46a3a; box-shadow:inset 0 0 0 1px #7a3a1c; }
+  .miner.has-silver-pants .miner-legs-wrap, .fight-miner.has-silver-pants .miner-legs-wrap { background:linear-gradient(#fff,#b7c0c8); }
+  .miner.has-gold-pants .miner-legs-wrap, .fight-miner.has-gold-pants .miner-legs-wrap { background:linear-gradient(#fff1b8,#e8c36a); box-shadow:0 0 6px #e8c36a; }
+  .miner.has-black-pants .miner-legs-wrap, .fight-miner.has-black-pants .miner-legs-wrap { background:#1c1c20; box-shadow:inset 0 0 0 1px #b388ff, 0 0 8px #b388ff; }
+  .miner.has-gold-gloves .wear-gloves, .miner.has-gold-boots .wear-boots, .fight-miner.has-gold-gloves .wear-gloves, .fight-miner.has-gold-boots .wear-boots { background:#e8c36a; box-shadow:0 0 4px #e8c36a; }
+  .miner.has-black-gloves .wear-gloves, .miner.has-black-boots .wear-boots, .fight-miner.has-black-gloves .wear-gloves, .fight-miner.has-black-boots .wear-boots { background:#1c1c20; box-shadow:0 0 6px #b388ff; }
+  .miner.has-silver-gloves .wear-gloves, .miner.has-silver-boots .wear-boots { background:#d5dbe2; }
+  .miner.has-copper-gloves .wear-gloves, .miner.has-copper-boots .wear-boots { background:#c46a3a; }
+</style>
 </body>
 </html>
