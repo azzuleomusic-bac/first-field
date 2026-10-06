@@ -2144,6 +2144,7 @@
       background: #6a5a32; border-radius: 6px; opacity: .7;
     }
     #fight-box .fight-miner { display: none !important; }
+    #fight-stage.sprite-arena .fight-mob.boss { width: 150px; height: 120px; bottom: 16px; }
     #fight-stage.sprite-arena #fight-pet,
     #fight-stage.sprite-arena .fight-mob {
       display: block !important;
@@ -2181,31 +2182,36 @@
     .dmg-float.bad { color:#ff6a4a; }
     .dmg-float.crit { color:#fff; font-size:40px; }
     @keyframes dmgUp { 0% { transform: translate(-50%,0) scale(1.2); opacity:1; } 100% { transform: translate(-50%,-48px) scale(1); opacity:0; } }
-    #fight-stage .hp-wrap { position:absolute; top:8px; width:42%; height:22px; z-index:5; margin:0; }
-    #fight-stage .hp-wrap.pet-bar { left:6px; }
-    #fight-stage .hp-wrap.foe-bar { right:6px; }
-    #fight-stage .hp { height:22px; position:relative; overflow:hidden; }
+    #fight-stage .hp-wrap { position:absolute; top:12px; width:44%; height:22px; z-index:5; margin:0; }
+    #fight-stage .hp-wrap.pet-bar { left:4%; }
+    #fight-stage .hp-wrap.foe-bar { right:4%; }
+    #fight-stage .hp { height:22px; border-radius:11px; position:relative; overflow:hidden; background:#10160e; border:1px solid #c9a227; }
+    #fight-stage .hp i { display:block; height:100%; width:0; border-radius:0; }
+    #fight-stage .hp.mob i { background:#c45a3a; }
     #fight-stage #hp-miner-n, #fight-stage #hp-mob-n {
-      position:absolute; inset:0; width:100%; height:22px; margin:0; padding:0;
+      position:absolute; left:0; right:0; top:0; width:auto; height:22px; margin:0; padding:0;
       display:flex; align-items:center; justify-content:center;
-      font-size:11px; line-height:22px; font-weight:800; color:#fff;
-      text-shadow:0 1px 0 #000; pointer-events:none; text-align:center; z-index:6;
+      font-size:11px; line-height:22px; font-weight:800; letter-spacing:0;
+      color:#fff; text-shadow:0 1px 2px #000; pointer-events:none; z-index:6; text-align:center;
     }
 
     
-    #fight-stage .hp { height: 20px; }
     
 
     #fight-stage .hp-wrap.pet-bar { left:8px; }
     #fight-stage .hp-wrap.foe-bar { right:8px; }
-    #fight-stage .hp { height:14px; border-radius:8px; background:#0e160c; border:1px solid #e8c36a; }
     #fight-stage .hp i { display:block; height:100%; width:100%; background:#7dba4a; }
     #fight-stage .hp.mob i { background:#c45a3a; }
     #fight-stage .hp-num { font-size:13px; font-weight:800; color:#f4ead4; text-shadow:0 1px 0 #000; }
 
   
     #pet-card:not(.open), #fight-box:not(.open), #ask-box:not(.open), #roster-panel:not(.open), #mine-panel:not(.open) { pointer-events: none !important; }
-    #unlock-page { position:fixed; right:10px; bottom:10px; z-index:2000; }
+    
+  
+    #fight-stage .hp-wrap { display:block; width:46%; height:22px; }
+    #fight-stage .hp { position:relative; height:22px; border-radius:11px; overflow:hidden; background:#10160e; }
+    #fight-stage .hp i { position:absolute; left:0; top:0; height:100%; border-radius:11px; }
+    #fight-stage .hp-num { position:absolute; left:0; right:0; top:0; height:22px; display:flex; align-items:center; justify-content:center; font-size:12px; line-height:22px; color:#fff; text-shadow:0 1px 1px #000; pointer-events:none; }
 
   </style>
 </head>
@@ -2635,7 +2641,7 @@
             <div class="hp-num" id="hp-miner-n"></div>
           </div>
           <div class="fight-side">
-            <div class="fight-name">Creature <span class="pop" id="pop-mob"></span></div>
+            <div class="fight-name">Chapter Boss <span class="pop" id="pop-mob"></span></div>
             <div class="fight-mob"></div>
             <div class="hp-wrap"><div class="hp mob"><i id="hp-mob"></i></div></div>
             <div class="hp-num" id="hp-mob-n"></div>
@@ -5826,11 +5832,14 @@ function autoTick() {
     function playKo(el, dir) {
       if (!el) return;
       if (el._hop) { try { el._hop.cancel(); } catch (e) {} }
+      try { el.getAnimations().forEach(function (a) { if (a.id !== "flinch") a.cancel(); }); } catch (e) {}
       el.style.animation = "none";
       el.animate([
-        { transform: "rotate(0deg) translateY(0)", opacity: 1 },
-        { transform: "rotate(" + (dir * 78) + "deg) translateY(24px)", opacity: 0.25 }
-      ], { duration: 520, fill: "forwards", easing: "ease-in" });
+        { transform: "translateY(0) rotate(0deg) scale(1)", opacity: 1, offset: 0 },
+        { transform: "translateY(-8px) rotate(" + (dir * 8) + "deg) scale(1.04)", opacity: 1, offset: 0.2 },
+        { transform: "translateY(10px) rotate(" + (dir * 46) + "deg) scale(0.96)", opacity: 0.85, offset: 0.55 },
+        { transform: "translateY(28px) rotate(" + (dir * 82) + "deg) scale(0.9)", opacity: 0.35, offset: 1 }
+      ], { duration: 700, fill: "forwards", easing: "ease-in", id: "die" });
     }
     function floatHit(target, n, crit, bad) {
       const stage = document.getElementById("fight-stage");
@@ -5845,6 +5854,10 @@ function autoTick() {
       stage.appendChild(d);
       setTimeout(function () { if (d.parentElement) d.parentElement.removeChild(d); }, 760);
     }
+    function bossSkin(name) {
+      const hue = (name || "").indexOf("Tyrant") >= 0 ? "#6a3a4a" : (name || "").indexOf("King") >= 0 ? "#3a4a6a" : "#4a3a2a";
+      return '<svg viewBox="0 0 120 96"><ellipse cx="60" cy="58" rx="34" ry="26" fill="' + hue + '"/><ellipse cx="60" cy="50" rx="22" ry="16" fill="#c4b49a"/><circle cx="48" cy="46" r="4" fill="#1a120c"/><circle cx="72" cy="46" r="4" fill="#1a120c"/><path d="M40 18 L60 4 L80 18 L70 28 L50 28 Z" fill="#c9a227"/><rect x="36" y="70" width="10" height="16" rx="3" fill="#2a2018"/><rect x="74" y="70" width="10" height="16" rx="3" fill="#2a2018"/></svg>';
+    }
     function paintFightArt() {
       const stage = document.getElementById("fight-stage");
       if (!stage) return;
@@ -5854,8 +5867,8 @@ function autoTick() {
       const foeBar = document.querySelectorAll("#fight-box .hp-wrap")[1];
       const petNum = document.getElementById("hp-miner-n");
       const foeNum = document.getElementById("hp-mob-n");
-      if (petBar) { petBar.classList.add("pet-bar"); if (petBar.parentElement !== stage) stage.appendChild(petBar); if (petNum && petNum.parentElement !== petBar) petBar.appendChild(petNum); }
-      if (foeBar) { foeBar.classList.add("foe-bar"); if (foeBar.parentElement !== stage) stage.appendChild(foeBar); if (foeNum && foeNum.parentElement !== foeBar) foeBar.appendChild(foeNum); }
+      if (petBar) { petBar.classList.add("pet-bar"); if (petBar.parentElement !== stage) stage.appendChild(petBar); if (petNum && petBar.querySelector('.hp') && petNum.parentElement !== petBar.querySelector('.hp')) petBar.querySelector('.hp').appendChild(petNum); }
+      if (foeBar) { foeBar.classList.add("foe-bar"); if (foeBar.parentElement !== stage) stage.appendChild(foeBar); if (foeNum && foeBar.querySelector('.hp') && foeNum.parentElement !== foeBar.querySelector('.hp')) foeBar.querySelector('.hp').appendChild(foeNum); }
       const petName = document.querySelector("#fight-box .fight-name");
       if (petName) petName.firstChild && (petName.childNodes[0].textContent = "Pet ");
       const petEl = document.getElementById("fight-pet");
@@ -5882,11 +5895,6 @@ function autoTick() {
         const pop = nameEl.querySelector(".pop");
         var petPace = beastStyle(pet && pet.species);
         nameEl.textContent = (pet ? beastForm(pet) : "Pet") + " · Lv " + ((pet && pet.lvl) || 1);
-        var petTag = document.createElement("div");
-        petTag.style.cssText = "font-size:10px;color:#e8c36a";
-        var petGrow = growStyle(pet && pet.species, (pet && pet.lvl) || 1);
-        petTag.textContent = petGrow.tag + " · " + petGrow.dmg + " dmg · " + (petGrow.tag === "fast" ? "gains speed" : petGrow.tag === "heavy" ? "gains power" : "even");
-        nameEl.appendChild(petTag);
         if (pop) nameEl.appendChild(pop);
       }
       const foeName = document.querySelectorAll("#fight-box .fight-name")[1];
@@ -5894,12 +5902,7 @@ function autoTick() {
       if (foeName) {
         const pop = foeName.querySelector(".pop");
         var foePace = beastStyle(state.wildBeast);
-        foeName.textContent = (wild ? wild.name : "Beast") + " · Lv " + (state.mobLevel || 1);
-        var foeTag = document.createElement("div");
-        foeTag.style.cssText = "font-size:10px;color:#e8c36a";
-        var foeGrow = growStyle(state.wildBeast, state.mobLevel || 1);
-        foeTag.textContent = foeGrow.tag + " · " + foeGrow.dmg + " dmg · " + (foeGrow.tag === "fast" ? "gains speed" : foeGrow.tag === "heavy" ? "gains power" : "even");
-        foeName.appendChild(foeTag);
+        foeName.textContent = (boss ? "Chapter Boss" : (wild ? wild.name : "Beast")) + " · Lv " + (state.mobLevel || 1);
         if (pop) foeName.appendChild(pop);
       }
     }
@@ -6018,6 +6021,8 @@ function autoTick() {
         document.body.appendChild(pop);
       }
       pop.style.display = "flex";
+      pop.style.pointerEvents = "auto";
+      pop.onclick = function (ev) { if (ev.target === pop) pop.style.display = "none"; };
       const msg = document.getElementById("pet-heal-msg");
       if (msg) msg.textContent = beastForm(pet) + " is under 30% HP. Heal it, or choose another pet, if you want to fight.";
       const close = function () { pop.style.display = "none"; };
@@ -6093,7 +6098,7 @@ function autoTick() {
         const wildNow = state.wildBeast && BEASTS[state.wildBeast];
         mobEl0.classList.toggle("wild-skin", !!wildNow);
         try {
-          mobEl0.innerHTML = wildNow ? beastSkin(state.wildBeast, 1) : "";
+          mobEl0.innerHTML = boss ? bossSkin(bossName) : (wildNow ? beastSkin(state.wildBeast, 1) : "");
           paintFightPet();
           try { paintFightArt(); } catch (e) {}
         } catch (err) { mobEl0.innerHTML = ""; }
@@ -6277,19 +6282,21 @@ function autoTick() {
           const win = m > 0 && c <= 0;
           const fpEnd = document.getElementById("fight-pet");
           const mobEnd = document.querySelector("#fight-box .fight-mob");
-          if (win && mobEnd) mobEnd.classList.add("ko");
-          if (!win && fpEnd) fpEnd.classList.add("ko");
           try {
             var koEl = (c <= 0) ? document.querySelector("#fight-stage .fight-mob") : document.getElementById("fight-pet");
-            if (koEl) { koEl.classList.add("ko"); try { playKo(koEl, c <= 0 ? 1 : -1); } catch (e) {} }
+            if (koEl) {
+              floatHit(koEl, "KO", true, false);
+              setTimeout(function () { koEl.classList.add("ko"); try { playKo(koEl, c <= 0 ? 1 : -1); } catch (e) {} }, 520);
+            }
           } catch (e) {}
           if (box && !window._koHold) {
             window._koHold = true;
             setTimeout(function () {
               window._koHold = false;
               box.classList.remove("open"); box.classList.remove("on"); box.style.display = "none"; box.setAttribute("aria-hidden", "true");
-            }, 680);
+            }, 1100);
           } else if (box) { box.classList.remove("open"); box.classList.remove("on"); box.style.display = "none"; box.setAttribute("aria-hidden", "true"); }
+          state.lastFightWin = !!win;
           if (st) st.textContent = win ? "Creature down." : "Miner is down.";
           if (win) {
             const forest = state.fightKind === "forest";
@@ -6301,7 +6308,7 @@ function autoTick() {
             if (state.petFightXp) { toast("Pet xp " + ((state.pets || []).find(function (p) { return p.id === state.equippedPet; }) || {}).xp); state.petFightXp = 0; }
             if (petNow) petNow.hp = Math.max(0, Math.round(m));
             try { save(); } catch (e) {}
-            try { if (window.openPetCard && state.equippedPet) openPetCard(state.equippedPet); } catch (e) {}
+            
             const clearKey = forest ? "forestClear" : lake ? "lakeClear" : "mineClear";
             const wonLevel = state.mobLevel || 1;
             if (wonLevel % 5 === 0) { if (state.bossFight) state[clearKey] = Math.max(state[clearKey] || 0, wonLevel); }
@@ -6365,8 +6372,12 @@ function autoTick() {
           const gen = lootGen;
           const lootBox = document.getElementById("loot-box");
           if (lootBox && lootBox.parentElement !== document.body) document.body.appendChild(lootBox);
-          if (box) { box.classList.remove("open"); box.classList.remove("on"); box.setAttribute("aria-hidden", "true"); }
-          openLoot(state.pendingLoot || "No loot this time.", state.pendingLootN, true);
+          const lootText = state.pendingLoot || "No loot this time.";
+          const lootN = state.pendingLootN;
+          setTimeout(function () {
+            if (box) { box.classList.remove("open"); box.classList.remove("on"); box.style.display = "none"; box.setAttribute("aria-hidden", "true"); }
+            openLoot(lootText, lootN, true);
+          }, 1400);
           const fs = document.getElementById("fight-song");
           if (fs) { fs.pause(); try { fs.currentTime = 0; } catch (e) {} }
           if (typeof resumeMusicAfterFight === "function") resumeMusicAfterFight();
@@ -6436,6 +6447,12 @@ function autoTick() {
       if (box && box.classList.contains("open")) return;
       const p = document.getElementById("loot-text");
       const art = document.getElementById("loot-art");
+      const title = box && box.querySelector("h3");
+      if (title) {
+        const lost = state.lastFightWin === false;
+        title.textContent = lost ? "LOST" : "WIN";
+        title.style.color = lost ? "#b388ff" : "#e8a04a";
+      }
       if (p) p.textContent = text;
       if (art) {
         const parts = state.lootParts || [];
@@ -7194,6 +7211,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
       }, 600);
     }
     function launchMineFight() {
+      try { unlockPage(); } catch (e) {}
       if (!petCanFight(function () { startFight(); })) return;
       state.miningUntil = 0;
       state.miningStarted = 0;
@@ -7210,8 +7228,9 @@ function swordArt() { return '<svg viewBox="0 0 32 32" aria-hidden="true"><defs>
     }
     function startMine() {
       if (workBusy()) { toast("On a job. Wait it out or abort and drop the pay."); return; }
-      armFightAudio();
-      launchMineFight();
+      try { ["ask-box", "pet-heal-pop"].forEach(function (id) { var el = document.getElementById(id); if (el) { el.style.display = "none"; el.classList.remove("open"); } }); } catch (e) {}
+      try { armFightAudio(); } catch (e) {}
+      try { launchMineFight(); } catch (e) { toast("Fight could not start"); }
     }
 
     function forestOn() { return (state.forestUntil || 0) > now(); }
@@ -11769,26 +11788,24 @@ document.getElementById("beast-page-close").onclick = function () {
 
 <script>
     function unlockPage() {
-      ["pet-card","fight-box","ask-box","roster-panel","mine-panel","pet-heal-pop"].forEach(function (id) {
+      ["pet-card","fight-box","ask-box","pet-heal-pop"].forEach(function (id) {
         var el = document.getElementById(id);
         if (!el) return;
         el.classList.remove("open");
         el.style.display = "none";
         el.style.pointerEvents = "none";
       });
+      var mine = document.getElementById("mine-panel");
+      if (mine) mine.style.pointerEvents = "auto";
+      var fightBtn = document.getElementById("btn-mine");
+      if (fightBtn) fightBtn.style.pointerEvents = "auto";
     }
     window.unlockPage = unlockPage;
     document.addEventListener("click", function (ev) {
       var t = ev.target;
       if (t && t.id === "unlock-page") unlockPage();
     });
-    var unlockBtn = document.createElement("button");
-    unlockBtn.id = "unlock-page";
-    unlockBtn.type = "button";
-    unlockBtn.textContent = "Close";
-    unlockBtn.onclick = unlockPage;
-    document.body.appendChild(unlockBtn);
-</script>
+    </script>
 
 <script>
 (function () {
@@ -11832,6 +11849,19 @@ document.getElementById("beast-page-close").onclick = function () {
   }
   shutOverlays();
 })();
+</script>
+
+
+<script>
+document.addEventListener("click", function (ev) {
+  var t = ev.target;
+  if (!t) return;
+  if (t.id === "pet-heal-pop" || t.id === "ask-box" || t.id === "fight-box") {
+    t.style.display = "none";
+    t.classList.remove("open");
+    t.setAttribute("aria-hidden", "true");
+  }
+}, true);
 </script>
 
 </body>
