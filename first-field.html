@@ -94,6 +94,8 @@
     #stat-corn-top { color: #ffe38a; background: rgba(120,90,20,0.55); border-color: #e8c36a; }
     #stat-carrot-top { color: #ffc08a; background: rgba(140,70,24,0.55); border-color: #e09050; }
     #stat-sats { color: #fff4cc; background: rgba(160,120,30,0.7); border-color: #ffe7a8; }
+    #stat-gems { color: #ffe4e8; background: rgba(140,24,36,0.82); border-color: #ff5a6a; }
+    #stat-gems .gem { display: inline-block; width: 12px; height: 12px; margin-right: 4px; vertical-align: -1px; }
     .pill {
       background: rgba(255,255,255,0.08);
       border: 1px solid rgba(255,255,255,0.1);
@@ -2667,7 +2669,7 @@ window.__ffStart = function () {
         <div class="pill" id="stat-corn-top">🌽 0/50</div>
         <div class="pill" id="stat-carrot-top" hidden>🥕 0</div>
         <div class="pill" id="stat-sats">⚡ 0 gold</div>
-        <div class="pill" id="stat-gems">◆ 50</div>
+        <div class="pill" id="stat-gems"><svg class="gem" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1 14 6 8 15 2 6Z" fill="#ff3b4e"/><path d="M8 1 14 6 8 7 2 6Z" fill="#ff8a96"/><path d="M8 7 14 6 8 15 2 6Z" fill="#c4122a"/></svg>50 gems</div>
       </div>
       <div id="xp-bar" aria-label="Farm level"><i id="xp-fill"></i><span id="xp-label">Lv 1</span></div>
     </header>
@@ -3173,7 +3175,7 @@ window.__ffStart = function () {
 
     const state = window.state = {
       mode: "farm",
-      tool: "carrot",
+      tool: "corn",
       water: 0,
       carrots: 0,
       corn: 0,
@@ -3281,6 +3283,7 @@ window.__ffStart = function () {
       return {
         v: 1,
         playerId: playerId(),
+        tool: state.tool || "corn",
         water: state.water,
         carrots: state.carrots,
         corn: state.corn,
@@ -5171,7 +5174,7 @@ function openKitchen(force) { openShop("kitchen-panel", force); paintCraftList("
     function paintGems() {
       if (typeof state.gems !== "number") state.gems = 50;
       var el = document.getElementById("stat-gems");
-      if (el) el.textContent = "◆ " + state.gems;
+      if (el) el.innerHTML = '<svg class="gem" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1 14 6 8 15 2 6Z" fill="#ff3b4e"/><path d="M8 1 14 6 8 7 2 6Z" fill="#ff8a96"/><path d="M8 7 14 6 8 15 2 6Z" fill="#c4122a"/></svg>' + state.gems + " gems";
     }
     function refreshAutoLabel() {
       const el = document.getElementById("btn-auto");
