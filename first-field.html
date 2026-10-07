@@ -268,7 +268,13 @@
       overflow: visible;
     }
     .tile.kitchen svg, .tile.tailor svg { width: 100%; height: 100%; pointer-events: none; }
-    #kitchen-panel, #tailor-panel {
+    #kitchen-panel .sheet-rows, #tailor-panel .sheet-rows { overflow: auto; }
+    .craft-card { display: grid; grid-template-columns: 42px 1fr auto; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(232,195,106,0.18); }
+    .craft-card .ico { font-size: 26px; text-align: center; }
+    .craft-card b { display: block; font-size: 14px; }
+    .craft-card small { color: #e8c36a; font-size: 12px; }
+    .craft-card button { min-height: 40px; }
+#kitchen-panel, #tailor-panel {
       display: none;
       position: fixed;
       z-index: 2000;
@@ -1375,7 +1381,8 @@
       min-height: 16px;
     }
     .toast {
-      position: absolute;
+      position: fixed;
+      z-index: 5000;
       left: 50%;
       bottom: 12px;
       transform: translateX(-50%);
@@ -2439,7 +2446,180 @@
   font-weight: 650;
 }
 </style>
-<style id="barn-item-icons">#barn-panel .loot-ico,#barn-panel .barn-ico svg,#barn-panel .ico svg{width:40px;height:40px;display:block;margin:0 auto}</style></head>
+
+<style id="market-shop">
+#market-panel.open {
+  display: flex !important;
+  flex-direction: column;
+  position: fixed !important;
+  inset: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  transform: none !important;
+  width: 100% !important;
+  max-height: none !important;
+  z-index: 1600 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: linear-gradient(180deg, #1c2618 0%, #12180f 38%, #1a140e 100%) !important;
+  color: #efe6cf;
+  padding: calc(12px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
+  touch-action: pan-y;
+}
+#market-panel.open .mkt-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+#market-panel.open .mkt-kicker {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(232,195,106,0.72);
+}
+#market-panel.open h3 {
+  margin: 2px 0 0 !important;
+  font-size: 28px !important;
+  letter-spacing: 0.03em;
+  color: #e8c36a !important;
+}
+#market-panel.open #mkt-wallet {
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #efe6cf;
+}
+#market-panel.open #market-close {
+  width: auto;
+  min-width: 84px;
+  min-height: 44px;
+  margin: 0;
+  border-radius: 999px;
+  border: 1.5px solid #e8c36a;
+  background: #e8c36a;
+  color: #1a2418;
+  font-weight: 700;
+  font-size: 15px;
+}
+#market-panel.open .mkt-chips,
+#market-panel.open .mkt-sub {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  flex: 0 0 auto;
+  padding: 12px 0 4px;
+  -webkit-overflow-scrolling: touch;
+}
+#market-panel.open .mkt-sub { padding-top: 6px; display: flex !important; }
+#market-panel.open .mkt-sub[hidden] { display: none !important; }
+#market-panel.open .mkt-chip {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(232,195,106,0.35);
+  background: transparent;
+  color: #efe6cf;
+  font-size: 13px;
+  font-weight: 650;
+}
+#market-panel.open .mkt-chip.on {
+  background: #e8c36a;
+  color: #1a2418;
+  border-color: #e8c36a;
+}
+#market-panel.open #mkt-shelf {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 8px 0 8px;
+  padding-bottom: 8px;
+}
+#market-panel.open .mkt-card {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  background: rgba(255,248,230,0.04);
+  border: 1px solid rgba(232,195,106,0.22);
+  border-radius: 16px;
+  padding: 12px;
+}
+#market-panel.open .mkt-ico {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(232,195,106,0.1);
+  font-size: 22px;
+}
+#market-panel.open .mkt-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #efe6cf;
+}
+#market-panel.open .mkt-rate {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #e8c36a;
+}
+#market-panel.open .mkt-have {
+  margin-top: 2px;
+  font-size: 12px;
+  color: rgba(239,230,207,0.68);
+}
+#market-panel.open .mkt-acts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+#market-panel.open .mkt-acts button {
+  min-height: 40px;
+  min-width: 92px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+#market-panel.open .mkt-acts button.ghost {
+  min-height: 32px;
+  background: transparent;
+  color: #e8c36a;
+  border: 1px solid rgba(232,195,106,0.45);
+}
+#market-panel.open .mkt-acts button:disabled {
+  opacity: 0.45;
+}
+#market-panel.open #mkt-receipt {
+  flex: 0 0 auto;
+  margin: 0;
+  min-height: 18px;
+  font-size: 12px;
+  color: rgba(239,230,207,0.7);
+}
+#ask-box.open { z-index: 4000 !important; }
+</style>
+<style id="barn-item-icons">#barn-panel .loot-ico,#barn-panel .barn-ico svg,#barn-panel .ico svg{width:40px;height:40px;display:block;margin:0 auto}</style>
+<style id="bench-cards">
+#kitchen-panel.open, #tailor-panel.open { display:flex !important; flex-direction:column; position:fixed !important; inset:0 !important; z-index:1600 !important; overflow:hidden !important; width:100% !important; max-height:none !important; transform:none !important; background:#1a140e; color:#efe6cf; padding:calc(12px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom)); }
+#kitchen-shelf, #tailor-shelf { flex:1 1 auto; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
+.bench-card { display:grid; grid-template-columns:42px 1fr auto; gap:10px; align-items:center; border:1px solid rgba(232,195,106,.35); border-radius:12px; padding:8px; background:rgba(255,255,255,.03); }
+.bench-ico { font-size:26px; text-align:center; }
+.bench-card button { min-height:36px; }
+</style>
+</head>
 <body>
   <div id="boot-audio" hidden aria-hidden="true">
 <audio id="boot-song" src="" preload="auto" playsinline></audio>
@@ -2481,7 +2661,7 @@ window.__ffStart = function () {
         <div class="pill water" id="stat-water">💧 0/30</div>
         <div class="pill" id="stat-corn-top">🌽 0/50</div>
         <div class="pill" id="stat-carrot-top">🥕 0/20</div>
-        <div class="pill" id="stat-sats">⚡ 0 sats</div>
+        <div class="pill" id="stat-sats">⚡ 0 gold</div>
       </div>
       <div id="xp-bar" aria-label="Farm level"><i id="xp-fill"></i><span id="xp-label">Lv 1</span></div>
     </header>
@@ -2497,6 +2677,11 @@ window.__ffStart = function () {
       <button type="button" id="zoom-out">−</button>
       <button type="button" id="zoom-reset">1×</button>
       <button type="button" id="zoom-in">+</button>
+    </div>
+    
+    <div id="place-hint" hidden>
+      <span id="place-hint-text">Tap the field to place</span>
+      <button type="button" id="place-cancel">Cancel</button>
     </div>
     <div id="field-wrap">
       <div id="farm-stage">
@@ -2546,93 +2731,18 @@ window.__ffStart = function () {
         <button type="button" class="ghost" id="house-close">Close</button>
       </div>
       <div id="market-panel" aria-hidden="true">
-        <h3>Market</h3>
-        <div class="modes three" id="market-tabs" style="margin-bottom:8px">
-          <button type="button" id="mtab-resources">Sell</button>
-          <button type="button" id="mtab-seeds">Seeds</button>
-          <button type="button" id="mtab-assets">Assets</button>
+        <div class="mkt-head">
+          <div>
+            <p class="mkt-kicker">Town market</p>
+            <h3>Market</h3>
+            <p id="mkt-wallet">0 gold</p>
+          </div>
+          <button type="button" id="market-close">Close</button>
         </div>
-        <div id="msec-resources">
-          <div class="modes three" id="res-cats" style="margin-bottom:8px">
-            <button type="button" id="rcat-feed">Feed</button>
-            <button type="button" id="rcat-animal">Animal products</button>
-            <button type="button" id="rcat-craft">Crafts</button>
-          </div>
-          <div id="rcat-feed-list">
-            <div class="row"><span>50 💧 water → 1 ⚡ sat<br><small class="have" data-have="water"></small></span><button type="button" id="sell-water">Sell water</button></div>
-            <div class="row"><span>10 🥕 carrots → 1 ⚡ sat<br><small class="have" data-have="carrots"></small></span><button type="button" id="sell-carrots">Sell carrots</button></div>
-            <div class="row"><span>40 🌽 corn → 1 ⚡ sat<br><small class="have" data-have="corn"></small></span><button type="button" id="sell-corn">Sell corn</button></div>
-            <div class="row"><span>15 🍎 apples → 1 ⚡ sat<br><small class="have" data-have="apples"></small></span><button type="button" id="sell-apples">Sell apples</button></div>
-          </div>
-          <div id="rcat-animal-list" hidden>
-            <div class="row"><span>5 🥛 milk → 1 ⚡ sat<br><small class="have" data-have="milk"></small></span><button type="button" id="sell-milk">Sell milk</button></div>
-            <div class="row"><span>8 🥚 eggs → 1 ⚡ sat<br><small class="have" data-have="eggs"></small></span><button type="button" id="sell-eggs">Sell eggs</button></div>
-            <div class="row"><span><span class="price" id="lbl-hair"></span><br><small class="have" data-have="horseHair"></small></span><button type="button" id="sell-hair">Sell horse hair</button></div>
-            <div class="row"><span><span class="price" id="lbl-wool">4 🧶 wool → 1 ⚡ sat</span><br><small class="have" data-have="wool"></small></span><button type="button" id="sell-wool">Sell wool</button></div>
-            <div class="row"><span>2 🍄 truffles → 1 ⚡ sat<br><small class="have" data-have="truffles"></small></span><button type="button" id="sell-truffles">Sell truffles</button></div>
-          </div>
-          <div id="rcat-craft-list" hidden>
-            <div class="modes" id="craft-sell-tabs" style="margin-bottom:8px">
-              <button type="button" id="cstab-food" class="active">Food</button>
-              <button type="button" id="cstab-gear">Equipment</button>
-              <button type="button" id="cstab-weapons">Weapons</button>
-            </div>
-            <div id="csec-food">
-              <div class="row"><span>1 🍮 pudding → 2 ⚡ sats<br><small class="have" data-have="pudding"></small></span><button type="button" id="sell-pudding">Sell pudding</button></div>
-            </div>
-            <div id="csec-gear" hidden>
-              <div class="row"><span><span class="price" id="lbl-pants"></span><br><small class="have" data-have="pants"></small></span><button type="button" id="sell-pants">Sell pants</button></div>
-              <div class="row"><span><span class="price" id="lbl-shirt"></span><br><small class="have" data-have="shirts"></small></span><button type="button" id="sell-shirt">Sell shirt</button></div>
-              <div class="row"><span><span class="price" id="lbl-beanie">1 beanie → 3 ⚡ sats</span><br><small class="have" data-have="beanies"></small></span><button type="button" id="sell-beanie">Sell beanie</button></div>
-              <div class="row"><span>1 cloth gloves → 3 ⚡ sats<br><small class="have" data-have="gloves"></small></span><button type="button" id="sell-gloves">Sell gloves</button></div>
-              <div class="row"><span>1 cloth boots → 4 ⚡ sats<br><small class="have" data-have="boots"></small></span><button type="button" id="sell-boots">Sell boots</button></div>
-              <div class="row"><span>1 leather cap → 6 ⚡ sats<br><small class="have" data-have="leatherCaps"></small></span><button type="button" id="sell-lcap">Sell cap</button></div>
-              <div class="row"><span>1 leather vest → 6 ⚡ sats<br><small class="have" data-have="leatherVests"></small></span><button type="button" id="sell-lvest">Sell vest</button></div>
-              <div class="row"><span>1 leather pants → 6 ⚡ sats<br><small class="have" data-have="leatherPants"></small></span><button type="button" id="sell-lpants">Sell leather pants</button></div>
-              <div class="row"><span>1 leather gloves → 6 ⚡ sats<br><small class="have" data-have="leatherGloves"></small></span><button type="button" id="sell-lgloves">Sell leather gloves</button></div>
-              <div class="row"><span>1 leather boots → 6 ⚡ sats<br><small class="have" data-have="leatherBoots"></small></span><button type="button" id="sell-lboots">Sell leather boots</button></div>
-            </div>
-            <div id="csec-weapons-sell" hidden>
-              <div class="row"><span><span class="price" id="lbl-sword">1 stone sword → 5 ⚡ sats</span><br><small class="have" data-have="swords"></small></span><button type="button" id="sell-sword">Sell sword</button></div>
-              <div class="row"><span>1 iron sword → 8 ⚡ sats<br><small class="have" data-have="ironSwords"></small></span><button type="button" id="sell-iron">Sell iron sword</button></div>
-            </div>
-          </div>
-        </div>
-        <div id="msec-seeds" hidden>
-          <div class="row"><span>1 ⚡ sat → 5 🥕 seeds</span><button type="button" id="buy-carrot-seeds">Buy carrot seeds</button></div>
-          <div class="row"><span>1 ⚡ sat → 10 🌽 seeds</span><button type="button" id="buy-corn-seeds">Buy corn seeds</button></div>
-        </div>
-        <div id="msec-assets" hidden>
-          <div class="modes three" id="asset-toggle" style="margin-bottom:8px">
-            <button type="button" id="asset-animals">Animals</button>
-            <button type="button" id="asset-structures">Structures</button>
-            <button type="button" id="asset-farming">Farming</button>
-          </div>
-          <div id="asset-animals-list">
-            <div class="row"><span>8 ⚡ sats → horse</span><button type="button" id="buy-horse">Buy horse</button></div>
-            <div class="row"><span>7 ⚡ sats → cow</span><button type="button" id="buy-cow">Buy cow</button></div>
-            <div class="row"><span>7 ⚡ sats → pig</span><button type="button" id="buy-pig">Buy pig</button></div>
-            <div class="row"><span>4 ⚡ sats → sheep</span><button type="button" id="buy-sheep">Buy sheep</button></div>
-            <div class="row"><span>3 ⚡ sats → chicken</span><button type="button" id="buy-chicken">Buy chicken</button></div>
-          </div>
-          <div id="asset-structures-list" hidden>
-            <div class="row"><span>15 ⚡ sats → well</span><button type="button" id="buy-well">Buy well</button></div>
-            <div class="row"><span>25 ⚡ sats → grain silo</span><button type="button" id="buy-silo">Buy silo</button></div>
-            <div class="row"><span>25 ⚡ sats → carrot silo</span><button type="button" id="buy-csilo">Buy carrot silo</button></div>
-            <div class="row"><span>20 ⚡ sats → blacksmith</span><button type="button" id="buy-smith">Buy blacksmith</button></div>
-            <div class="row"><span>18 ⚡ sats → kitchen</span><button type="button" id="buy-kitchen">Buy kitchen</button></div>
-            <div class="row"><span>18 ⚡ sats → tailor</span><button type="button" id="buy-tailor">Buy tailor</button></div>
-            <div class="row"><span>16 ⚡ sats → charm bench · 2×2</span><button type="button" id="buy-charm">Buy charm bench</button></div>
-          </div>
-          <div id="asset-farming-list" hidden>
-            <div class="row"><span>5 ⚡ sats → apple tree</span><button type="button" id="buy-tree">Buy tree</button></div>
-            <div class="row"><span>12 ⚡ sats → pet bed · 2×2</span><button type="button" id="buy-petbed">Buy pet bed</button></div>
-            <div class="row"><span>14 ⚡ sats → fish pond · 2×2</span><button type="button" id="buy-pond">Buy pond</button></div>
-            <div class="row"><span>10 ⚡ sats → crop land</span><button type="button" id="buy-plot">Buy land</button></div>
-          </div>
-        </div>
-        <button type="button" class="ghost" id="market-close">Close</button>
-        <ul id="market-history"></ul>
+        <div class="mkt-chips" id="mkt-chips"></div>
+        <div class="mkt-sub" id="mkt-sub" hidden></div>
+        <div id="mkt-shelf"></div>
+        <p id="mkt-receipt"></p>
       </div>
       <div id="barn-panel" aria-hidden="true">
         <div class="barn-top barn-head">
@@ -2792,20 +2902,16 @@ window.__ffStart = function () {
       <div id="kitchen-panel" aria-hidden="true">
         <h3>Kitchen</h3>
         <p>Cook farm goods.</p>
-        <div class="sheet-rows">
-        <div class="row"><span id="craft-pudding-label">4 🥛 + 3 🥚 → 1 🍮</span><button type="button" id="craft-pudding">Make pudding</button></div>
+        <div class="sheet-rows" id="kitchen-list">
+        <div id="kitchen-rows"></div>
         </div>
         <button type="button" class="ghost" id="kitchen-close">Close</button>
       </div>
       <div id="tailor-panel" aria-hidden="true">
         <h3>Tailor</h3>
         <p>Cloth gear from wool and horse hair.</p>
-        <div class="sheet-rows">
-        <div class="row"><span id="craft-pants-label">6 wool + 3 horse hair → 1 pants</span><button type="button" id="craft-pants">Make pants</button></div>
-        <div class="row"><span id="craft-shirt-label">8 wool → 1 shirt</span><button type="button" id="craft-shirt">Make shirt</button></div>
-        <div class="row"><span id="craft-beanie-label">7 wool → 1 beanie</span><button type="button" id="craft-beanie">Make beanie</button></div>
-        <div class="row"><span id="craft-gloves-label">5 wool → 1 cloth gloves</span><button type="button" id="craft-gloves">Make gloves</button></div>
-        <div class="row"><span id="craft-boots-label">6 wool + 2 horse hair → 1 cloth boots</span><button type="button" id="craft-boots">Make boots</button></div>
+        <div class="sheet-rows" id="tailor-list">
+        <div id="tailor-rows"></div>
         </div>
         <button type="button" class="ghost" id="tailor-close">Close</button>
       </div>
@@ -2944,7 +3050,7 @@ window.__ffStart = function () {
       </div>
     </div>
     <footer>
-      <div id="stat-worth">Farm worth 0 sats</div>
+      <div id="stat-worth">Farm worth 0 gold</div>
       <div class="menu-row">
         <button class="ghost" id="btn-tidy" type="button">Clean farm</button>
         <button class="ghost" id="btn-auto" type="button">Automate 1m</button>
@@ -2997,7 +3103,7 @@ window.__ffStart = function () {
 <script>
   (function () {
     const FF = Object.assign({
-      starterSats: 30, pack30Bonus: 20, wellMs: 2000, cornGrowMs: 10000, carrotGrowMs: 10000,
+      starterSats: 500, pack30Bonus: 20, wellMs: 2000, cornGrowMs: 10000, carrotGrowMs: 10000,
       cowMs: 12000, chickenMs: 12000, horseMs: 12000, sheepMs: 12000, pigMs: 12000, mineMs: 5000, wellMax: 10, canPerWell: 20,
       cowFeed: { corn: 6, water: 4, milk: 3 }, babyChance: 0.6, calfFeeds: 2,
       chickenFeed: { corn: 2, water: 1, eggs: 2 },
@@ -3011,7 +3117,7 @@ window.__ffStart = function () {
       sell: { milk: { qty: 5, sats: 1 }, water: { qty: 50, sats: 1 }, eggs: { qty: 8, sats: 1 }, hair: { qty: 1, sats: 1 }, wool: { qty: 4, sats: 1 }, truffles: { qty: 2, sats: 1 }, carrots: { qty: 10, sats: 1 }, corn: { qty: 40, sats: 1 } },
       buy: { water: { sats: 1, qty: 25 }, carrotSeeds: { sats: 1, qty: 5 }, cornSeeds: { sats: 1, qty: 10 } }
     }, window.FF || {});
-    const SAVE_KEY = "first-field-v1";
+    const SAVE_KEY = "first-field-v2";
     const PLAYER_KEY = "first-field-player";
     const QUEUE_KEY = "first-field-cloud-queue";
     const CLOUD_URL = ""; // later: https://your-api/save — same snapshot, no extra coins
@@ -3050,7 +3156,7 @@ window.__ffStart = function () {
       carrotSeeds: 0,
       cornSeeds: 15,
       herbs: 10,
-      mushrooms: 4,
+      mushrooms: 0,
       fish: 4,
       wellWater: 3,
       wellAcc: 0,
@@ -3087,13 +3193,13 @@ window.__ffStart = function () {
       ironSwords: 0,
       gearIron: false,
       gearPackOct: false,
-      rocks: 25,
-      lumber: 25,
-      demoMats: true,
+      rocks: 0,
+      lumber: 0,
+      demoMats: false,
       horseHair: 0,
-      horseShed: { horses: [] },
-      sheepPen: { sheep: [] },
-      pigPen: { pigs: [] },
+      horseShed: null,
+      sheepPen: null,
+      pigPen: null,
       wool: 0,
       truffles: 0,
       apples: 0,
@@ -3112,18 +3218,14 @@ window.__ffStart = function () {
       advLevel: 1,
       bossFight: false,
       farmExpands: 0,
-      marketLog: [{ at: Date.now(), text: "Starter pack +" + FF.starterSats + " sats" }],
-      shed: { x: 0.14, y: 0.78, cows: [{ id: "c1", stage: "hungry", readyAt: 0 }] },
-      coop: { chickens: [] },
-      silos: [{ id: "s1", x: 0.86, y: 0.14, upgrades: 0 }],
-      market: { x: 0.78, y: 0.78 },
+      marketLog: [{ at: Date.now(), text: "Starter pack +" + FF.starterSats + " gold" }],
+      shed: null,
+      coop: null,
+      house: null,
+      silos: [{ id: "s1", x: 0.72, y: 0.28, upgrades: 0 }],
+      market: null,
       plots: [
-        { id: "p1", x: 0.30, y: 0.14, crop: { type: "carrot", stage: "growing", plantedAt: Date.now() - 4000, readyAt: Date.now() + 6000 } },
-        { id: "p2", x: 0.46, y: 0.14, crop: { type: "corn", stage: "growing", plantedAt: Date.now() - 4000, readyAt: Date.now() + 6000 } },
-        { id: "p3", x: 0.62, y: 0.14, crop: { type: "carrot", stage: "ready", plantedAt: Date.now() - 20000, readyAt: Date.now() - 1000 } },
-        { id: "p4", x: 0.30, y: 0.30, crop: null },
-        { id: "p5", x: 0.46, y: 0.30, crop: { type: "corn", stage: "ready", plantedAt: Date.now() - 20000, readyAt: Date.now() - 1000 } },
-        { id: "p6", x: 0.62, y: 0.30, crop: null }
+        { id: "p1", x: 0.42, y: 0.42, crop: null }
       ]
     };
 
@@ -3172,6 +3274,7 @@ window.__ffStart = function () {
         horseShed: state.horseShed,
         sheepPen: state.sheepPen,
         pudding: state.pudding || 0,
+        crafted: state.crafted || {},
         pants: state.pants || 0,
         swords: state.swords || 0,
         gearSword: !!state.gearSword,
@@ -3258,16 +3361,21 @@ window.__ffStart = function () {
       }
       if (typeof state.milk !== "number") state.milk = 0;
       if (typeof state.sats !== "number") state.sats = 0;
+      if (!state.goldGrant500) {
+        state.sats = 500;
+        state.goldGrant500 = true;
+      }
+
       if (!Array.isArray(state.marketLog)) state.marketLog = [];
       if (!state.starterSats) {
         state.sats += FF.starterSats;
         state.starterSats = true;
         state.pack30 = true;
-        state.marketLog.unshift({ at: now(), text: "Starter pack +" + FF.starterSats + " sats" });
+        state.marketLog.unshift({ at: now(), text: "Starter pack +" + FF.starterSats + " gold" });
       } else if (!state.pack30) {
         state.sats += FF.pack30Bonus;
         state.pack30 = true;
-        state.marketLog.unshift({ at: now(), text: "Tester pack +" + FF.pack30Bonus + " sats" });
+        state.marketLog.unshift({ at: now(), text: "Tester pack +" + FF.pack30Bonus + " gold" });
       }
       if (!state.herbTest) {
         state.herbs = Math.max(10, state.herbs || 0);
@@ -3275,18 +3383,11 @@ window.__ffStart = function () {
         state.marketLog.unshift({ at: now(), text: "Test pack +10 herbs" });
       }
       if (!state.pondTest) {
-        state.mushrooms = Math.max(4, state.mushrooms || 0);
-        state.fish = Math.max(4, state.fish || 0);
         state.ponds = state.ponds || [];
-        if (!state.ponds.length) state.ponds.push({ id: "pond-test", x: 0.42, y: 0.78, stock: 0, tickAt: 0 });
         state.pondTest = true;
       }
       if (!state.petBedRate) {
         state.petBeds = state.petBeds || [];
-        if (!state.petBeds.length) state.petBeds.push({ id: "bed-test", x: 0.72, y: 0.62 });
-        (state.pets || []).forEach(function (pet) {
-          if (pet.id === "mouse-test") pet.hp = pet.hp;
-        });
         state.petBedRate = true;
       }
       if (!state.demoMats) {
@@ -3295,16 +3396,12 @@ window.__ffStart = function () {
         state.demoMats = true;
         state.marketLog.unshift({ at: now(), text: "Demo +25 rocks +25 lumber" });
       }
-      if (!state.shed || typeof state.shed.x !== "number") {
-        state.shed = { x: 0.18, y: 0.72, cows: [{ id: "c1", stage: "hungry", readyAt: 0 }] };
-      }
+      /* bare demo: no cow shed until bought */
       if (!state.coop) state.coop = { chickens: [] };
       if (!Array.isArray(state.silos) || !state.silos.length) {
         state.silos = [{ id: "s1", x: 0.86, y: 0.14, upgrades: 0 }];
       }
-      if (!Array.isArray(state.smiths) || !state.smiths.length) {
-        state.smiths = [{ id: "sm1", x: 0.2, y: 0.78 }];
-      }
+      state.smiths = state.smiths || [];
       if (typeof state.leatherSheets !== "number") state.leatherSheets = 0;
       if (typeof state.ironIngots !== "number") state.ironIngots = 0;
       if ((state.leather || 0) < 20) state.leather = 20;
@@ -3345,15 +3442,12 @@ window.__ffStart = function () {
         state.demoPack100 = true;
         if (Array.isArray(state.marketLog)) state.marketLog.unshift({ at: now(), text: "Demo +100 sats +100 lumber +100 rocks" });
       }
-      if (!Array.isArray(state.shed.cows) || !state.shed.cows.length) {
+      if (state.shed && (!Array.isArray(state.shed.cows) || !state.shed.cows.length)) {
         state.shed.cows = [{
           id: "c1",
           stage: state.shed.stage || "hungry",
           readyAt: state.shed.readyAt || 0
         }];
-      }
-      if (!state.market || typeof state.market.x !== "number") {
-        state.market = { x: 0.42, y: 0.72 };
       }
       if (!Array.isArray(state.wells) || !state.wells.length) {
         state.wells = [{
@@ -3435,6 +3529,7 @@ window.__ffStart = function () {
       }
     }
     function ensureDemoSheds() {
+      return;
       if (state.demoSheds) return;
       function put(kind, apply) {
         if (typeof findSpot !== "function") return;
@@ -3471,21 +3566,20 @@ window.__ffStart = function () {
       } catch (e) {
         localStorage.removeItem(SAVE_KEY);
       }
-      ensureDemoClothes();
-      ensureCarrotSilo();
-      ensureDemoGear();
-      ensureDemoAdventure();
-      if (!state.demoBoost100) {
-        state.sats = (state.sats || 0) + 100;
-        state.lumber = (state.lumber || 0) + 100;
-        state.rocks = (state.rocks || 0) + 100;
+      /* bare demo: carrot silo only if bought */
+      if (!state.bareStart) {
+        state.bareStart = true;
+        state.water = 8;
+        state.carrotSeeds = 5;
+        state.cornSeeds = 5;
         state.demoBoost100 = true;
         if (!Array.isArray(state.marketLog)) state.marketLog = [];
-        state.marketLog.unshift({ at: Date.now(), text: "Demo +100 sats +100 lumber +100 rocks" });
+        state.marketLog.unshift({ at: Date.now(), text: "Demo purse" });
       }
+      if (!state.goldGrant500) { state.sats = 500; state.goldGrant500 = true; }
             if (state.ironOre == null && state.iron != null) state.ironOre = state.iron;
       if (state.ironIngots == null && state.ingots != null) state.ironIngots = state.ingots;
-if (!state.demoSmithMats) {
+if (false && !state.demoSmithMats) {
         state.leather = (state.leather || 0) + 20;
         state.ironOre = (state.ironOre || 0) + 20;
         state.demoSmithMats = true;
@@ -3525,13 +3619,17 @@ if (!state.demoSmithMats) {
     }
 
     function askYes(msg) {
+      if (window.__shopBuy) {
+        window.__shopBuy = false;
+        return Promise.resolve(true);
+      }
       return new Promise((resolve) => {
         const box = document.getElementById("ask-box");
         const p = document.getElementById("ask-msg");
         const yes = document.getElementById("ask-yes");
         const no = document.getElementById("ask-no");
         if (box && box.parentElement !== document.body) document.body.appendChild(box);
-        if (box) box.style.zIndex = "1400";
+        if (box) box.style.zIndex = "4000";
         p.textContent = msg;
         box.classList.add("open");
         box.setAttribute("aria-hidden", "false");
@@ -3707,7 +3805,7 @@ if (!state.demoSmithMats) {
         .concat((state.charmsBenches || []).map((s) => ({ id: s.id, kind: "charm", x: s.x, y: s.y, scale: 1 })))
         .concat((state.kitchens || []).map((s) => ({ id: s.id, kind: "kitchen", x: s.x, y: s.y, scale: 1 })))
         .concat((state.tailors || []).map((s) => ({ id: s.id, kind: "tailor", x: s.x, y: s.y, scale: 1 })))
-        .concat([{ id: "shed", kind: "shed", x: state.shed.x, y: state.shed.y, scale: 1.22, level: state.shed.level }])
+        .concat(state.shed && typeof state.shed.x === "number" ? [{ id: "shed", kind: "shed", x: state.shed.x, y: state.shed.y, scale: 1.22, level: state.shed.level }] : [])
         .concat(chickens().length && state.coop && typeof state.coop.x === "number" ? [{ id: "coop", kind: "coop", x: state.coop.x, y: state.coop.y, scale: 1.15, level: state.coop.level }] : [])
         .concat(horses().length && state.horseShed && typeof state.horseShed.x === "number" ? [{ id: "horse", kind: "horse", x: state.horseShed.x, y: state.horseShed.y, scale: 1.15, level: state.horseShed.level }] : [])
         .concat(sheep().length && state.sheepPen && typeof state.sheepPen.x === "number" ? [{ id: "sheep", kind: "sheep", x: state.sheepPen.x, y: state.sheepPen.y, scale: 1.15, level: state.sheepPen.level }] : [])
@@ -3778,7 +3876,7 @@ if (!state.demoSmithMats) {
         return [{ id: "coop", x: state.coop.x, y: state.coop.y }].filter((p) => p.id !== skipId);
       }
       if (kind === "market") {
-        return [{ id: "market", x: state.market.x, y: state.market.y }].filter((p) => p.id !== skipId);
+        return state.market && typeof state.market.x === "number" ? [{ id: "market", x: state.market.x, y: state.market.y }].filter((p) => p.id !== skipId) : [];
       }
       if (kind === "tree") {
         return (state.trees || []).filter((p) => p.id !== skipId).map((p) => ({ id: p.id, x: p.x, y: p.y }));
@@ -4169,7 +4267,7 @@ if (!state.demoSmithMats) {
     }
     async function buyChicken() {
       if (!(await askYes("Buy a chicken for 3 sats?"))) return;
-      if (state.sats < FF.prices.chicken) { toast("Need 3 sats"); return; }
+      if (state.sats < FF.prices.chicken) { toast("Need 3 gold"); return; }
       const first = !chickens().length;
       if (first) {
         let spot = findSpot("coop");
@@ -4422,7 +4520,7 @@ if (!state.demoSmithMats) {
     }
     async function buySheep() {
       if (!(await askYes("Buy a sheep for 4 sats?"))) return;
-      if (state.sats < (FF.prices.sheep || 4)) { toast("Need 4 sats"); return; }
+      if (state.sats < (FF.prices.sheep || 4)) { toast("Need 4 gold"); return; }
       const first = !sheep().length;
       if (first) {
         let spot = findSpot("sheep");
@@ -4562,7 +4660,7 @@ if (!state.demoSmithMats) {
     }
     async function buyPig() {
       if (!(await askYes("Buy a pig for 7 sats?"))) return;
-      if (state.sats < (FF.prices.pig || 7)) { toast("Need 7 sats"); return; }
+      if (state.sats < (FF.prices.pig || 7)) { toast("Need 7 gold"); return; }
       const first = !pigs().length;
       if (first) {
         let spot = findSpot("pig");
@@ -4605,7 +4703,7 @@ if (!state.demoSmithMats) {
 
     async function buyHorse() {
       if (!(await askYes("Buy a horse for 8 sats?"))) return;
-      if (state.sats < (FF.prices.horse || 8)) { toast("Need 8 sats"); return; }
+      if (state.sats < (FF.prices.horse || 8)) { toast("Need 8 gold"); return; }
       const first = !horses().length;
       if (first) {
         let spot = findSpot("horse");
@@ -4639,13 +4737,13 @@ if (!state.demoSmithMats) {
       if (have < unit) { toast("Need horse hair"); return; }
       let n = 1;
       if (have > 1) {
-        if (await askYes("Sell ALL horse hair? " + have + " for " + (have * pay) + " sats")) n = have;
+        if (await askYes("Sell ALL horse hair? " + have + " for " + (have * pay) + " gold")) n = have;
         else if (!(await askYes("Sell 1 horse hair for " + pay + " sats?"))) return;
       } else if (!(await askYes("Sell 1 horse hair for " + pay + " sats?"))) return;
       state.horseHair -= n;
       state.sats += n * pay;
       logMarket("Sold " + n + " horse hair +" + (n * pay) + " sat");
-      toast("Sold " + n + " horse hair for " + (n * pay) + " sats");
+      toast("Sold " + n + " horse hair for " + (n * pay) + " gold");
       save();
       render();
       openMarket(true);
@@ -4653,7 +4751,7 @@ if (!state.demoSmithMats) {
 
     async function buyCow() {
       if (!(await askYes("Buy a cow for 7 sats?"))) return;
-      if (state.sats < FF.prices.cow) { toast("Need 7 sats"); return; }
+      if (state.sats < FF.prices.cow) { toast("Need 7 gold"); return; }
       if (cows().length >= shedCap(state.shed)) {
         if (shedLvl(state.shed) < 3) {
           toast("Pasture full (" + shedCap(state.shed) + "). Upgrade for more room");
@@ -4738,8 +4836,92 @@ if (!state.demoSmithMats) {
         list.addEventListener("touchmove", function (ev) { ev.stopPropagation(); }, { passive: true });
       }
     }
-    function openKitchen(force) { openShop("kitchen-panel", force); }
-    function openTailor(force) { openShop("tailor-panel", force); }
+    
+    const KITCHEN_RECIPES = [
+      { id: "butter", name: "Butter", ico: "🧈", pay: 2, need: { milk: 6 } },
+      { id: "cream", name: "Cream", ico: "🍶", pay: 2, need: { milk: 4, eggs: 2 } },
+      { id: "cheese", name: "Cheese", ico: "🧀", pay: 3, need: { milk: 8 } },
+      { id: "yogurt", name: "Yogurt", ico: "🥣", pay: 2, need: { milk: 3, herbs: 1 } },
+      { id: "omelette", name: "Omelette", ico: "🍳", pay: 2, need: { eggs: 4, carrots: 2 } },
+      { id: "friedEggs", name: "Fried eggs", ico: "🍳", pay: 1, need: { eggs: 3 } },
+      { id: "eggBread", name: "Egg bread", ico: "🍞", pay: 2, need: { eggs: 4, corn: 6 } },
+      { id: "pickledEggs", name: "Pickled eggs", ico: "🥚", pay: 2, need: { eggs: 5, herbs: 1 } },
+      { id: "truffleButter", name: "Truffle butter", ico: "🧈", pay: 3, need: { truffles: 2, milk: 4 } },
+      { id: "truffleOmelette", name: "Truffle omelette", ico: "🍳", pay: 3, need: { truffles: 2, eggs: 3 } },
+      { id: "truffleSoup", name: "Truffle soup", ico: "🍲", pay: 3, need: { truffles: 2, carrots: 4, water: 2 } },
+      { id: "roastTruffle", name: "Roast truffle", ico: "🔥", pay: 4, need: { truffles: 3, apples: 1 } },
+      { id: "breakfast", name: "Farmer's breakfast", ico: "🥞", pay: 2, need: { milk: 2, eggs: 2, corn: 4 } },
+      { id: "barnStew", name: "Barn stew", ico: "🍲", pay: 4, need: { milk: 3, eggs: 2, truffles: 1, carrots: 4 } },
+      { id: "creamedCorn", name: "Creamed corn", ico: "🌽", pay: 2, need: { milk: 3, corn: 10 } },
+      { id: "mushroomCream", name: "Mushroom cream", ico: "🍄", pay: 3, need: { milk: 4, mushrooms: 1 } },
+      { id: "fishPie", name: "Fish pie", ico: "🥧", pay: 3, need: { fish: 2, milk: 2, eggs: 2 } },
+      { id: "sundayRoast", name: "Sunday roast", ico: "🍖", pay: 5, need: { truffles: 2, eggs: 4, milk: 4, apples: 1 } }
+    ];
+    const TAILOR_RECIPES = [
+      { id: "scarf", name: "Scarf", ico: "🧣", pay: 2, need: { wool: 4 } },
+      { id: "blanket", name: "Blanket", ico: "🛏️", pay: 4, need: { wool: 10 } },
+      { id: "socks", name: "Socks", ico: "🧦", pay: 1, need: { wool: 3 } },
+      { id: "woolVest", name: "Wool vest", ico: "🦺", pay: 3, need: { wool: 8 } },
+      { id: "woolCoat", name: "Wool coat", ico: "🧥", pay: 6, need: { wool: 12, horseHair: 2 } },
+      { id: "saddlePad", name: "Saddle pad", ico: "🏇", pay: 4, need: { wool: 6, horseHair: 2 } },
+      { id: "rope", name: "Rope", ico: "🪢", pay: 3, need: { horseHair: 2 } },
+      { id: "brush", name: "Brush", ico: "🧹", pay: 2, need: { horseHair: 1, wool: 2 } },
+      { id: "bowstring", name: "Bowstring", ico: "🏹", pay: 3, need: { horseHair: 2 } },
+      { id: "flyWhisk", name: "Fly whisk", ico: "🪶", pay: 2, need: { horseHair: 1, wool: 1 } },
+      { id: "horseBraid", name: "Horse braid", ico: "🐴", pay: 4, need: { horseHair: 3 } },
+      { id: "rein", name: "Rein", ico: "🎠", pay: 4, need: { horseHair: 2, wool: 2 } },
+      { id: "stableKit", name: "Stable kit", ico: "🧰", pay: 5, need: { wool: 4, horseHair: 3 } },
+      { id: "winterBundle", name: "Winter bundle", ico: "❄️", pay: 6, need: { wool: 8, horseHair: 2 } },
+      { id: "riderKit", name: "Rider kit", ico: "🏇", pay: 7, need: { wool: 6, horseHair: 4 } }
+    ];
+    const ING_ICO = { milk: "🥛", eggs: "🥚", herbs: "🌿", carrots: "🥕", corn: "🌽", truffles: "🍄", apples: "🍎", water: "💧", mushrooms: "🍄", fish: "🐟", wool: "🧶", horseHair: "🐴" };
+    function needLine(need) {
+      return Object.keys(need).map(function (k) { return need[k] + " " + (ING_ICO[k] || k); }).join(" + ");
+    }
+    function paintCraftList(listId, recipes) {
+      const list = document.getElementById(listId);
+      if (!list) return;
+      const old = list.querySelectorAll(".craft-card");
+      old.forEach(function (n) { n.remove(); });
+      if (!state.crafted) state.crafted = {};
+      recipes.forEach(function (r) {
+        const have = state.crafted[r.id] || 0;
+        const card = document.createElement("div");
+        card.className = "craft-card";
+        card.innerHTML = '<div class="ico">' + r.ico + '</div><div><b>' + r.name + '</b><small>' + needLine(r.need) + " → 1 " + r.ico + " · " + r.pay + " gold · have " + have + '</small></div><button type="button" data-craft="' + r.id + '">Make</button>';
+        list.appendChild(card);
+      });
+    }
+    function craftRecipe(r) {
+      if (!state.crafted) state.crafted = {};
+      const keys = Object.keys(r.need);
+      for (let i = 0; i < keys.length; i++) {
+        const k = keys[i];
+        if ((state[k] || 0) < r.need[k]) { toast("Need " + r.need[k] + " " + k); return; }
+      }
+      keys.forEach(function (k) { state[k] -= r.need[k]; });
+      state.crafted[r.id] = (state.crafted[r.id] || 0) + 1;
+      logMarket("Crafted " + r.name);
+      toast(r.name + " ready");
+      save();
+      render();
+      paintCraftList("kitchen-list", KITCHEN_RECIPES);
+      paintCraftList("tailor-list", TAILOR_RECIPES);
+    }
+    function bindCraftSheet(panelId, recipes) {
+      const pan = document.getElementById(panelId);
+      if (!pan || pan._crafted) return;
+      pan._crafted = true;
+      pan.addEventListener("click", function (ev) {
+        const btn = ev.target.closest("[data-craft]");
+        if (!btn) return;
+        const r = recipes.filter(function (x) { return x.id === btn.getAttribute("data-craft"); })[0];
+        if (r) craftRecipe(r);
+      });
+    }
+
+function openKitchen(force) { openShop("kitchen-panel", force); paintCraftList("kitchen-list", KITCHEN_RECIPES); bindCraftSheet("kitchen-panel", KITCHEN_RECIPES); }
+    function openTailor(force) { openShop("tailor-panel", force); paintCraftList("tailor-list", TAILOR_RECIPES); bindCraftSheet("tailor-panel", TAILOR_RECIPES); }
     function openCraft(force) { openKitchen(force); }
     async function craftPudding() {
       if (!(await askYes("Craft 1 pudding from 4 milk and 3 eggs?"))) return;
@@ -4782,13 +4964,13 @@ if (!state.demoSmithMats) {
       if (have < 1) { toast("No beanie"); return; }
       let n = 1;
       if (have > 1) {
-        if (await askYes("Sell ALL beanies? " + have + " for " + (have * 3) + " sats")) n = have;
+        if (await askYes("Sell ALL beanies? " + have + " for " + (have * 3) + " gold")) n = have;
         else if (!(await askYes("Sell 1 beanie for 3 sats?"))) return;
       } else if (!(await askYes("Sell 1 beanie for 3 sats?"))) return;
       state.beanies -= n;
       state.sats += n * 3;
       logMarket("Sold " + n + " beanie +" + (n * 3) + " sat");
-      toast("Sold " + n + " beanie for " + (n * 3) + " sats");
+      toast("Sold " + n + " beanie for " + (n * 3) + " gold");
       save();
       render();
       openMarket(true);
@@ -4824,13 +5006,13 @@ if (!state.demoSmithMats) {
       if (have < 1) { toast("No shirt"); return; }
       let n = 1;
       if (have > 1) {
-        if (await askYes("Sell ALL shirts? " + have + " for " + (have * 3) + " sats")) n = have;
+        if (await askYes("Sell ALL shirts? " + have + " for " + (have * 3) + " gold")) n = have;
         else if (!(await askYes("Sell 1 shirt for 3 sats?"))) return;
       } else if (!(await askYes("Sell 1 shirt for 3 sats?"))) return;
       state.shirts -= n;
       state.sats += n * 3;
       logMarket("Sold " + n + " shirt +" + (n * 3) + " sat");
-      toast("Sold " + n + " shirt for " + (n * 3) + " sats");
+      toast("Sold " + n + " shirt for " + (n * 3) + " gold");
       save();
       render();
       openMarket(true);
@@ -4841,13 +5023,13 @@ if (!state.demoSmithMats) {
       const pay = FF.pants.sellSats || 4;
       let n = 1;
       if (have > 1) {
-        if (await askYes("Sell ALL pants? " + have + " for " + (have * pay) + " sats")) n = have;
+        if (await askYes("Sell ALL pants? " + have + " for " + (have * pay) + " gold")) n = have;
         else if (!(await askYes("Sell 1 pants for " + pay + " sats?"))) return;
       } else if (!(await askYes("Sell 1 pants for " + pay + " sats?"))) return;
       state.pants -= n;
       state.sats += n * pay;
       logMarket("Sold " + n + " pants +" + (n * pay) + " sat");
-      toast("Sold " + n + " pants for " + (n * pay) + " sats");
+      toast("Sold " + n + " pants for " + (n * pay) + " gold");
       save();
       render();
       openMarket(true);
@@ -4857,13 +5039,13 @@ if (!state.demoSmithMats) {
       if (have < 1) { toast(state.gearSword ? "Unequip the sword first" : "No stone sword"); return; }
       let n = 1;
       if (have > 1) {
-        if (await askYes("Sell ALL stone swords? " + have + " for " + (have * 5) + " sats")) n = have;
+        if (await askYes("Sell ALL stone swords? " + have + " for " + (have * 5) + " gold")) n = have;
         else if (!(await askYes("Sell 1 stone sword for 5 sats?"))) return;
       } else if (!(await askYes("Sell 1 stone sword for 5 sats?"))) return;
       state.swords -= n;
       state.sats += n * 5;
       logMarket("Sold " + n + " sword +" + (n * 5) + " sat");
-      toast("Sold " + n + " sword for " + (n * 5) + " sats");
+      toast("Sold " + n + " sword for " + (n * 5) + " gold");
       save();
       render();
       openMarket(true);
@@ -4873,13 +5055,13 @@ if (!state.demoSmithMats) {
       if (have < 1) { toast("No pudding"); return; }
       let n = 1;
       if (have > 1) {
-        if (await askYes("Sell ALL pudding? " + have + " for " + (have * 2) + " sats")) n = have;
+        if (await askYes("Sell ALL pudding? " + have + " for " + (have * 2) + " gold")) n = have;
         else if (!(await askYes("Sell 1 pudding for 2 sats?"))) return;
       } else if (!(await askYes("Sell 1 pudding for 2 sats?"))) return;
       state.pudding -= n;
       state.sats += n * FF.pudding.sellSats;
       logMarket("Sold " + n + " pudding +" + (n * 2) + " sat");
-      toast("Sold " + n + " pudding for " + (n * 2) + " sats");
+      toast("Sold " + n + " pudding for " + (n * 2) + " gold");
       save();
       render();
       openMarket(true);
@@ -4896,7 +5078,7 @@ if (!state.demoSmithMats) {
     async function buyAuto() {
       if (autoOn()) { toast("Already running " + fmtLeft(state.autoUntil - now())); return; }
       if (!(await askYes("Run the farm on auto for 2 minutes for 1 sat?"))) return;
-      if (state.sats < 1) { toast("Need 1 sat"); return; }
+      if (state.sats < 1) { toast("Need 1 gold"); return; }
       state.sats -= 1;
       state.autoUntil = now() + 2 * 60 * 1000;
       if (!state.autoNext) state.autoNext = "cow";
@@ -5279,6 +5461,8 @@ function autoTick() {
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Oct 6 — Bare field. One crop land, a well, a corn silo. Shop buys place and close so you can see them.",
+      "Oct 6 — Market is a shop. Close stays on top. Sell, seeds, animals, buildings, land.",
       "Oct 6 — Lake job is fishing. Own scene: rod, reeds, bobber. Fish pays fish.",
       "Oct 6 — Pet holds the front. You wait back, and step in only when the pet goes down.",
       "Oct 6 — Take closes the loot popup and the fight.",
@@ -5468,14 +5652,54 @@ function autoTick() {
         { cat: "crops", name: "Carrots", icon: "🥕", n: qty("carrots"), label: String(qty("carrots")) },
         { cat: "crops", name: "Corn", icon: "🌽", n: qty("corn"), label: String(qty("corn")) },
         { cat: "crops", name: "Apples", icon: "🍎", n: qty("apples"), label: String(qty("apples")) },
+        { cat: "crops", name: "Herb", icon: "🌿", n: qty("herbs"), label: String(qty("herbs")) },
         { cat: "crops", name: "Carrot seeds", icon: "🌱", n: qty("carrotSeeds"), label: String(qty("carrotSeeds")) },
         { cat: "crops", name: "Corn seeds", icon: "🌱", n: qty("cornSeeds"), label: String(qty("cornSeeds")) },
+        { cat: "crops", name: "Mushroom", icon: "🍄", n: qty("mushrooms"), label: String(qty("mushrooms")) },
         { cat: "stock", name: "Milk", icon: "🥛", n: qty("milk"), label: String(qty("milk")) },
         { cat: "stock", name: "Eggs", icon: "🥚", n: qty("eggs"), label: String(qty("eggs")) },
         { cat: "stock", name: "Horse hair", icon: art(function () { return hairMark(true); }), n: qty("horseHair"), label: String(qty("horseHair")) },
         { cat: "stock", name: "Wool", icon: art(woolArt), n: qty("wool"), label: String(qty("wool")) },
         { cat: "stock", name: "Truffles", icon: "🍄", n: qty("truffles"), label: String(qty("truffles")) },
         { cat: "kitchen", name: "Pudding", icon: "🍮", n: qty("pudding"), label: String(qty("pudding")) },
+        { cat: "kitchen", name: "Butter", icon: "🧈", n: qty("butter"), label: String(qty("butter")) },
+        { cat: "kitchen", name: "Cream", icon: "🥛", n: qty("cream"), label: String(qty("cream")) },
+        { cat: "kitchen", name: "Cheese", icon: "🧀", n: qty("cheese"), label: String(qty("cheese")) },
+        { cat: "kitchen", name: "Yogurt", icon: "🥣", n: qty("yogurt"), label: String(qty("yogurt")) },
+        { cat: "kitchen", name: "Omelette", icon: "🍳", n: qty("omelette"), label: String(qty("omelette")) },
+        { cat: "kitchen", name: "Fried eggs", icon: "🍳", n: qty("friedEggs"), label: String(qty("friedEggs")) },
+        { cat: "kitchen", name: "Egg bread", icon: "🍞", n: qty("eggBread"), label: String(qty("eggBread")) },
+        { cat: "kitchen", name: "Pickled eggs", icon: "🥚", n: qty("pickledEggs"), label: String(qty("pickledEggs")) },
+        { cat: "kitchen", name: "Truffle butter", icon: "🧈", n: qty("truffleButter"), label: String(qty("truffleButter")) },
+        { cat: "kitchen", name: "Truffle omelette", icon: "🍳", n: qty("truffleOmelette"), label: String(qty("truffleOmelette")) },
+        { cat: "kitchen", name: "Truffle soup", icon: "🍲", n: qty("truffleSoup"), label: String(qty("truffleSoup")) },
+        { cat: "kitchen", name: "Roast truffle", icon: "🍄", n: qty("roastTruffle"), label: String(qty("roastTruffle")) },
+        { cat: "kitchen", name: "Farmer breakfast", icon: "🥓", n: qty("breakfast"), label: String(qty("breakfast")) },
+        { cat: "kitchen", name: "Barn stew", icon: "🍲", n: qty("barnStew"), label: String(qty("barnStew")) },
+        { cat: "kitchen", name: "Creamed corn", icon: "🌽", n: qty("creamedCorn"), label: String(qty("creamedCorn")) },
+        { cat: "kitchen", name: "Mushroom cream", icon: "🍄", n: qty("mushroomCream"), label: String(qty("mushroomCream")) },
+        { cat: "kitchen", name: "Fish pie", icon: "🥧", n: qty("fishPie"), label: String(qty("fishPie")) },
+        { cat: "kitchen", name: "Sunday roast", icon: "🍖", n: qty("sundayRoast"), label: String(qty("sundayRoast")) },
+        { cat: "gear", name: "Scarf", icon: "🧣", n: qty("scarf"), label: String(qty("scarf")) },
+        { cat: "gear", name: "Blanket", icon: "🛏️", n: qty("blanket"), label: String(qty("blanket")) },
+        { cat: "gear", name: "Socks", icon: "🧦", n: qty("socks"), label: String(qty("socks")) },
+        { cat: "gear", name: "Wool vest", icon: "🦺", n: qty("woolVest"), label: String(qty("woolVest")) },
+        { cat: "gear", name: "Wool coat", icon: "🧥", n: qty("woolCoat"), label: String(qty("woolCoat")) },
+        { cat: "gear", name: "Saddle pad", icon: "🐴", n: qty("saddlePad"), label: String(qty("saddlePad")) },
+        { cat: "gear", name: "Rope", icon: "🪢", n: qty("rope"), label: String(qty("rope")) },
+        { cat: "gear", name: "Brush", icon: "🧹", n: qty("brush"), label: String(qty("brush")) },
+        { cat: "gear", name: "Bowstring", icon: "🏹", n: qty("bowstring"), label: String(qty("bowstring")) },
+        { cat: "gear", name: "Fly whisk", icon: "🪶", n: qty("whisk"), label: String(qty("whisk")) },
+        { cat: "gear", name: "Horse braid", icon: "🐴", n: qty("braid"), label: String(qty("braid")) },
+        { cat: "gear", name: "Rein", icon: "🪢", n: qty("rein"), label: String(qty("rein")) },
+        { cat: "gear", name: "Stable kit", icon: "🧰", n: qty("stableKit"), label: String(qty("stableKit")) },
+        { cat: "gear", name: "Winter bundle", icon: "🎁", n: qty("winterBundle"), label: String(qty("winterBundle")) },
+        { cat: "gear", name: "Rider kit", icon: "🎒", n: qty("riderKit"), label: String(qty("riderKit")) },
+        { cat: "kitchen", name: "Butter", icon: "🧈", n: (state.crafted && state.crafted.butter) || 0, label: String((state.crafted && state.crafted.butter) || 0) },
+        { cat: "kitchen", name: "Cheese", icon: "🧀", n: (state.crafted && state.crafted.cheese) || 0, label: String((state.crafted && state.crafted.cheese) || 0) },
+        { cat: "kitchen", name: "Cream", icon: "🍶", n: (state.crafted && state.crafted.cream) || 0, label: String((state.crafted && state.crafted.cream) || 0) },
+        { cat: "gear", name: "Scarf", icon: "🧣", n: (state.crafted && state.crafted.scarf) || 0, label: String((state.crafted && state.crafted.scarf) || 0) },
+        { cat: "gear", name: "Wool coat", icon: "🧥", n: (state.crafted && state.crafted.woolCoat) || 0, label: String((state.crafted && state.crafted.woolCoat) || 0) },
         { cat: "gear", name: "Pants", icon: art(pantsArt), n: qty("pants"), label: String(qty("pants")) },
         { cat: "weapons", name: "Stone sword", icon: art(function () { return typeof swordArt === "function" ? swordArt() : "🗡️"; }), n: qty("swords"), label: String(qty("swords")) },
         { cat: "gear", name: "Shirt", icon: art(shirtArt), n: qty("shirts"), label: String(qty("shirts")) },
@@ -5550,7 +5774,9 @@ function autoTick() {
       var chipMap = { All: "owned", Owned: "owned", Crops: "crops", Animals: "stock", "Animal products": "stock", Kitchen: "kitchen", Gear: "gear", Materials: "materials", Weapons: "weapons", Charms: "charms", Sats: "sats" };
       if (chipName && chipMap[chipName]) state.barnCat = chipMap[chipName];
       let shown = rows.filter(function (r) {
-        if (q && String(r.name).toLowerCase().indexOf(q) < 0) return false;
+        if (q && String(r.name).toLowerCase().indexOf(q) < 0 && String(r.name).toLowerCase().indexOf("cave") < 0) return false;
+        if (r.always) return !q || String(r.name).toLowerCase().indexOf(q) >= 0;
+        if (r.keep) return true;
         var shelf = state.barnCat || "owned";
         if (shelf === "owned" || shelf === "All") return hide ? r.n > 0 : true;
         if (shelf === "weapons") return /sword/i.test(r.name) && (hide ? r.n > 0 : true);
@@ -6874,8 +7100,7 @@ function autoTick() {
             const ironN = rollExtra(lvl);
             let parts = [];
             if (forest) {
-              state.lumber = (state.lumber || 0) + n;
-              if (n) parts.push({ kind: "lumber", n: n, label: n + " lumber" });
+              n = 0;
             } else if (lake) {
               n = 0;
             } else {
@@ -6891,13 +7116,13 @@ function autoTick() {
               state.ironOre = (state.ironOre || 0) + ironN;
               parts.push({ kind: "ironOre", n: ironN, name: "Iron ore" });
             }
-            if (forest && Math.random() < 0.55) {
+            if (forest && Math.random() < 0.45) {
               state.herbs = (state.herbs || 0) + 1;
-              parts.push({ kind: "herb", n: 1, label: "1 herb" });
+              parts.push({ kind: "herb", n: 1, name: "herb", label: "1 herb" });
             }
             if (!forest && !lake && Math.random() < 0.55) {
               state.mushrooms = (state.mushrooms || 0) + 1;
-              parts.push({ kind: "mushroom", n: 1, label: "1 cave mushroom" });
+              parts.push({ kind: "mushroom", n: 1, name: "cave mushroom", label: "1 cave mushroom" });
             }
             const hurt = (state.pets || []).find(function (pet) { return pet.id === state.equippedPet; });
             if (hurt && (hurt.hp == null || hurt.hp > 0)) {
@@ -6908,7 +7133,7 @@ function autoTick() {
             if (metalSet() === "gold") {
               const sats = 2 + Math.floor(Math.random() * 3);
               state.sats = (state.sats || 0) + sats;
-              parts.push({ kind: "sats", n: sats, label: sats + " sats" });
+              parts.push({ kind: "sats", n: sats, label: sats + " gold" });
             }
             var merged = [];
             parts.forEach(function (part) {
@@ -7895,8 +8120,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
         if (st) st.textContent = "You " + Math.max(0, state.panelYou) + " · foe " + Math.max(0, state.panelHp);
         if (state.panelHp <= 0) {
           try { captureWildBeast(); } catch (e) {}
-          if (st) st.textContent = "Win. Loot: 2 lumber.";
-          state.lumber = (state.lumber || 0) + 2;
+          if (st) st.textContent = "Win. Lumber comes from jobs.";
           try { save(); } catch (e) {}
           if (hit) hit.textContent = "Done";
           hit.onclick = function () { card.style.display = "none"; hit.textContent = "Hit"; };
@@ -8224,7 +8448,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
         const li = document.createElement("li");
         const owned = !!state.unlocks[item.id];
         const open = lvl >= item.lvl && !item.later;
-        li.textContent = "Lv " + item.lvl + " · " + item.label + (item.later ? " · later" : " · " + item.cost + " sats") + (owned ? " · unlocked" : open ? " · ready" : " · locked");
+        li.textContent = "Lv " + item.lvl + " · " + item.label + (item.later ? " · later" : " · " + item.cost + " gold") + (owned ? " · unlocked" : open ? " · ready" : " · locked");
         if (owned) li.style.color = "#e8c36a";
         if (open && !owned) {
           const b = document.createElement("button");
@@ -8241,8 +8465,316 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
       const closer = document.getElementById("house-close");
       if (closer) closer.onclick = function () { pan.classList.remove("open"); pan.style.display = "none"; };
     }
+
+    function mktHave(key) { if (state.crafted && state.crafted[key] != null) return Math.max(0, Number(state.crafted[key] || 0)); return Math.max(0, Number(state[key] || 0)); }
+    function mktSell(key, unit, pay, label, all) {
+      const have = mktHave(key);
+      const n = all ? Math.floor(have / unit) : 1;
+      if (n < 1 || have < unit * n) { toast("Need " + unit + " " + label); return; }
+      if (state.crafted && state.crafted[key] != null) state.crafted[key] = have - n * unit; else state[key] = have - n * unit;
+      state.sats = (state.sats || 0) + n * pay;
+      logMarket("Sold " + (n * unit) + " " + label + " +" + (n * pay) + " sat");
+      toast("+" + (n * pay) + " sat");
+      save();
+      render();
+      openMarket(true);
+    }
+    function mktCatalog() {
+      const silo = (FF.prices && FF.prices.silo) || 18;
+      const plot = (FF.prices && FF.prices.plot) || 10;
+      return {
+        sell: {
+          crops: [
+            { ico: "💧", name: "Water", key: "water", unit: 50, pay: 1 },
+            { ico: "🥕", name: "Carrots", key: "carrots", unit: 10, pay: 1 },
+            { ico: "🌽", name: "Corn", key: "corn", unit: 40, pay: 1 },
+            { ico: "🍎", name: "Apples", key: "apples", unit: 15, pay: 1 }
+          ],
+          animal: [
+            { ico: "🥛", name: "Milk", key: "milk", unit: 5, pay: 1 },
+            { ico: "🥚", name: "Eggs", key: "eggs", unit: 8, pay: 1 },
+            { ico: "🐴", name: "Horse hair", key: "horseHair", unit: 1, pay: 1 },
+            { ico: "🧶", name: "Wool", key: "wool", unit: 4, pay: 1 },
+            { ico: "🍄", name: "Truffles", key: "truffles", unit: 2, pay: 1 }
+          ],
+          crafts: [
+            { ico: "🍮", name: "Pudding", key: "pudding", unit: 1, pay: 2 },
+            { ico: "🧈", name: "Butter", key: "butter", unit: 1, pay: 2 },
+            { ico: "🥛", name: "Cream", key: "cream", unit: 1, pay: 2 },
+            { ico: "🧀", name: "Cheese", key: "cheese", unit: 1, pay: 3 },
+            { ico: "🥣", name: "Yogurt", key: "yogurt", unit: 1, pay: 2 },
+            { ico: "🍳", name: "Omelette", key: "omelette", unit: 1, pay: 2 },
+            { ico: "🍳", name: "Fried eggs", key: "friedEggs", unit: 1, pay: 1 },
+            { ico: "🍞", name: "Egg bread", key: "eggBread", unit: 1, pay: 2 },
+            { ico: "🥚", name: "Pickled eggs", key: "pickledEggs", unit: 1, pay: 2 },
+            { ico: "🧈", name: "Truffle butter", key: "truffleButter", unit: 1, pay: 3 },
+            { ico: "🍳", name: "Truffle omelette", key: "truffleOmelette", unit: 1, pay: 3 },
+            { ico: "🍲", name: "Truffle soup", key: "truffleSoup", unit: 1, pay: 3 },
+            { ico: "🍄", name: "Roast truffle", key: "roastTruffle", unit: 1, pay: 4 },
+            { ico: "🥓", name: "Farmer breakfast", key: "breakfast", unit: 1, pay: 2 },
+            { ico: "🍲", name: "Barn stew", key: "barnStew", unit: 1, pay: 4 },
+            { ico: "🌽", name: "Creamed corn", key: "creamedCorn", unit: 1, pay: 2 },
+            { ico: "🍄", name: "Mushroom cream", key: "mushroomCream", unit: 1, pay: 3 },
+            { ico: "🥧", name: "Fish pie", key: "fishPie", unit: 1, pay: 3 },
+            { ico: "🍖", name: "Sunday roast", key: "sundayRoast", unit: 1, pay: 5 },
+            { ico: "🧣", name: "Scarf", key: "scarf", unit: 1, pay: 2 },
+            { ico: "🛏️", name: "Blanket", key: "blanket", unit: 1, pay: 4 },
+            { ico: "🧦", name: "Socks", key: "socks", unit: 1, pay: 1 },
+            { ico: "🦺", name: "Wool vest", key: "woolVest", unit: 1, pay: 3 },
+            { ico: "🧥", name: "Wool coat", key: "woolCoat", unit: 1, pay: 6 },
+            { ico: "🐴", name: "Saddle pad", key: "saddlePad", unit: 1, pay: 4 },
+            { ico: "🪢", name: "Rope", key: "rope", unit: 1, pay: 3 },
+            { ico: "🧹", name: "Brush", key: "brush", unit: 1, pay: 2 },
+            { ico: "🏹", name: "Bowstring", key: "bowstring", unit: 1, pay: 3 },
+            { ico: "🪶", name: "Fly whisk", key: "whisk", unit: 1, pay: 2 },
+            { ico: "🐴", name: "Horse braid", key: "braid", unit: 1, pay: 4 },
+            { ico: "🪢", name: "Rein", key: "rein", unit: 1, pay: 4 },
+            { ico: "🧰", name: "Stable kit", key: "stableKit", unit: 1, pay: 5 },
+            { ico: "🎁", name: "Winter bundle", key: "winterBundle", unit: 1, pay: 6 },
+            { ico: "🎒", name: "Rider kit", key: "riderKit", unit: 1, pay: 7 },
+            { ico: "🧈", name: "Butter", key: "butter", unit: 1, pay: 2 },
+            { ico: "🥛", name: "Cream", key: "cream", unit: 1, pay: 2 },
+            { ico: "🧀", name: "Cheese", key: "cheese", unit: 1, pay: 3 },
+            { ico: "🥛", name: "Yogurt", key: "yogurt", unit: 1, pay: 2 },
+            { ico: "🍳", name: "Omelette", key: "omelette", unit: 1, pay: 2 },
+            { ico: "🍳", name: "Fried eggs", key: "friedEggs", unit: 1, pay: 1 },
+            { ico: "🍞", name: "Egg bread", key: "eggBread", unit: 1, pay: 2 },
+            { ico: "🥚", name: "Pickled eggs", key: "pickledEggs", unit: 1, pay: 2 },
+            { ico: "🧈", name: "Truffle butter", key: "truffleButter", unit: 1, pay: 3 },
+            { ico: "🍳", name: "Truffle omelette", key: "truffleOmelette", unit: 1, pay: 3 },
+            { ico: "🍲", name: "Truffle soup", key: "truffleSoup", unit: 1, pay: 3 },
+            { ico: "🍄", name: "Roast truffle", key: "roastTruffle", unit: 1, pay: 4 },
+            { ico: "🍳", name: "Farmer's breakfast", key: "breakfast", unit: 1, pay: 2 },
+            { ico: "🍲", name: "Barn stew", key: "barnStew", unit: 1, pay: 4 },
+            { ico: "🌽", name: "Creamed corn", key: "creamedCorn", unit: 1, pay: 2 },
+            { ico: "🍄", name: "Mushroom cream", key: "mushroomCream", unit: 1, pay: 3 },
+            { ico: "🥧", name: "Fish pie", key: "fishPie", unit: 1, pay: 3 },
+            { ico: "🍖", name: "Sunday roast", key: "sundayRoast", unit: 1, pay: 5 },
+            { ico: "🧣", name: "Scarf", key: "scarf", unit: 1, pay: 2 },
+            { ico: "🧣", name: "Blanket", key: "blanket", unit: 1, pay: 4 },
+            { ico: "🧦", name: "Socks", key: "socks", unit: 1, pay: 1 },
+            { ico: "🦺", name: "Wool vest", key: "woolVest", unit: 1, pay: 3 },
+            { ico: "🧥", name: "Wool coat", key: "woolCoat", unit: 1, pay: 6 },
+            { ico: "🐎", name: "Saddle pad", key: "saddlePad", unit: 1, pay: 4 },
+            { ico: "🪢", name: "Rope", key: "rope", unit: 1, pay: 3 },
+            { ico: "🪮", name: "Brush", key: "brush", unit: 1, pay: 2 },
+            { ico: "🏹", name: "Bowstring", key: "bowstring", unit: 1, pay: 3 },
+            { ico: "🧹", name: "Fly whisk", key: "flyWhisk", unit: 1, pay: 2 },
+            { ico: "🐴", name: "Horse braid", key: "horseBraid", unit: 1, pay: 4 },
+            { ico: "🐴", name: "Rein", key: "rein", unit: 1, pay: 4 },
+            { ico: "🧰", name: "Stable kit", key: "stableKit", unit: 1, pay: 5 },
+            { ico: "🧣", name: "Winter bundle", key: "winterBundle", unit: 1, pay: 6 },
+            { ico: "🧤", name: "Rider kit", key: "riderKit", unit: 1, pay: 7 },
+            { ico: "🧈", name: "Butter", key: "butter", unit: 1, pay: 2 },
+            { ico: "🧀", name: "Cheese", key: "cheese", unit: 1, pay: 3 },
+            { ico: "🍳", name: "Omelette", key: "omelette", unit: 1, pay: 2 },
+            { ico: "🍲", name: "Barn stew", key: "barnStew", unit: 1, pay: 4 },
+            { ico: "🥧", name: "Fish pie", key: "fishPie", unit: 1, pay: 3 },
+            { ico: "🍖", name: "Sunday roast", key: "sundayRoast", unit: 1, pay: 5 },
+            { ico: "🧣", name: "Scarf", key: "scarf", unit: 1, pay: 2 },
+            { ico: "🧥", name: "Wool coat", key: "woolCoat", unit: 1, pay: 6 },
+            { ico: "🪢", name: "Rope", key: "rope", unit: 1, pay: 3 },
+            { ico: "🧰", name: "Stable kit", key: "stableKit", unit: 1, pay: 5 },
+            { ico: "👖", name: "Pants", key: "pants", unit: 1, pay: 4 },
+            { ico: "👕", name: "Shirt", key: "shirts", unit: 1, pay: 3 },
+            { ico: "🧢", name: "Beanie", key: "beanies", unit: 1, pay: 3 },
+            { ico: "🧤", name: "Cloth gloves", key: "gloves", unit: 1, pay: 3 },
+            { ico: "👢", name: "Cloth boots", key: "boots", unit: 1, pay: 4 },
+            { ico: "🧢", name: "Leather cap", key: "leatherCaps", unit: 1, pay: 6 },
+            { ico: "🦺", name: "Leather vest", key: "leatherVests", unit: 1, pay: 6 },
+            { ico: "👖", name: "Leather pants", key: "leatherPants", unit: 1, pay: 6 },
+            { ico: "🧤", name: "Leather gloves", key: "leatherGloves", unit: 1, pay: 6 },
+            { ico: "👢", name: "Leather boots", key: "leatherBoots", unit: 1, pay: 6 },
+            { ico: "🗡️", name: "Stone sword", key: "swords", unit: 1, pay: 5 },
+            { ico: "⚔️", name: "Iron sword", key: "ironSwords", unit: 1, pay: 8 }
+          ]
+        },
+        buy: {
+          seeds: [
+            { ico: "💧", name: "Water", rate: "1 sat → 25 water", cost: 1, act: "buy-water", have: "water" },
+            { ico: "🥕", name: "Carrot seeds", rate: "1 sat → 5 seeds", cost: 1, act: "buy-carrot-seeds", have: "carrotSeeds" },
+            { ico: "🌽", name: "Corn seeds", rate: "1 sat → 10 seeds", cost: 1, act: "buy-corn-seeds", have: "cornSeeds" }
+          ],
+          animals: [
+            { ico: "🐴", name: "Horse", rate: "Places in the stable", cost: 8, act: "buy-horse" },
+            { ico: "🐄", name: "Cow", rate: "Places in the shed", cost: 7, act: "buy-cow" },
+            { ico: "🐖", name: "Pig", rate: "Places in the pen", cost: 7, act: "buy-pig" },
+            { ico: "🐑", name: "Sheep", rate: "Places in the fold", cost: 4, act: "buy-sheep" },
+            { ico: "🐔", name: "Chicken", rate: "Places in the coop", cost: 3, act: "buy-chicken" }
+          ],
+          buildings: [
+            { ico: "🪣", name: "Well", rate: "Fills the can", cost: 15, act: "buy-well" },
+            { ico: "🌽", name: "Grain silo", rate: "+50 corn cap", cost: silo, act: "buy-silo" },
+            { ico: "🥕", name: "Carrot silo", rate: "+20 carrot cap", cost: 25, act: "buy-csilo" },
+            { ico: "🔨", name: "Blacksmith", rate: "2×2 bench", cost: 20, act: "buy-smith" },
+            { ico: "🍲", name: "Kitchen", rate: "2×2 bench", cost: 18, act: "buy-kitchen" },
+            { ico: "🧵", name: "Tailor", rate: "2×2 bench", cost: 18, act: "buy-tailor" },
+            { ico: "✨", name: "Charm bench", rate: "2×2 bench", cost: 16, act: "buy-charm" }
+          ],
+          land: [
+            { ico: "🍎", name: "Apple tree", rate: "Drops apples", cost: 5, act: "buy-tree" },
+            { ico: "🛏️", name: "Pet bed", rate: "2×2", cost: 12, act: "buy-petbed" },
+            { ico: "🐟", name: "Fish pond", rate: "2×2", cost: 14, act: "buy-pond" },
+            { ico: "🌱", name: "Crop land", rate: "One more plot", cost: plot, act: "buy-plot" },
+            { ico: "🗺️", name: "Expand farm", rate: "Farm +30%", cost: expandCost(), act: "buy-expand" }
+          ]
+        }
+      };
+    }
+    function paintMarket() {
+      const wallet = document.getElementById("mkt-wallet");
+      if (wallet) wallet.textContent = (state.sats || 0) + " gold";
+      const desk = state.mktDesk || "sell";
+      const side = state.mktSell || "crops";
+      const chips = document.getElementById("mkt-chips");
+      const sub = document.getElementById("mkt-sub");
+      const shelf = document.getElementById("mkt-shelf");
+      const receipt = document.getElementById("mkt-receipt");
+      if (!chips || !shelf) return;
+      const desks = [["sell","Sell"],["seeds","Seeds"],["animals","Animals"],["buildings","Buildings"],["land","Land"]];
+      chips.innerHTML = desks.map(function (d) {
+        return '<button type="button" class="mkt-chip' + (d[0] === desk ? " on" : "") + '" data-desk="' + d[0] + '">' + d[1] + "</button>";
+      }).join("");
+      const cat = mktCatalog();
+      if (sub) {
+        if (desk === "sell") {
+          sub.hidden = false;
+          const sides = [["crops","Crops"],["animal","Animal"],["crafts","Crafts"]];
+          sub.innerHTML = sides.map(function (d) {
+            return '<button type="button" class="mkt-chip' + (d[0] === side ? " on" : "") + '" data-side="' + d[0] + '">' + d[1] + "</button>";
+          }).join("");
+        } else sub.hidden = true;
+      }
+      const rows = desk === "sell" ? cat.sell[side] || [] : (cat.buy[desk] || []);
+      shelf.innerHTML = rows.map(function (row, i) {
+        if (row.act) {
+          const have = row.have ? mktHave(row.have) : null;
+          const sats = state.sats || 0;
+          const ok = sats >= row.cost;
+          const haveLine = have == null ? "" : '<div class="mkt-have">You have ' + have + "</div>";
+          return '<article class="mkt-card"><div class="mkt-ico">' + row.ico + '</div><div><div class="mkt-name">' + row.name + '</div><div class="mkt-rate">' + row.cost + " gold · " + row.rate + "</div>" + haveLine + '</div><div class="mkt-acts"><button type="button" data-buy="' + i + '"' + (ok ? "" : " disabled") + ">" + (ok ? "Buy" : "Need " + row.cost + " gold") + "</button></div></article>";
+        }
+        const have = mktHave(row.key);
+        const bundles = Math.floor(have / row.unit);
+        const ok = bundles >= 1;
+        const all = bundles > 1 ? '<button type="button" class="ghost" data-sell="' + i + '" data-all="1">All ' + bundles + "</button>" : "";
+        return '<article class="mkt-card"><div class="mkt-ico">' + row.ico + '</div><div><div class="mkt-name">' + row.name + '</div><div class="mkt-rate">' + row.unit + " → " + row.pay + " gold" + "" + '</div><div class="mkt-have">You have ' + have + "</div></div><div class=\"mkt-acts\"><button type=\"button\" data-sell=\"" + i + "\"" + (ok ? "" : " disabled") + ">" + (ok ? "Sell" : "Need " + row.unit) + "</button>" + all + "</div></article>";
+      }).join("") || '<p class="mkt-have">Nothing on this shelf.</p>';
+      if (receipt) {
+        const last = (state.marketLog || [])[0];
+        receipt.textContent = last ? last.text : "No trades yet.";
+      }
+      shelf._rows = rows;
+    }
+    function mktAct(act) {
+      window.__shopBuy = true;
+      window.__shopPlace = true;
+      const map = {
+        "buy-water": buyWater,
+        "buy-carrot-seeds": buyCarrotSeeds,
+        "buy-corn-seeds": buyCornSeeds,
+        "buy-horse": buyHorse,
+        "buy-cow": buyCow,
+        "buy-pig": buyPig,
+        "buy-sheep": buySheep,
+        "buy-chicken": buyChicken,
+        "buy-well": buyWell,
+        "buy-silo": buySilo,
+        "buy-csilo": buyCarrotSilo,
+        "buy-smith": buySmith,
+        "buy-kitchen": buyKitchen,
+        "buy-tailor": buyTailor,
+        "buy-charm": buyCharmBench,
+        "buy-tree": buyTree,
+        "buy-petbed": buyPetBed,
+        "buy-pond": buyPond,
+        "buy-plot": buyPlot,
+        "buy-expand": buyExpand
+      };
+      if (act === "buy-chicken" && state.coop && typeof state.coop.x === "number") { buyChicken(); return; }
+      if (act === "buy-cow" && state.shed && typeof state.shed.x === "number") { buyCow(); return; }
+      if (act === "buy-horse" && state.horseShed && typeof state.horseShed.x === "number") { buyHorse(); return; }
+      if (act === "buy-sheep" && state.sheepPen && typeof state.sheepPen.x === "number") { buySheep(); return; }
+      if (act === "buy-pig" && state.pigPen && typeof state.pigPen.x === "number") { buyPig(); return; }
+      const spec = placeSpec(act);
+      if (spec) { beginPlace(spec); return; }
+      const fn = map[act];
+      if (fn) fn();
+    }
+
+
+    let placing = null;
+    function showPlaceHint() {
+      const bar = document.getElementById("place-hint");
+      const text = document.getElementById("place-hint-text");
+      if (!bar) return;
+      if (!placing) { bar.hidden = true; return; }
+      bar.hidden = false;
+      if (text) text.textContent = "Tap the field to place " + placing.name;
+    }
+    function beginPlace(spec) {
+      if (placing) { toast("Finish placing first"); return; }
+      if ((state.sats || 0) < spec.cost) { toast("Need " + spec.cost + " gold"); return; }
+      state.sats -= spec.cost;
+      placing = spec;
+      closeMarket();
+      toast("Tap the field to place " + spec.name);
+      showPlaceHint();
+      save();
+      render();
+    }
+    function cancelPlace() {
+      if (!placing) return;
+      state.sats += placing.cost;
+      toast("Refunded " + placing.cost + " gold");
+      logMarket("Refunded " + placing.name + " +" + placing.cost + " gold");
+      placing = null;
+      showPlaceHint();
+      save();
+      render();
+    }
+    function commitPlace(x, y) {
+      if (!placing) return;
+      const spec = placing;
+      placing = null;
+      spec.drop(x, y);
+      logMarket("Placed " + spec.name + " −" + spec.cost + " gold");
+      toast(spec.name + " placed");
+      showPlaceHint();
+      save();
+      render();
+    }
+    function placeSpec(act) {
+      const id = Date.now().toString(36);
+      const map = {
+        "buy-pond": { cost: 14, name: "fish pond", kind: "pond", drop: function (x, y) { state.ponds = state.ponds || []; state.ponds.push({ id: "pond" + id, x: x, y: y, stock: 0, count: 0, level: 1, tickAt: 0 }); } },
+        "buy-petbed": { cost: 12, name: "pet bed", kind: "petbed", drop: function (x, y) { state.petBeds = state.petBeds || []; state.petBeds.push({ id: "bed" + id, x: x, y: y }); } },
+        "buy-well": { cost: 15, name: "well", kind: "well", drop: function (x, y) { state.wells.push({ id: "w" + id, x: x, y: y, water: 0, acc: 0 }); } },
+        "buy-silo": { cost: (FF.prices && FF.prices.silo) || 18, name: "grain silo", kind: "silo", drop: function (x, y) { state.silos = state.silos || []; state.silos.push({ id: "s" + id, x: x, y: y, upgrades: 0 }); } },
+        "buy-csilo": { cost: 25, name: "carrot silo", kind: "csilo", drop: function (x, y) { state.carrotSilos = state.carrotSilos || []; state.carrotSilos.push({ id: "c" + id, x: x, y: y, upgrades: 0 }); } },
+        "buy-smith": { cost: 20, name: "blacksmith", kind: "smith", drop: function (x, y) { state.smiths = state.smiths || []; state.smiths.push({ id: "sm" + id, x: x, y: y }); } },
+        "buy-kitchen": { cost: 18, name: "kitchen", kind: "kitchen", drop: function (x, y) { state.kitchens = state.kitchens || []; state.kitchens.push({ id: "k" + id, x: x, y: y }); } },
+        "buy-tailor": { cost: 18, name: "tailor", kind: "tailor", drop: function (x, y) { state.tailors = state.tailors || []; state.tailors.push({ id: "t" + id, x: x, y: y }); } },
+        "buy-charm": { cost: 16, name: "charm bench", kind: "charm", drop: function (x, y) { state.charmsBenches = state.charmsBenches || []; state.charmsBenches.push({ id: "ch" + id, x: x, y: y }); } },
+        "buy-tree": { cost: 5, name: "apple tree", kind: "tree", drop: function (x, y) { state.trees = state.trees || []; state.trees.push({ id: "t" + id, x: x, y: y, stage: "idle", readyAt: 0 }); } },
+        "buy-plot": { cost: (FF.prices && FF.prices.plot) || 10, name: "crop land", kind: "plot", drop: function (x, y) { state.plots.push({ id: "p" + id, x: x, y: y, crop: null }); } },
+        "buy-horse": { cost: 8, name: "horse", kind: "horse", drop: function (x, y) { state.horseShed = { x: x, y: y, horses: [{ id: "hs" + id, stage: "hungry", readyAt: 0 }], level: 1 }; } },
+        "buy-cow": { cost: 7, name: "cow", kind: "shed", drop: function (x, y) { state.shed = { x: x, y: y, cows: [{ id: "c" + id, stage: "hungry", readyAt: 0 }], level: 1 }; } },
+        "buy-pig": { cost: 7, name: "pig", kind: "pig", drop: function (x, y) { state.pigPen = { x: x, y: y, pigs: [{ id: "pg" + id, stage: "hungry", readyAt: 0 }], level: 1 }; } },
+        "buy-sheep": { cost: 4, name: "sheep", kind: "sheep", drop: function (x, y) { state.sheepPen = { x: x, y: y, sheep: [{ id: "sh" + id, stage: "hungry", readyAt: 0 }], level: 1 }; } },
+        "buy-chicken": { cost: 3, name: "chicken", kind: "coop", drop: function (x, y) { state.coop = { x: x, y: y, chickens: [{ id: "h" + id, stage: "hungry", readyAt: 0 }], level: 1 }; } }
+      };
+      return map[act] || null;
+    }
+
     function openMarket(force) {
       const pan = document.getElementById("market-panel");
+      if (window.__shopPlace) {
+        window.__shopPlace = false;
+        closeAllTabs();
+        toast("Placed. Market closed so you can see it.");
+        return;
+      }
       const wasOpen = pan && pan.classList.contains("open");
       closeAllTabs();
       if (wasOpen && !force) return;
@@ -8252,6 +8784,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
       showAssetSide(state.assetSide || "animals");
       fillMarketInv();
       renderMarketHistory();
+      paintMarket();
       pan.classList.add("open");
       pan.setAttribute("aria-hidden", "false");
       layout();
@@ -8260,14 +8793,16 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
       closeAllTabs();
     }
 
-    async function askSellBundles(have, unit, label) {
+    
+
+async function askSellBundles(have, unit, label) {
       const stock = Math.max(0, Number(have) || 0);
       const maxB = Math.floor(stock / unit);
       if (maxB < 1) { toast("Need " + unit + " " + label); return 0; }
       if (maxB === 1) {
         return (await askYes("Sell " + unit + " " + label + " for 1 sat?")) ? 1 : 0;
       }
-      if (await askYes("Sell ALL? " + (maxB * unit) + " " + label + " for " + maxB + " sats")) return maxB;
+      if (await askYes("Sell ALL? " + (maxB * unit) + " " + label + " for " + maxB + " gold")) return maxB;
       if (await askYes("Sell just one? " + unit + " " + label + " for 1 sat")) return 1;
       return 0;
     }
@@ -8300,7 +8835,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
 
     function buyWater() {
       if (state.sats < 1) {
-        toast("Need 1 sat");
+        toast("Need 1 gold");
         return;
       }
       const room = waterMax() - state.water;
@@ -8380,7 +8915,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
       state.sats -= cost;
       state.farmExpands = (state.farmExpands || 0) + 1;
       state.viewZoom = 1.15;
-      logMarket("Farm +30% −" + cost + " sats");
+      logMarket("Farm +30% −" + cost + " gold");
       layout();
       save();
       render();
@@ -8394,7 +8929,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
         const label = kind === "coop" ? "chicken coop" : kind === "pig" ? "pig pen" : kind === "shed" ? "cow pasture" : kind === "horse" ? "horse pasture" : "sheep pasture";
         const who = kind === "coop" ? "chickens" : kind === "pig" ? "pigs" : kind === "shed" ? "cows" : kind === "horse" ? "horses" : "sheep";
         const size = (kind === "shed" || kind === "horse") ? "4×4 → 5×5" : "3×3 → 4×4";
-        if ((state.sats || 0) < 15) { toast("Need 15 sats"); return false; }
+        if ((state.sats || 0) < 15) { toast("Need 15 gold"); return false; }
         if ((state.lumber || 0) < 25) { toast("Need 25 lumber"); return false; }
         if ((state.rocks || 0) < 25) { toast("Need 25 rocks"); return false; }
         if (!(await askYes("Upgrade " + label + " to level 3?\n15 sats + 25 lumber + 25 rocks.\nSize " + size + ".\nMax " + who + ": 10 → 15."))) return false;
@@ -8415,7 +8950,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
         return true;
       }
       if (lv >= 2) { toast("Shed already level 2"); return false; }
-      if ((state.sats || 0) < 5) { toast("Need 5 sats"); return false; }
+      if ((state.sats || 0) < 5) { toast("Need 5 gold"); return false; }
       if ((state.lumber || 0) < 10) { toast("Need 10 lumber"); return false; }
       const name = kind === "coop" ? "chicken coop" : kind === "horse" ? "horse pasture" : kind === "sheep" ? "sheep shed" : kind === "pig" ? "pig shed" : "cow pasture";
       const who = kind === "coop" ? "chickens" : kind === "horse" ? "horses" : kind === "sheep" ? "sheep" : kind === "pig" ? "pigs" : "cows";
@@ -8698,7 +9233,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
       state.sats -= cost;
       state.farmExpands = (state.farmExpands || 0) + 1;
       state.viewZoom = 1.15;
-      logMarket("Farm +30% −" + cost + " sats");
+      logMarket("Farm +30% −" + cost + " gold");
       layout();
       save();
       render();
@@ -8731,8 +9266,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
       }
     }
     async function buyTree() {
-      if (!(await askYes("Buy an apple tree for 5 sats?"))) return;
-      if (state.sats < 5) { toast("Need 5 sats"); return; }
+      if (state.sats < 5) { toast("Need 5 gold"); return; }
       let spot = findSpot("tree");
       if (!spot) spot = await needSpace("apple tree");
       if (!spot) return;
@@ -8744,8 +9278,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
       save(); render(); openMarket(true);
     }
     async function buyPlot() {
-      if (!(await askYes("Buy crop land for 10 sats?"))) return;
-      if (state.sats < FF.prices.plot) { toast("Need 10 sats"); return; }
+      if (state.sats < FF.prices.plot) { toast("Need 10 gold"); return; }
       let spot = findSpot("plot");
       if (!spot) spot = await needSpace("crop land");
       if (!spot) return;
@@ -8797,8 +9330,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
     }
     async function buyKitchen() {
       const cost = 18;
-      if (!(await askYes("Buy a kitchen for " + cost + " sats?"))) return;
-      if (state.sats < cost) { toast("Need " + cost + " sats"); return; }
+      if (state.sats < cost) { toast("Need " + cost + " gold"); return; }
       let spot = findSpot("kitchen");
       if (!spot) spot = await needSpace("kitchen");
       if (!spot) return;
@@ -8811,8 +9343,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
     }
     async function buyTailor() {
       const cost = 18;
-      if (!(await askYes("Buy a tailor for " + cost + " sats?"))) return;
-      if (state.sats < cost) { toast("Need " + cost + " sats"); return; }
+      if (state.sats < cost) { toast("Need " + cost + " gold"); return; }
       let spot = findSpot("tailor");
       if (!spot) spot = await needSpace("tailor");
       if (!spot) return;
@@ -9118,10 +9649,10 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
           const cost = next === 2
             ? { sats: 5, lumber: 10, rocks: 0, cap: 10, size: "3×3" }
             : { sats: 15, lumber: 25, rocks: 25, cap: 15, size: "4×4" };
-          const bits = [cost.sats + " sats", cost.lumber + " lumber"];
+          const bits = [cost.sats + " gold", cost.lumber + " lumber"];
           if (cost.rocks) bits.push(cost.rocks + " rocks");
           if (!(await askYes("Upgrade pond to level " + next + "?\n" + bits.join(" + ") + ".\nSize " + (next === 2 ? "2×2 → 3×3" : "3×3 → 4×4") + ".\nCap " + pondCap(pond) + " → " + cost.cap + "."))) return;
-          if ((state.sats || 0) < cost.sats) { toast("Need " + cost.sats + " sats"); return; }
+          if ((state.sats || 0) < cost.sats) { toast("Need " + cost.sats + " gold"); return; }
           if ((state.lumber || 0) < cost.lumber) { toast("Need " + cost.lumber + " lumber"); return; }
           if (cost.rocks && (state.rocks || 0) < cost.rocks) { toast("Need " + cost.rocks + " rocks"); return; }
           const ghost = Object.assign({}, pond, { level: next });
@@ -9149,8 +9680,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
       };
     }
     async function buyPond() {
-      if (!(await askYes("Buy a fish pond for 14 sats? It covers 2×2. It stays empty until you add a lake fish."))) return;
-      if (state.sats < 14) { toast("Need 14 sats"); return; }
+      if (state.sats < 14) { toast("Need 14 gold"); return; }
       let spot = findSpot("pond");
       if (!spot) spot = await needSpace("fish pond");
       if (!spot) return;
@@ -9162,8 +9692,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
       render();
     }
     async function buyPetBed() {
-      if (!(await askYes("Buy a pet bed for 12 sats? It covers 2×2."))) return;
-      if (state.sats < 12) { toast("Need 12 sats"); return; }
+      if (state.sats < 12) { toast("Need 12 gold"); return; }
       let spot = findSpot("petbed");
       if (!spot) spot = await needSpace("pet bed");
       if (!spot) return;
@@ -9175,8 +9704,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
       render();
     }
     async function buySmith() {
-      if (!(await askYes("Buy a blacksmith for 20 sats?"))) return;
-      if (state.sats < 20) { toast("Need 20 sats"); return; }
+      if (state.sats < 20) { toast("Need 20 gold"); return; }
       let spot = findSpot("smith");
       if (!spot) spot = await needSpace("smith");
       if (!spot) return;
@@ -9203,8 +9731,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
     }
     async function buyCarrotSilo() {
       const cost = 25;
-      if (!(await askYes("Buy a carrot silo for " + cost + " sats? +20 carrot cap"))) return;
-      if (state.sats < cost) { toast("Need " + cost + " sats"); return; }
+      if (state.sats < cost) { toast("Need " + cost + " gold"); return; }
       let spot = findSpot("csilo");
       if (!spot) spot = await needSpace("csilo");
       if (!spot) return;
@@ -9221,7 +9748,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
       if ((silo.upgrades || 0) >= 3) { toast("This silo is fully upgraded"); return; }
       const cost = 20;
       if (!(await askYes("Upgrade this carrot silo +20 cap for " + cost + " sats?"))) return;
-      if (state.sats < cost) { toast("Need " + cost + " sats"); return; }
+      if (state.sats < cost) { toast("Need " + cost + " gold"); return; }
       state.sats -= cost;
       silo.upgrades = (silo.upgrades || 0) + 1;
       toast("Carrot silo now " + csiloCap(silo) + " cap");
@@ -9231,21 +9758,18 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
     }
     function ensureCarrotSilo() {
       state.carrotSilos = state.carrotSilos || [];
-      if (state.carrotSilos.length) return;
-      state.carrotSilos.push({ id: "csilo-1", x: 0.78, y: 0.22, upgrades: 0 });
     }
 
 async function buySilo() {
       const cost = FF.prices.silo || 18;
-      if (!(await askYes("Buy a grain silo for " + cost + " sats? +50 corn cap"))) return;
-      if (state.sats < cost) { toast("Need " + cost + " sats"); return; }
+      if (state.sats < cost) { toast("Need " + cost + " gold"); return; }
       let spot = findSpot("silo");
       if (!spot) spot = await needSpace("silo");
       if (!spot) return;
       state.sats -= cost;
       if (!state.silos) state.silos = [];
       state.silos.push({ id: "s" + Date.now().toString(36), x: spot.x, y: spot.y, upgrades: 0 });
-      logMarket("Bought a silo −" + cost + " sats");
+      logMarket("Bought a silo −" + cost + " gold");
       toast("Silo +50 corn cap");
       save();
       render();
@@ -9273,10 +9797,10 @@ async function buySilo() {
       if ((silo.upgrades || 0) >= maxU) { toast("This silo is fully upgraded"); return; }
       const cost = FF.prices.siloUpgrade || 20;
       if (!(await askYes("Upgrade this silo +50 corn cap for " + cost + " sats?"))) return;
-      if (state.sats < cost) { toast("Need " + cost + " sats"); return; }
+      if (state.sats < cost) { toast("Need " + cost + " gold"); return; }
       state.sats -= cost;
       silo.upgrades = (silo.upgrades || 0) + 1;
-      logMarket("Silo upgrade −" + cost + " sats");
+      logMarket("Silo upgrade −" + cost + " gold");
       toast("Silo now " + siloCap(silo) + " cap");
       save();
       render();
@@ -9291,12 +9815,11 @@ async function buySilo() {
     }
     async function buyExpand() {
       const cost = expandCost();
-      if (!(await askYes("Increase the size of the farm by 30% for " + cost + " sats?"))) return;
-      if (state.sats < cost) { toast("Need " + cost + " sats"); return; }
+      if (state.sats < cost) { toast("Need " + cost + " gold"); return; }
       state.sats -= cost;
       state.farmExpands = (state.farmExpands || 0) + 1;
       state.viewZoom = 1.15;
-      logMarket("Farm +30% −" + cost + " sats");
+      logMarket("Farm +30% −" + cost + " gold");
       toast("Farm expanded");
       layout();
       save();
@@ -9304,8 +9827,7 @@ async function buySilo() {
     }
 
     async function buyWell() {
-      if (!(await askYes("Buy a well for 15 sats?"))) return;
-      if (state.sats < FF.prices.well) { toast("Need 15 sats"); return; }
+      if (state.sats < FF.prices.well) { toast("Need 15 gold"); return; }
       let spot = findSpot("well");
       if (!spot) spot = await needSpace("well");
       if (!spot) return;
@@ -9319,7 +9841,7 @@ async function buySilo() {
     }
 
     function buyCornSeeds() {
-      if (state.sats < 1) { toast("Need 1 sat"); return; }
+      if (state.sats < 1) { toast("Need 1 gold"); return; }
       state.sats -= 1;
       state.cornSeeds += FF.buy.cornSeeds.qty;
       logMarket("Bought 10 corn seeds −1 sat");
@@ -9330,7 +9852,7 @@ async function buySilo() {
     }
 
     function buyCarrotSeeds() {
-      if (state.sats < 1) { toast("Need 1 sat"); return; }
+      if (state.sats < 1) { toast("Need 1 gold"); return; }
       state.sats -= 1;
       state.carrotSeeds += FF.buy.carrotSeeds.qty;
       logMarket("Bought 5 carrot seeds −1 sat");
@@ -9478,9 +10000,9 @@ async function buySilo() {
     function plant(plot, type) {
       if (plot.crop) { toast("This plot is busy"); return; }
       const c = CROPS[type];
-      if (state[c.seedKey] < 1) {
+      if ((state[c.seedKey] || 0) < 1) {
         if (type === "herb") { toast("No herbs — chop the Forest"); return; }
-        if (type === "mushroom") { toast("No mushrooms — mine for one"); return; }
+        if (type === "mushroom") { toast("No cave mushrooms. Mine for one"); return; }
         toast("No " + c.label + " seeds — buy some");
         state.tool = "sell";
         state.marketTab = "seeds";
@@ -9756,11 +10278,11 @@ async function buySilo() {
       const herbInv = document.getElementById("herb-inv");
       if (herbInv) herbInv.textContent = "🌿 " + herbN + " herb" + (herbN === 1 ? "" : "s");
       const lootInv = document.getElementById("loot-inv");
-      if (lootInv) lootInv.textContent = "🍄 " + (state.mushrooms || 0) + " mana reagent · 🐟 " + (state.fish || 0) + " fish";
+      if (lootInv) lootInv.textContent = "🍄 " + (state.mushrooms || 0) + " cave mushroom · 🐟 " + (state.fish || 0) + " fish";
       const satsEl = document.getElementById("stat-sats");
-      if (satsEl) satsEl.textContent = "⚡ " + state.sats + " sats";
+      if (satsEl) satsEl.textContent = "⚡ " + state.sats + " gold";
       const wo = document.getElementById("stat-worth");
-      if (wo) wo.textContent = "Farm worth " + farmWorth() + " sats";
+      if (wo) wo.textContent = "Farm worth " + farmWorth() + " gold";
       fillBarn();
 
       const mineOpen = !!(document.getElementById("mine-panel") && document.getElementById("mine-panel").classList.contains("open"));
@@ -9783,13 +10305,22 @@ async function buySilo() {
       if (forestBtn) { forestBtn.classList.toggle("active", forestOpen); forestBtn.classList.remove("glow"); }
       const pb = document.getElementById("tool-plant");
       if (pb) pb.textContent = state.tool === "carrot" ? "Plant 🥕" : state.tool === "corn" ? "Plant 🌽" : state.tool === "herb" ? "Plant 🌿" : state.tool === "mushroom" ? "Plant 🍄" : "Plant";
+      [["pick-corn","Corn","cornSeeds"],["pick-carrot","Carrot","carrotSeeds"],["pick-herb","Herb","herbs"],["pick-mushroom","Mushroom","mushrooms"]].forEach(function (row) {
+        const btn = document.getElementById(row[0]);
+        if (!btn) return;
+        const have = state[row[2]] || 0;
+        const small = btn.querySelector("small");
+        if (small) small.textContent = row[1] + " " + have;
+        btn.disabled = have < 1;
+        btn.style.opacity = have < 1 ? "0.4" : "";
+      });
 
       const hints = {
         farm: {
           carrot: "Planting carrot. Tap Plant to switch seed.",
           corn: "Planting corn. Tap Plant to switch seed.",
           herb: "Planting a herb. Harvest returns 1 or 2. Consume from Inventory.",
-          mushroom: "Planting a cave mushroom. Harvest returns 1 or 2.",
+          mushroom: "Planting a cave mushroom. Uses 1 from the mine. Harvest returns 1 or 2.",
           sell: "Market: Sell, Seeds, Assets.",
           craft: "Craft in this tab only.",
           barn: "Barn holds water, crops, milk, eggs, pudding, seeds."
@@ -9860,7 +10391,7 @@ async function buySilo() {
         bindTile(well, "well", w);
         grid.appendChild(well);
       });
-      if (!state.house) state.house = { x: 0.16, y: 0.58 };
+      if (state.house) {
       const house = document.createElement("div");
       house.className = "tile house";
       placeEl(house, state.house.x, state.house.y, 1, "house");
@@ -9869,6 +10400,7 @@ async function buySilo() {
       house.innerHTML = '<div class="house-art"><div class="house-roof"></div><div class="house-wall"></div><div class="house-door"></div><div class="house-win"></div></div><div class="label">' + stage.name + "</div>";
       bindTile(house, "house", state.house);
       grid.appendChild(house);
+      }
 
       (state.carrotSilos || []).forEach((s) => {
         const el = document.createElement("div");
@@ -10225,8 +10757,8 @@ async function buySilo() {
     const shedUp = document.getElementById("shed-up");
     if (shedUp) shedUp.onclick = function () { upgradeAnimalShed("shed"); };
     document.getElementById("shed-milk").onclick = collectMilkAll;
-    document.getElementById("buy-cow").onclick = buyCow;
-    document.getElementById("buy-chicken").onclick = buyChicken;
+    const buyCowBtn = document.getElementById("buy-cow"); if (buyCowBtn) buyCowBtn.onclick = buyCow;
+    const buyChickenBtn = document.getElementById("buy-chicken"); if (buyChickenBtn) buyChickenBtn.onclick = buyChicken;
     const buyHorseBtn = document.getElementById("buy-horse");
     if (buyHorseBtn) buyHorseBtn.onclick = buyHorse;
     const buySheepBtn = document.getElementById("buy-sheep");
@@ -10243,7 +10775,7 @@ async function buySilo() {
     if (buyPondBtn) buyPondBtn.onclick = buyPond;
     const sellHairBtn = document.getElementById("sell-hair");
     if (sellHairBtn) sellHairBtn.onclick = sellHair;
-    document.getElementById("sell-eggs").onclick = sellEggs;
+    /* market shelf owns this */
     document.getElementById("shed-close").onclick = closeShed;
     document.getElementById("plant-pick").onclick = function (ev) {
       if (ev.target.id === "plant-pick") {
@@ -10261,24 +10793,28 @@ async function buySilo() {
       if (pick) { pick.hidden = false; pick.classList.add("open"); }
     };
     document.getElementById("pick-corn").onclick = function () {
+      if ((state.cornSeeds || 0) < 1) { toast("No corn seeds"); return; }
       state.mode = "farm"; state.tool = "corn";
       const pick = document.getElementById("plant-pick");
       if (pick) { pick.classList.remove("open"); pick.hidden = true; }
       render();
     };
     document.getElementById("pick-carrot").onclick = function () {
+      if ((state.carrotSeeds || 0) < 1) { toast("No carrot seeds"); return; }
       state.mode = "farm"; state.tool = "carrot";
       const pick = document.getElementById("plant-pick");
       if (pick) { pick.classList.remove("open"); pick.hidden = true; }
       render();
     };
     document.getElementById("pick-herb").onclick = function () {
+      if ((state.herbs || 0) < 1) { toast("No herbs. Chop the Forest"); return; }
       state.mode = "farm"; state.tool = "herb";
       const pick = document.getElementById("plant-pick");
       if (pick) { pick.classList.remove("open"); pick.hidden = true; }
       render();
     };
     document.getElementById("pick-mushroom").onclick = function () {
+      if ((state.mushrooms || 0) < 1) { toast("No cave mushrooms. Mine for one"); return; }
       state.mode = "farm"; state.tool = "mushroom";
       const pick = document.getElementById("plant-pick");
       if (pick) { pick.classList.remove("open"); pick.hidden = true; }
@@ -10900,12 +11436,12 @@ async function buySilo() {
       if (pan) { pan.style.overflow = "hidden"; pan.style.touchAction = "pan-y"; }
       if (list) { list.style.overflowY = "auto"; list.style.webkitOverflowScrolling = "touch"; list.style.touchAction = "pan-y"; list.style.flex = "1 1 auto"; list.style.minHeight = "0"; }
     };
-    document.getElementById("craft-pudding").onclick = craftPudding;
+    const pudBtn = document.getElementById("craft-pudding"); if (pudBtn) pudBtn.onclick = craftPudding;
     const wcs = document.getElementById("wear-cloth-set");
     if (wcs) wcs.onclick = wearClothSet;
     const wls = document.getElementById("wear-leather-set");
     if (wls) wls.onclick = wearLeatherSet;
-    document.getElementById("craft-pants").onclick = craftPants;
+    const pantsBtn = document.getElementById("craft-pants"); if (pantsBtn) pantsBtn.onclick = craftPants;
     async function craftPair(need, bag, name, toastName) {
       if (!(await askYes("Craft 1 " + name + "?"))) return;
       for (let i = 0; i < need.length; i++) {
@@ -10922,7 +11458,7 @@ async function buySilo() {
       if (have < 1) { toast("No " + name); return; }
       let n = 1;
       if (have > 1) {
-        if (await askYes("Sell ALL " + name + "? " + have + " for " + (have * pay) + " sats")) n = have;
+        if (await askYes("Sell ALL " + name + "? " + have + " for " + (have * pay) + " gold")) n = have;
         else if (!(await askYes("Sell 1 " + name + " for " + pay + " sats?"))) return;
       } else if (!(await askYes("Sell 1 " + name + " for " + pay + " sats?"))) return;
       state[bag] -= n;
@@ -10936,16 +11472,16 @@ async function buySilo() {
     if (cg) cg.onclick = () => craftPair([["wool", 5, "wool"]], "gloves", "cloth gloves from 5 wool", "Cloth gloves ready");
     const cbo = document.getElementById("craft-boots");
     if (cbo) cbo.onclick = () => craftPair([["wool", 6, "wool"], ["horseHair", 2, "horse hair"]], "boots", "cloth boots from 6 wool and 2 horse hair", "Cloth boots ready");
-    const bindCraft = {
+    const leatherCraftBinds = {
       "craft-lcap": [[["leatherSheets", 4, "leather"]], "leatherCaps", "leather cap from 4 leather", "Leather cap ready", "armor"],
       "craft-lvest": [[["leatherSheets", 6, "leather"]], "leatherVests", "leather vest from 6 leather", "Leather vest ready", "armor"],
       "craft-lpants": [[["leatherSheets", 5, "leather"]], "leatherPants", "leather pants from 5 leather", "Leather pants ready", "armor"],
       "craft-lgloves": [[["leatherSheets", 3, "leather"]], "leatherGloves", "leather gloves from 3 leather", "Leather gloves ready", "armor"],
       "craft-lboots": [[["leatherSheets", 4, "leather"]], "leatherBoots", "leather boots from 4 leather", "Leather boots ready", "armor"]
     };
-    Object.keys(bindCraft).forEach(function (id) {
+    Object.keys(leatherCraftBinds).forEach(function (id) {
       const el = document.getElementById(id);
-      const spec = bindCraft[id];
+      const spec = leatherCraftBinds[id];
       if (el) el.onclick = async function () {
         await craftPair(spec[0], spec[1], spec[2], spec[3]);
         if (typeof showSmithTab === "function") showSmithTab(spec[4]);
@@ -10980,22 +11516,22 @@ async function buySilo() {
     if (csg) csg.onclick = () => showCraftSell("gear");
     const cswSell = document.getElementById("cstab-weapons");
     if (cswSell) cswSell.onclick = () => showCraftSell("weapons");
-    document.getElementById("sell-pants").onclick = sellPants;
+    /* market shelf owns this */
     const ss = document.getElementById("sell-shirt");
     if (ss) ss.onclick = sellShirt;
-    document.getElementById("sell-pudding").onclick = sellPudding;
+    /* market shelf owns this */
     const sws = document.getElementById("sell-sword");
     if (sws) sws.onclick = sellSword;
     const craftClose = document.getElementById("craft-close"); if (craftClose) craftClose.onclick = closeAllTabs;
-    document.getElementById("sell-milk").onclick = sellMilk;
-    document.getElementById("sell-water").onclick = sellWater;
+    /* market shelf owns this */
+    /* market shelf owns this */
     const bw = document.getElementById("buy-water");
     if (bw) bw.onclick = buyWater;
-    document.getElementById("buy-carrot-seeds").onclick = buyCarrotSeeds;
-    document.getElementById("buy-corn-seeds").onclick = buyCornSeeds;
-    document.getElementById("sell-carrots").onclick = sellCarrots;
-    document.getElementById("sell-corn").onclick = sellCorn;
-    document.getElementById("buy-well").onclick = buyWell;
+    /* market shelf owns this */
+    /* market shelf owns this */
+    /* market shelf owns this */
+    /* market shelf owns this */
+    /* market shelf owns this */
     const buyCsilobtn = document.getElementById("buy-csilo");
     if (buyCsilobtn) buyCsilobtn.onclick = buyCarrotSilo;
     const csiloUp = document.getElementById("csilo-upgrade");
@@ -11173,7 +11709,7 @@ async function buySilo() {
       CHARMS.forEach(function (c) { if ((state.charms[c.id] || 0) < 1) state.charms[c.id] = 1; });
       state.wornCharms = state.wornCharms || [];
       state.charmsBenches = state.charmsBenches || [];
-      if (!state.charmsBenches.length) state.charmsBenches.push({ id: "charm-demo", x: 0.62, y: 0.78 });
+      /* bare demo: no charm bench until bought */
       state.zoneLootSeed = true;
     }
     function grantChapterLoot(parts) {
@@ -11351,8 +11887,7 @@ async function buySilo() {
       if (closer) closer.onclick = function () { pan.classList.remove("open"); pan.setAttribute("aria-hidden", "true"); };
     }
     async function buyCharmBench() {
-      if (!(await askYes("Buy a charm bench for 16 sats? It covers 2×2."))) return;
-      if (state.sats < 16) { toast("Need 16 sats"); return; }
+      if (state.sats < 16) { toast("Need 16 gold"); return; }
       let spot = findSpot("charm");
       if (!spot) spot = await needSpace("charm bench");
       if (!spot) return;
@@ -11576,9 +12111,9 @@ async function buySilo() {
     if (siloUp) siloUp.onclick = upgradeSilo;
     const siloCl = document.getElementById("silo-close");
     if (siloCl) siloCl.onclick = closeAllTabs;
-    document.getElementById("buy-expand").onclick = buyExpand;
-    document.getElementById("buy-plot").onclick = buyPlot;
-    document.getElementById("buy-tree").onclick = buyTree;
+    const buyExpandBtn = document.getElementById("buy-expand"); if (buyExpandBtn) buyExpandBtn.onclick = buyExpand;
+    /* market shelf owns this */
+    /* market shelf owns this */
         const sellApples = document.getElementById("sell-apples");
     if (sellApples) sellApples.onclick = function(){
       if ((state.apples || 0) < 15) { toast("Need 15 apples"); return; }
@@ -11586,15 +12121,15 @@ async function buySilo() {
       logMarket("Sold 15 apples +1 sat");
       save(); render();
     };
-    document.getElementById("mtab-resources").onclick = () => showMarketTab("resources");
+    /* market shelf owns this */
     const rf = document.getElementById("rcat-feed");
     const ra = document.getElementById("rcat-animal");
     const rc = document.getElementById("rcat-craft");
     if (rf) rf.onclick = () => showResCat("feed");
     if (ra) ra.onclick = () => showResCat("animal");
     if (rc) rc.onclick = () => showResCat("craft");
-    document.getElementById("mtab-seeds").onclick = () => showMarketTab("seeds");
-    document.getElementById("mtab-assets").onclick = () => showMarketTab("assets");
+    /* market shelf owns this */
+    /* market shelf owns this */
     const aa = document.getElementById("asset-animals");
     const as = document.getElementById("asset-structures");
     if (aa) aa.onclick = () => showAssetSide("animals");
@@ -11602,6 +12137,55 @@ async function buySilo() {
     const af = document.getElementById("asset-farming");
     if (af) af.onclick = () => showAssetSide("farming");
     document.getElementById("market-close").onclick = closeMarket;
+    const placeCancel = document.getElementById("place-cancel");
+    if (placeCancel) placeCancel.onclick = cancelPlace;
+    wrap.addEventListener("pointerdown", function (ev) {
+      if (!placing) return;
+      if (ev.target.closest("#place-hint, #market-panel, #ask-box, #place-cancel")) return;
+      const rect = grid.getBoundingClientRect();
+      if (ev.clientX < rect.left || ev.clientX > rect.right || ev.clientY < rect.top || ev.clientY > rect.bottom) {
+        toast("Tap the grass to place " + placing.name);
+        return;
+      }
+      const n = fromPx(ev.clientX - rect.left, ev.clientY - rect.top);
+      const snap = snapCell(n.x, n.y, placing.kind);
+      if (typeof blocked === "function" && blocked(snap.x, snap.y, "new-piece", 1, placing.kind)) {
+        toast("That spot is taken. Tap open grass");
+        return;
+      }
+      commitPlace(snap.x, snap.y);
+    });
+
+    const mktPanel = document.getElementById("market-panel");
+    if (mktPanel && !mktPanel._wired) {
+      mktPanel._wired = true;
+      mktPanel.addEventListener("click", function (ev) {
+        const side = ev.target.closest("[data-side]");
+        if (side) { state.mktDesk = "sell"; state.mktSell = side.getAttribute("data-side"); paintMarket(); return; }
+        const desk = ev.target.closest("[data-desk]");
+        if (desk) { state.mktDesk = desk.getAttribute("data-desk"); paintMarket(); return; }
+        const sell = ev.target.closest("[data-sell]");
+        if (sell) {
+          const shelf = document.getElementById("mkt-shelf");
+          const row = shelf && shelf._rows && shelf._rows[Number(sell.getAttribute("data-sell"))];
+          if (!row) return;
+          const label = row.name.toLowerCase();
+          if (sell.getAttribute("data-all") === "1") {
+            const n = Math.floor(mktHave(row.key) / row.unit);
+            askYes("Sell all " + (n * row.unit) + " " + label + " for " + (n * row.pay) + " sats?").then(function (yes) {
+              if (yes) mktSell(row.key, row.unit, row.pay, label, true);
+            });
+          } else mktSell(row.key, row.unit, row.pay, label, false);
+          return;
+        }
+        const buy = ev.target.closest("[data-buy]");
+        if (buy) {
+          const shelf = document.getElementById("mkt-shelf");
+          const row = shelf && shelf._rows && shelf._rows[Number(buy.getAttribute("data-buy"))];
+          if (row) mktAct(row.act);
+        }
+      });
+    }
     wrap.addEventListener("pointerdown", (ev) => {
       if (ev.target.closest("button")) return;
       if (ev.target.closest("#loot-box, #fight-box, #ask-box, #gear-pick, #pet-card")) return;
@@ -11784,6 +12368,26 @@ async function buySilo() {
     setInterval(save, 5000);
 
     load();
+    if (!state.bareFieldOct2) {
+      state.bareFieldOct2 = true;
+      state.plots = [{ id: "p1", x: 0.42, y: 0.42, crop: null }];
+      state.wells = [{ id: "w1", x: 0.22, y: 0.28, water: 3, acc: 0 }];
+      state.silos = [{ id: "s1", x: 0.72, y: 0.28, upgrades: 0 }];
+      state.shed = null;
+      state.house = null;
+      state.market = null;
+      state.smiths = [];
+      state.kitchens = [];
+      state.tailors = [];
+      state.ponds = [];
+      state.petBeds = [];
+      state.carrotSilos = [];
+      state.trees = [];
+      state.horseShed = null;
+      state.sheepPen = null;
+      state.pigPen = null;
+      state.coop = { chickens: [] };
+    }
     layout();
     ensureDemoSheds();
     if (state.shed) settleGrown("shed", state.shed);
@@ -12898,8 +13502,41 @@ document.addEventListener("click", function (ev) {
     { cat: "Animal products", name: "Wool", key: "wool", icon: "🧶" },
     { cat: "Animal products", name: "Truffles", key: "truffles", icon: "🍄" },
     { cat: "Kitchen", name: "Pudding", key: "pudding", icon: "🍮" },
+    { cat: "Kitchen", name: "Butter", key: "butter", icon: "🧈" },
+    { cat: "Kitchen", name: "Cream", key: "cream", icon: "🥛" },
+    { cat: "Kitchen", name: "Cheese", key: "cheese", icon: "🧀" },
+    { cat: "Kitchen", name: "Yogurt", key: "yogurt", icon: "🥛" },
+    { cat: "Kitchen", name: "Omelette", key: "omelette", icon: "🍳" },
+    { cat: "Kitchen", name: "Fried eggs", key: "friedEggs", icon: "🍳" },
+    { cat: "Kitchen", name: "Egg bread", key: "eggBread", icon: "🍞" },
+    { cat: "Kitchen", name: "Pickled eggs", key: "pickledEggs", icon: "🥚" },
+    { cat: "Kitchen", name: "Truffle butter", key: "truffleButter", icon: "🧈" },
+    { cat: "Kitchen", name: "Truffle omelette", key: "truffleOmelette", icon: "🍳" },
+    { cat: "Kitchen", name: "Truffle soup", key: "truffleSoup", icon: "🍲" },
+    { cat: "Kitchen", name: "Roast truffle", key: "roastTruffle", icon: "🍄" },
+    { cat: "Kitchen", name: "Farmer's breakfast", key: "breakfast", icon: "🍳" },
+    { cat: "Kitchen", name: "Barn stew", key: "barnStew", icon: "🍲" },
+    { cat: "Kitchen", name: "Creamed corn", key: "creamedCorn", icon: "🌽" },
+    { cat: "Kitchen", name: "Mushroom cream", key: "mushroomCream", icon: "🍄" },
+    { cat: "Kitchen", name: "Fish pie", key: "fishPie", icon: "🥧" },
+    { cat: "Kitchen", name: "Sunday roast", key: "sundayRoast", icon: "🍖" },
+    { cat: "Gear", name: "Scarf", key: "scarf", icon: "🧣" },
+    { cat: "Gear", name: "Blanket", key: "blanket", icon: "🧣" },
+    { cat: "Gear", name: "Socks", key: "socks", icon: "🧦" },
+    { cat: "Gear", name: "Wool vest", key: "woolVest", icon: "🦺" },
+    { cat: "Gear", name: "Wool coat", key: "woolCoat", icon: "🧥" },
+    { cat: "Gear", name: "Saddle pad", key: "saddlePad", icon: "🐎" },
+    { cat: "Gear", name: "Rope", key: "rope", icon: "🪢" },
+    { cat: "Gear", name: "Brush", key: "brush", icon: "🪮" },
+    { cat: "Gear", name: "Bowstring", key: "bowstring", icon: "🏹" },
+    { cat: "Gear", name: "Fly whisk", key: "flyWhisk", icon: "🧹" },
+    { cat: "Gear", name: "Horse braid", key: "horseBraid", icon: "🐴" },
+    { cat: "Gear", name: "Rein", key: "rein", icon: "🐴" },
+    { cat: "Gear", name: "Stable kit", key: "stableKit", icon: "🧰" },
+    { cat: "Gear", name: "Winter bundle", key: "winterBundle", icon: "🧣" },
+    { cat: "Gear", name: "Rider kit", key: "riderKit", icon: "🧤" },
     { cat: "Kitchen", name: "Herbs", key: "herbs", icon: "🌿" },
-    { cat: "Kitchen", name: "Mushrooms", key: "mushrooms", icon: "🍄" },
+    { cat: "Crops", name: "Mushroom", key: "mushrooms", icon: "🍄" },
     { cat: "Kitchen", name: "Fish", key: "fish", icon: "🐟" },
     { cat: "Gear", name: "Pants", key: "pants", icon: "👖" },
     { cat: "Gear", name: "Shirt", key: "shirts", icon: "👕" },
@@ -13065,7 +13702,7 @@ document.addEventListener("click", function (ev) {
     if (!gallery) return;
     var items = allItems().filter(function (it) {
       if (cat !== "All" && it.cat !== cat) return false;
-      if (query && it.name.toLowerCase().indexOf(query) < 0) return false;
+      if (query && (it.name + " " + (it.key || "")).toLowerCase().indexOf(query) < 0) return false;
       if (!showEmpty && qty(it) <= 0) return false;
       return true;
     });
