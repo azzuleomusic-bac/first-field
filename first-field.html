@@ -211,6 +211,8 @@
 
     #ad-break { display:none; position:fixed; inset:0; z-index:1300; background:rgba(0,0,0,.72); align-items:center; justify-content:center; }
     #ad-break.open { display:flex; }
+    .stam-line { margin: 6px 0 8px; font-weight: 800; color: #e8c36a; letter-spacing: .03em; font-size: 15px; }
+    #fight-stam { text-align: center; margin: 0 0 8px; }
     #ad-break .card { width:min(280px, calc(100% - 32px)); background:#1c140e; color:#efe6cf; border:2px solid #e8c36a; border-radius:14px; padding:16px; text-align:center; }
     #ad-count { font-size:28px; color:#e8c36a; margin:8px 0; }
 
@@ -1415,6 +1417,9 @@
       background: rgba(14,22,12,0.96);
       padding: 4px 0 8px;
     }
+    .stam-line { margin: 2px 0 8px; font-weight: 800; color: #e8c36a; letter-spacing: 0.03em; }
+    .stam-ad { margin: 0 0 8px; }
+    .stam-ad[hidden] { display: none; }
     #gear-box[hidden], #stats-box[hidden] { display: none !important; }
     #app.scene footer {
       display: none;
@@ -1626,7 +1631,7 @@
       display: none;
       position: fixed;
       inset: 0;
-      z-index: 90;
+      z-index: 1300;
       background: rgba(0,0,0,0.88);
       align-items: center;
       justify-content: center;
@@ -1720,7 +1725,7 @@
       display: none;
       position: fixed;
       inset: 0;
-      z-index: 91;
+      z-index: 1310;
       background: rgba(0,0,0,0.88);
       align-items: center;
       justify-content: center;
@@ -2662,6 +2667,7 @@ window.__ffStart = function () {
         <div class="pill" id="stat-corn-top">🌽 0/50</div>
         <div class="pill" id="stat-carrot-top" hidden>🥕 0</div>
         <div class="pill" id="stat-sats">⚡ 0 gold</div>
+        <div class="pill" id="stat-gems">◆ 50</div>
       </div>
       <div id="xp-bar" aria-label="Farm level"><i id="xp-fill"></i><span id="xp-label">Lv 1</span></div>
     </header>
@@ -2786,8 +2792,6 @@ window.__ffStart = function () {
         <div class="evo-row" id="pet-card-evos"></div>
         <button type="button" id="pet-card-bring">Bring</button>
         <button type="button" id="pet-card-herb">Consume herb · 0</button>
-        <button type="button" id="pet-card-elder">Consume Elder flower</button>
-        <button type="button" id="pet-card-flower">Consume Elder flower</button>
         <button type="button" id="pet-card-evolve" style="display:none;background:#e8c36a;color:#1c140e;font-weight:800">Evolve!</button>
         <button type="button" id="pet-card-breed">Breed</button>
         <div id="pet-breed-pick" style="display:none;margin:8px 0"></div>
@@ -2795,6 +2799,8 @@ window.__ffStart = function () {
       </div>
       <div id="mine-panel" aria-hidden="true">
         <h3>Mine</h3>
+        <p class="stam-line" id="mine-stam">Stamina 5/5</p>
+        <button type="button" class="ghost stam-ad" id="mine-stam-ad" hidden>Watch ad +1</button>
         <div id="mine-stage" class="mine-stage">
           <div class="scene-pet" id="mine-scene-pet"></div>
           <div class="miner" id="miner">
@@ -2847,6 +2853,8 @@ window.__ffStart = function () {
       </div>
         <div id="forest-panel" aria-hidden="true">
     <h3>Forest</h3>
+    <p class="stam-line" id="forest-stam">Stamina 5/5</p>
+        <button type="button" class="ghost stam-ad" id="forest-stam-ad" hidden>Watch ad +1</button>
     <div id="forest-stage" class="mine-stage forest-stage">
       <div class="scene-pet" id="forest-scene-pet"></div>
       <div class="miner" id="forest-miner">
@@ -2860,7 +2868,7 @@ window.__ffStart = function () {
     </div>
     <div class="mine-bar"><i id="forest-bar"></i></div>
     <p id="forest-status">Tap Fight.</p>
-    <div class="scene-actions">
+        <div class="scene-actions">
     <button type="button" class="btn-inv" id="btn-gear-forest">Inventory</button>
     <button type="button" id="btn-forest">Fight!</button>
     <button type="button" id="btn-work-forest">Work</button>
@@ -2873,6 +2881,8 @@ window.__ffStart = function () {
 
       <div id="lake-panel" aria-hidden="true">
         <h3>Lake</h3>
+        <p class="stam-line" id="lake-stam">Stamina 5/5</p>
+        <button type="button" class="ghost stam-ad" id="lake-stam-ad" hidden>Watch ad +1</button>
         <div id="lake-stage" class="mine-stage lake-stage">
           <div class="scene-pet" id="lake-scene-pet"></div>
           <div class="miner" id="lake-miner">
@@ -3219,6 +3229,7 @@ window.__ffStart = function () {
       apples: 0,
       trees: [],
       sats: 0,
+      gems: 50,
       playerXp: 0,
       unlocks: {},
       starterSats: true,
@@ -3322,6 +3333,11 @@ window.__ffStart = function () {
         coop: state.coop,
         silos: state.silos,
         sats: state.sats,
+        gems: typeof state.gems === "number" ? state.gems : 50,
+        autoAdTimes: state.autoAdTimes || [],
+        stam: typeof state.stam === "number" ? state.stam : 5,
+        stamAt: state.stamAt || 0,
+        stamAds: state.stamAds || [],
         playerXp: state.playerXp || 0,
         unlocks: state.unlocks || {},
         starterSats: !!state.starterSats,
@@ -3664,6 +3680,9 @@ if (false && !state.demoSmithMats) {
       }
     }
 
+
+    setInterval(function () { try { paintStam(); } catch (e) {} }, 1000);
+    setTimeout(function () { try { paintStam(); } catch (e) {} }, 400);
     function queueCloud(copy) {
       try {
         const q = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
@@ -5144,11 +5163,23 @@ function openKitchen(force) { openShop("kitchen-panel", force); paintCraftList("
 
 
     function autoOn() { return (state.autoUntil || 0) > now(); }
+    function autoAdsLeft() {
+      var t = now();
+      state.autoAdTimes = (state.autoAdTimes || []).filter(function (x) { return t - x < 60 * 60 * 1000; });
+      return Math.max(0, 3 - state.autoAdTimes.length);
+    }
+    function paintGems() {
+      if (typeof state.gems !== "number") state.gems = 50;
+      var el = document.getElementById("stat-gems");
+      if (el) el.textContent = "◆ " + state.gems;
+    }
     function refreshAutoLabel() {
       const el = document.getElementById("btn-auto");
       if (!el) return;
-      if (autoOn()) el.textContent = "Auto " + fmtLeft(state.autoUntil - now()) + " · " + (state.autoAds || 1) + "/3";
-      else { state.autoAds = 0; el.textContent = "Automate 1m"; }
+      var left = autoAdsLeft();
+      var tail = left ? ("ad " + left + "/3") : "5 gems";
+      if (autoOn()) el.textContent = "Auto " + fmtLeft(state.autoUntil - now()) + " · " + tail;
+      else el.textContent = "Automate 1m · " + tail;
     }
     async function buyAuto() {
       if (autoOn()) { toast("Already running " + fmtLeft(state.autoUntil - now())); return; }
@@ -5162,19 +5193,27 @@ function openKitchen(force) { openShop("kitchen-panel", force); paintCraftList("
       save();
       render();
     }
+    function grantAutoMinute(paid) {
+      const base = Math.max(now(), state.autoUntil || 0);
+      state.autoUntil = base + 60 * 1000;
+      if (!state.autoNext) state.autoNext = "cow";
+      toast(paid ? "Auto +1 min · −5 gems" : "Auto +1 min");
+      save();
+      render();
+      try { paintGems(); } catch (e) {}
+    }
     function buyAutoAd() {
-      const left = Math.max(0, (state.autoUntil || 0) - now());
-      const stacked = state.autoAds || 0;
-      if (stacked >= 3 || left >= 3 * 60 * 1000) { toast("3 minutes stacked"); return; }
-      playAd(function () {
-        const base = Math.max(now(), state.autoUntil || 0);
-        state.autoUntil = base + 60 * 1000;
-        state.autoAds = Math.min(3, (state.autoAds || 0) + 1);
-        if (!state.autoNext) state.autoNext = "cow";
-        toast("Auto +" + state.autoAds + " min");
-        save();
-        render();
-      });
+      if (autoAdsLeft() > 0) {
+        playAd(function () {
+          state.autoAdTimes = state.autoAdTimes || [];
+          state.autoAdTimes.push(now());
+          grantAutoMinute(false);
+        });
+        return;
+      }
+      if ((state.gems || 0) < 5) { toast("Ads used this hour. Need 5 gems"); return; }
+      state.gems -= 5;
+      grantAutoMinute(true);
     }
     function autoPlantWaterHarvest() {
       const seed = (state.tool === "carrot") ? "carrot" : "corn";
@@ -6382,18 +6421,11 @@ function autoTick() {
       row.innerHTML = "";
       spec.evo.forEach(function (name, i) {
         const step = document.createElement("div");
-        step.className = "evo-step" + (i === stage ? " now" : "");
+        step.className = "evo-step" + (i === stage ? " now" : "") + (i > stage ? " locked" : "");
         const showLvl = i === 0 ? 1 : i === 1 ? 5 : 10;
         step.innerHTML = beastSkin(pet.species, showLvl) + "<small>" + name + "</small>";
         row.appendChild(step);
       });
-      const flower = document.getElementById("pet-card-flower");
-      if (flower) flower.onclick = function () {
-        pet.lvl = (pet.lvl || 1) + 1;
-        save();
-        toast(beastForm(pet) + " is level " + pet.lvl);
-        openPetCard(pet.id);
-      };
       const evolve = document.getElementById("pet-card-evolve");
       const need = petForm(pet) === 0 ? 5 : 10;
       const can = petForm(pet) < 2 && (pet.lvl || 1) >= need;
@@ -6415,13 +6447,6 @@ function autoTick() {
           openPetCard(id);
         };
       }
-      const elder = document.getElementById("pet-card-elder");
-      if (elder) elder.onclick = function () {
-        pet.lvl = (pet.lvl || 1) + 1;
-        save();
-        openPetCard(id);
-        toast(beastForm(pet) + " is level " + pet.lvl);
-      };
       const evoBtn = document.getElementById("pet-card-evolve");
       if (evoBtn) {
         const ready = ((pet.lvl || 1) >= 5 && (pet.form || 0) < 1) || ((pet.lvl || 1) >= 10 && (pet.form || 0) < 2);
@@ -6855,7 +6880,131 @@ function autoTick() {
     function petCanFight(retry) {
       return true;
     }
+    var STAM_MAX = 5;
+    var STAM_MS = 5 * 60 * 1000;
+    var STAM_ADS = 3;
+    var STAM_HOUR = 60 * 60 * 1000;
+    function tickStamina() {
+      if (typeof state.stam !== "number") state.stam = STAM_MAX;
+      if (!state.stamAt) state.stamAt = now();
+      if (!Array.isArray(state.stamAds)) state.stamAds = [];
+      if (state.stam >= STAM_MAX) {
+        state.stam = STAM_MAX;
+        state.stamAt = now();
+        return;
+      }
+      var gained = Math.floor((now() - state.stamAt) / STAM_MS);
+      if (gained > 0) {
+        state.stam = Math.min(STAM_MAX, state.stam + gained);
+        state.stamAt += gained * STAM_MS;
+        if (state.stam >= STAM_MAX) state.stamAt = now();
+      }
+    }
+    function stamAdsLeft() {
+      var t = now();
+      state.stamAds = (state.stamAds || []).filter(function (x) { return t - x < STAM_HOUR; });
+      return Math.max(0, STAM_ADS - state.stamAds.length);
+    }
+    function stamNextLabel() {
+      tickStamina();
+      if (state.stam >= STAM_MAX) return "";
+      var left = STAM_MS - ((now() - state.stamAt) % STAM_MS);
+      var s = Math.max(0, Math.ceil(left / 1000));
+      var m = Math.floor(s / 60);
+      var r = s % 60;
+      return m + ":" + (r < 10 ? "0" : "") + r;
+    }
+    function paintStamina() {
+      tickStamina();
+      var next = stamNextLabel();
+      var ads = stamAdsLeft();
+      var text = "Stamina " + state.stam + "/" + STAM_MAX;
+      if (state.stam < STAM_MAX && next) text += " · next " + next;
+      if (state.stam <= 0) text += ads ? " · ad " + ads + "/3" : " · 5 gems";
+      ["mine-stam", "forest-stam", "lake-stam", "adv-stam"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = text;
+      });
+      var label = state.stam > 0 ? "Fight!" : (ads ? "Watch ad" : "5 gems");
+      ["btn-mine", "btn-forest", "btn-lake"].forEach(function (id) {
+        var b = document.getElementById(id);
+        if (b) b.textContent = label;
+      });
+    }
+    function spendStamina() {
+      tickStamina();
+      if ((state.stam || 0) < 1) return false;
+      if (state.stam >= STAM_MAX) state.stamAt = now();
+      state.stam -= 1;
+      paintStamina();
+      try { save(); } catch (e) {}
+      return true;
+    }
+    function grantStamAd() {
+      if (!stamAdsLeft()) { toast("3 ads used this hour"); return; }
+      if (state.stam >= STAM_MAX) { toast("Stamina is full"); return; }
+      state.stamAds.push(now());
+      if (state.stam >= STAM_MAX) state.stamAt = now();
+      state.stam = Math.min(STAM_MAX, (state.stam || 0) + 1);
+      paintStamina();
+      toast("Stamina +1");
+      try { save(); } catch (e) {}
+    }
+    function watchStamAd() {
+      tickStamina();
+      if (state.stam >= STAM_MAX) { toast("Stamina is full"); return; }
+      if (!stamAdsLeft()) { toast("3 ads used this hour. Next stamina in " + stamNextLabel()); return; }
+      var box = document.getElementById("ad-break");
+      var count = document.getElementById("ad-count");
+      if (!box) { grantStamAd(); return; }
+      if (box.parentElement !== document.body) document.body.appendChild(box);
+      box.style.display = "flex";
+      box.style.zIndex = "5000";
+      box.classList.add("open");
+      box.setAttribute("aria-hidden", "false");
+      var note = box.querySelector("p:last-of-type");
+      if (note) note.textContent = "No real ad yet. +1 stamina.";
+      var left = 5;
+      if (count) count.textContent = "5";
+      var tick = setInterval(function () {
+        left -= 1;
+        if (count) count.textContent = String(Math.max(0, left));
+        if (left <= 0) {
+          clearInterval(tick);
+          box.style.display = "none";
+          box.classList.remove("open");
+          box.setAttribute("aria-hidden", "true");
+          grantStamAd();
+        }
+      }, 1000);
+    }
+    function buyStamGem() {
+      tickStamina();
+      if (state.stam >= STAM_MAX) { toast("Stamina is full"); return; }
+      if (typeof state.gems !== "number") state.gems = 50;
+      if (state.gems < 5) { toast("Ads used this hour. Need 5 gems"); return; }
+      state.gems -= 5;
+      if (state.stam >= STAM_MAX) state.stamAt = now();
+      state.stam = Math.min(STAM_MAX, (state.stam || 0) + 1);
+      paintStamina();
+      try { paintGems(); } catch (e) {}
+      toast("Stamina +1 · −5 gems");
+      try { save(); } catch (e) {}
+    }
+    function needStamina() {
+      tickStamina();
+      paintStamina();
+      if (state.stam >= 1) return true;
+      if (stamAdsLeft()) { watchStamAd(); return false; }
+      buyStamGem();
+      return false;
+    }
     function startFight() {
+      if (!spendStamina()) {
+        toast("No stamina");
+        paintStamina();
+        return;
+      }
       try { repairPetHp(); } catch (e) {}
       cancelLootPop();
       if (fightTimer) { cancelAnimationFrame(fightTimer); fightTimer = 0; }
@@ -6893,8 +7042,16 @@ function autoTick() {
       }
       if (box) {
         if (box.parentElement !== document.body) document.body.appendChild(box);
-        box.style.zIndex = "800";
+        box.style.zIndex = "1300";
         box.classList.add("open");
+        var workPan = document.getElementById("work-panel");
+        if (workPan) {
+          workPan.classList.remove("open");
+          workPan.dataset.keep = "";
+          workPan.style.display = "";
+          workPan.style.zIndex = "";
+          workPan.setAttribute("aria-hidden", "true");
+        }
         box.style.display = "flex"; window.fightPhase = "style"; window.petAt = Date.now() + 1400; window.youAt = Date.now() + 800; window.beastAt = Date.now() + 700;
         box.setAttribute("aria-hidden", "false");
         try { dressMiner(); } catch (e) {}
@@ -7332,6 +7489,7 @@ function autoTick() {
       return scaleLoot(Math.floor(Math.random() * 3));
     }
     function lootIcon(kind) {
+      if (kind === "herb" || kind === "herbs") return '<svg viewBox="0 0 64 48" aria-hidden="true"><path d="M32 40 C32 28 32 22 32 14" stroke="#3d6b32" stroke-width="3" fill="none"/><path d="M32 30 C22 28 14 20 16 12 C24 14 30 20 32 28 Z" fill="#6fbf4a"/><path d="M32 26 C42 24 50 16 48 8 C40 10 34 18 32 26 Z" fill="#3f8f3a"/><path d="M32 18 C26 12 22 6 26 4 C30 8 32 14 32 18 Z" fill="#8ed36a"/></svg>';
       if (kind === "gold" || kind === "sats") return '<svg viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="32" cy="31" rx="14" ry="5" fill="#6a4010"/><circle cx="32" cy="22" r="14" fill="#a56b16"/><circle cx="32" cy="22" r="12.2" fill="#f0c14b"/><circle cx="32" cy="22" r="9" fill="none" stroke="#a97820" stroke-width="1.3"/><ellipse cx="27" cy="17" rx="4" ry="2.4" fill="#ffe9a8"/><path d="M32 15.2 v13.2 M26.4 19.4 h11.2 M26.4 24.6 h11.2" fill="none" stroke="#7a4e10" stroke-width="1.6" stroke-linecap="round"/></svg>';
       if (kind === "fish") return '<svg viewBox="0 0 64 48" aria-hidden="true"><path d="M8 24 L22 14 L22 34 Z" fill="#7eb8c9"/><ellipse cx="36" cy="24" rx="18" ry="10" fill="#d7eef2"/><ellipse cx="36" cy="24" rx="14" ry="7" fill="#9fd0dc"/><path d="M30 24 L40 16 L40 32 Z" fill="#5f9aab"/><circle cx="46" cy="22" r="1.6" fill="#1c140e"/></svg>';
       if (kind === "ironOre" || kind === "iron") return '<svg viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="34" cy="30" rx="18" ry="12" fill="#2c333c"/><ellipse cx="22" cy="26" rx="12" ry="9" fill="#8d97a3"/><ellipse cx="42" cy="28" rx="10" ry="8" fill="#1a1e24"/><path fill="#e7edf2" d="M20 22 l8-8 5 4-4 7z"/><path fill="#b7c0ca" d="M36 18 l6 2-2 6-6-2z"/></svg>';
@@ -8056,6 +8214,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
       chopHitTimer = setTimeout(loop, 218);
     }
     function paintMine() {
+      paintStamina();
       const stage = document.getElementById("mine-stage");
       const st = document.getElementById("mine-status");
       const btn = document.getElementById("btn-mine");
@@ -8129,6 +8288,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
         }
       }, 600);
     }
+
     function launchMineFight() {
       try { unlockPage(); } catch (e) {}
       if (!petCanFight(function () { startFight(); })) return;
@@ -8145,8 +8305,12 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
       paintMine();
       popFightCount(function () { if (pan && pan.classList.contains("open")) startFight(); });
     }
+
     function startMine() {
       if (workBusy()) { toast("On a job. Wait it out or abort and drop the pay."); return; }
+      var workPan = document.getElementById("work-panel");
+      if (workPan) { workPan.classList.remove("open"); workPan.style.display = ""; workPan.setAttribute("aria-hidden", "true"); }
+      if (!needStamina()) return;
       try { ["ask-box", "pet-heal-pop"].forEach(function (id) { var el = document.getElementById(id); if (el) { el.style.display = "none"; el.classList.remove("open"); } }); } catch (e) {}
       try { armFightAudio(); } catch (e) {}
       try { launchMineFight(); } catch (e) { toast("Fight could not start"); }
@@ -8154,6 +8318,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
 
     function forestOn() { return (state.forestUntil || 0) > now(); }
     function paintForest() {
+      paintStamina();
       const stage = document.getElementById("forest-stage");
       const st = document.getElementById("forest-status");
       const btn = document.getElementById("btn-forest");
@@ -8164,10 +8329,15 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
       dressMiner();
       const total = FF.forestMs || 5000;
       let pct = 0;
-      if (on) {
+      const chopJob = state.work && state.work.area === "forest" && state.work.until > Date.now();
+      if (chopJob) {
+        pct = 0;
+        if (st) st.textContent = Math.ceil((state.work.until - Date.now()) / 1000) + "s";
+        if (btn) { btn.disabled = false; btn.textContent = "Fight!"; }
+      } else if (on) {
         const left = Math.max(0, state.forestUntil - now());
         pct = Math.min(100, Math.round((1 - left / total) * 100));
-        if (st) st.textContent = "Chopping " + fmtLeft(left);
+        if (st) st.textContent = Math.ceil(left / 1000) + "s";
         if (btn) { btn.disabled = true; btn.textContent = "Fight " + fmtLeft(left); }
       } else {
         pct = 0;
@@ -8230,6 +8400,7 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
     }
 
     function paintLake() {
+      paintStamina();
       const stage = document.getElementById("lake-stage");
       const st = document.getElementById("lake-status");
       const bar = document.getElementById("lake-bar");
@@ -8258,6 +8429,9 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
     function startLake() {
       if (!petCanFight(function () { startLake(); })) return;
       if (workBusy()) { toast("On a job. Wait it out or abort and drop the pay."); return; }
+      var workPan = document.getElementById("work-panel");
+      if (workPan) { workPan.classList.remove("open"); workPan.style.display = ""; workPan.setAttribute("aria-hidden", "true"); }
+      if (!needStamina()) return;
       armFightAudio();
       const pan = document.getElementById("lake-panel");
       const stage = document.getElementById("lake-stage");
@@ -8275,6 +8449,9 @@ function swordArt() { return '<svg viewBox="0 0 32 32"><rect x="14" y="4" width=
     function startForest() {
       if (!petCanFight(function () { startForest(); })) return;
       if (workBusy()) { toast("On a job. Wait it out or abort and drop the pay."); return; }
+      var workPan = document.getElementById("work-panel");
+      if (workPan) { workPan.classList.remove("open"); workPan.style.display = ""; workPan.setAttribute("aria-hidden", "true"); }
+      if (!needStamina()) return;
       armFightAudio();
       state.forestUntil = 0;
       state.forestStarted = 0;
@@ -10291,32 +10468,53 @@ async function buySilo() {
       (state.wells || []).forEach((w) => move(w, "well"));
     }
 
+    function pickPet(pid) {
+      if (!pid) return;
+      const pet = (state.pets || []).find(function (p) { return p.id === pid; });
+      if (!pet) return;
+      if (state.equippedPet === pid) {
+        if (window.openPetCard) window.openPetCard(pid);
+        return;
+      }
+      state.equippedPet = pid;
+      save();
+      paintPetStrip();
+      paintScenePet();
+      if (typeof paintFightPet === "function") paintFightPet();
+      toast(beastForm(pet) + " with you");
+    }
     function paintPetStrip() {
       if (!Array.isArray(state.pets)) state.pets = [];
       state.seededBeastPack = true;
       if (!state.equippedPet || !state.pets.some(function (pet) { return pet.id === state.equippedPet; })) state.equippedPet = null;
-      ["forest-pets", "mine-pets"].forEach(function (id) {
+      ["forest-pets", "mine-pets", "lake-pets"].forEach(function (id) {
         const ul = document.getElementById(id);
         if (!ul) return;
+        if (!ul.dataset.bound) {
+          ul.dataset.bound = "1";
+          ul.addEventListener("pointerup", function (ev) {
+            const b = ev.target.closest && ev.target.closest("button");
+            if (!b || !ul.contains(b)) return;
+            ev.preventDefault();
+            ev.stopPropagation();
+            pickPet(b.getAttribute("data-pet"));
+          }, true);
+        }
+        const sig = state.pets.map(function (p) { return p.id + ":" + (p.lvl || 1) + ":" + (p.form || 0); }).join("|") + "|" + (state.equippedPet || "");
+        if (ul.dataset.sig === sig && ul.childElementCount) {
+          ul.querySelectorAll("button").forEach(function (b) {
+            b.style.outline = b.getAttribute("data-pet") === state.equippedPet ? "2px solid #c9a227" : "";
+          });
+          return;
+        }
+        ul.dataset.sig = sig;
         ul.innerHTML = "";
         state.pets.forEach(function (pet) {
           const b = document.createElement("button");
           b.type = "button";
+          b.setAttribute("data-pet", pet.id);
           b.innerHTML = beastSkin(pet.species, pet.lvl || 1) + "<small>" + beastForm(pet) + "</small>";
           if (state.equippedPet === pet.id) b.style.outline = "2px solid #c9a227";
-          b.onclick = function (ev) {
-            ev.stopPropagation();
-            if (state.equippedPet === pet.id) {
-              if (window.openPetCard) window.openPetCard(pet.id);
-              return;
-            }
-            state.equippedPet = pet.id;
-            save();
-            paintPetStrip();
-            paintScenePet();
-            if (typeof paintFightPet === "function") paintFightPet();
-            toast(beastForm(pet) + " with you");
-          };
           ul.appendChild(b);
         });
       });
@@ -10324,7 +10522,7 @@ async function buySilo() {
     }
     function paintScenePet() {
       const pet = (state.pets || []).find(function (p) { return p.id === state.equippedPet; });
-      ["mine-scene-pet", "forest-scene-pet"].forEach(function (id) {
+      ["mine-scene-pet", "forest-scene-pet", "lake-scene-pet"].forEach(function (id) {
         const el = document.getElementById(id);
         if (!el) return;
         el.innerHTML = pet ? beastSkin(pet.species, pet.lvl || 1) : "";
@@ -10367,6 +10565,8 @@ async function buySilo() {
       if (lootInv) lootInv.textContent = "🍄 " + (state.mushrooms || 0) + " cave mushroom · 🐟 " + (state.fish || 0) + " fish";
       const satsEl = document.getElementById("stat-sats");
       if (satsEl) satsEl.textContent = "⚡ " + state.sats + " gold";
+      if (typeof state.gems !== "number") state.gems = 50;
+      try { paintGems(); } catch (e) {}
       const wo = document.getElementById("stat-worth");
       if (wo) wo.textContent = "Farm worth " + farmWorth() + " gold";
       fillBarn();
@@ -12456,6 +12656,8 @@ async function buySilo() {
     setInterval(save, 5000);
 
     load();
+    try { tickStamina(); paintStamina(); } catch (e) {}
+    setInterval(function () { try { paintStamina(); } catch (e) {} }, 1000);
     if (!state.demoCarrotCapHidden) {
       state.demoCarrotCapHidden = true;
       state.carrotSilos = [];
@@ -13097,6 +13299,7 @@ async function buySilo() {
 <div id="adventure-panel" aria-hidden="true">
         <p class="adv-kicker">ANOTHER WORLD</p>
         <h3>ADVENTURE</h3>
+        <p class="stam-line" id="adv-stam">Stamina 5/5</p>
         <div class="adv-switch">
           <button type="button" id="adv-tab-mine" class="on">Mine</button>
           <button type="button" id="adv-tab-forest">Forest</button>
