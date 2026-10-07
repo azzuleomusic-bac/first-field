@@ -3164,14 +3164,14 @@ window.__ffStart = function () {
     const state = window.state = {
       mode: "farm",
       tool: "carrot",
-      water: 6,
-      carrots: 20,
-      corn: 20,
+      water: 0,
+      carrots: 0,
+      corn: 0,
       carrotSeeds: 0,
-      cornSeeds: 15,
-      herbs: 10,
+      cornSeeds: 10,
+      herbs: 0,
       mushrooms: 0,
-      fish: 4,
+      fish: 0,
       wellWater: 3,
       wellAcc: 0,
       well: { x: 0.14, y: 0.14 },
@@ -3218,11 +3218,11 @@ window.__ffStart = function () {
       truffles: 0,
       apples: 0,
       trees: [],
-      sats: FF.starterSats,
+      sats: 0,
       playerXp: 0,
       unlocks: {},
       starterSats: true,
-      hideZero: false,
+      hideZero: true,
       autoUntil: 0,
       miningUntil: 0,
       autoNext: "cow",
@@ -3232,7 +3232,7 @@ window.__ffStart = function () {
       advLevel: 1,
       bossFight: false,
       farmExpands: 0,
-      marketLog: [{ at: Date.now(), text: "Starter pack +" + FF.starterSats + " gold" }],
+      marketLog: [{ at: Date.now(), text: "Starting corn seeds" }],
       shed: null,
       coop: null,
       house: null,
@@ -3315,6 +3315,7 @@ window.__ffStart = function () {
         ironSwords: state.ironSwords || 0,
         gearIron: !!state.gearIron,
         gearPackOct: !!state.gearPackOct,
+        stripGearMats: !!state.stripGearMats,
         gotDemoClothes: !!state.gotDemoClothes,
         clothesPack2: !!state.clothesPack2,
         rocks: state.rocks || 0,
@@ -3376,25 +3377,18 @@ window.__ffStart = function () {
       if (typeof state.milk !== "number") state.milk = 0;
       if (typeof state.sats !== "number") state.sats = 0;
       if (!state.goldGrant500) {
-        state.sats = 500;
         state.goldGrant500 = true;
       }
 
       if (!Array.isArray(state.marketLog)) state.marketLog = [];
       if (!state.starterSats) {
-        state.sats += FF.starterSats;
         state.starterSats = true;
         state.pack30 = true;
-        state.marketLog.unshift({ at: now(), text: "Starter pack +" + FF.starterSats + " gold" });
       } else if (!state.pack30) {
-        state.sats += FF.pack30Bonus;
         state.pack30 = true;
-        state.marketLog.unshift({ at: now(), text: "Tester pack +" + FF.pack30Bonus + " gold" });
       }
       if (!state.herbTest) {
-        state.herbs = state.herbs || 0;
         state.herbTest = true;
-        state.marketLog.unshift({ at: now(), text: "Test pack +10 herbs" });
       }
       if (!state.pondTest) {
         state.ponds = state.ponds || [];
@@ -3405,10 +3399,7 @@ window.__ffStart = function () {
         state.petBedRate = true;
       }
       if (!state.demoMats) {
-        state.rocks = (state.rocks || 0) + 25;
-        state.lumber = (state.lumber || 0) + 25;
         state.demoMats = true;
-        state.marketLog.unshift({ at: now(), text: "Demo +25 rocks +25 lumber" });
       }
       /* bare demo: no cow shed until bought */
       if (!state.coop) state.coop = { chickens: [] };
@@ -3418,8 +3409,8 @@ window.__ffStart = function () {
       state.smiths = state.smiths || [];
       if (typeof state.leatherSheets !== "number") state.leatherSheets = 0;
       if (typeof state.ironIngots !== "number") state.ironIngots = 0;
-      if ((state.leather || 0) < 20) state.leather = 20;
-      if ((state.ironOre || 0) < 20) state.ironOre = 20;
+      if (typeof state.leather !== "number") state.leather = 0;
+      if (typeof state.ironOre !== "number") state.ironOre = 0;
       state.silos.forEach((s) => { if (typeof s.upgrades !== "number") s.upgrades = 0; });
       if (!state.horseShed) state.horseShed = { horses: [] };
       if (!Array.isArray(state.horseShed.horses)) state.horseShed.horses = [];
@@ -3443,18 +3434,12 @@ window.__ffStart = function () {
       if (typeof state.beanies !== "number") state.beanies = 0;
       if (typeof state.shirts !== "number") state.shirts = 0;
       if (!state.clothesPack2) {
-        state.pants = (state.pants || 0) + 2;
-        state.shirts = (state.shirts || 0) + 2;
         state.clothesPack2 = true;
       }
       if (typeof state.rocks !== "number") state.rocks = 0;
       if (typeof state.lumber !== "number") state.lumber = 0;
       if (!state.demoPack100) {
-        state.sats = (state.sats || 0) + 100;
-        state.lumber = (state.lumber || 0) + 100;
-        state.rocks = (state.rocks || 0) + 100;
         state.demoPack100 = true;
-        if (Array.isArray(state.marketLog)) state.marketLog.unshift({ at: now(), text: "Demo +100 sats +100 lumber +100 rocks" });
       }
       if (state.shed && (!Array.isArray(state.shed.cows) || !state.shed.cows.length)) {
         state.shed.cows = [{
@@ -3502,20 +3487,8 @@ window.__ffStart = function () {
     }
 
     function ensureDemoGear() {
-      if (state.gearPackOct) return;
       state.gearPackOct = true;
-      state.gloves = (state.gloves || 0) + 1;
-      state.boots = (state.boots || 0) + 1;
-      state.leatherCaps = (state.leatherCaps || 0) + 1;
-      state.leatherVests = (state.leatherVests || 0) + 1;
-      state.leatherPants = (state.leatherPants || 0) + 1;
-      state.leatherGloves = (state.leatherGloves || 0) + 1;
-      state.leatherBoots = (state.leatherBoots || 0) + 1;
-      state.ironSwords = (state.ironSwords || 0) + 1;
-      if ((state.swords || 0) < 1 && !state.gearSword) state.swords = 1;
-      state.leatherSheets = (state.leatherSheets || 0) + 8;
-      state.ironIngots = (state.ironIngots || 0) + 4;
-      state.wool = (state.wool || 0) + 12;
+      return;
     }
     function ensureDemoAdventure() {
       state.mineClear = 25;
@@ -3532,15 +3505,9 @@ window.__ffStart = function () {
       if (state.equippedPet === "lake-reedminnow" || state.equippedPet === "lake-shorecrab") state.equippedPet = null;
     }
     function ensureDemoClothes() {
-      const have = (state.pants || 0) + (state.shirts || 0) + (state.gearPants ? 1 : 0) + (state.gearShirt ? 1 : 0);
-      if (have < 1) {
-        state.pants = 2;
-        state.shirts = 2;
-      }
-      if (!state.beaniePack) {
-        state.beanies = (state.beanies || 0) + 1;
-        state.beaniePack = true;
-      }
+      state.beaniePack = true;
+      state.clothesPack2 = true;
+      return;
     }
     function ensureDemoSheds() {
       return;
@@ -3589,7 +3556,7 @@ window.__ffStart = function () {
       }
       if (!state.bareStart) {
         state.bareStart = true;
-        state.water = 8;
+        state.water = 0;
         state.carrotSeeds = 0;
         state.cornSeeds = 10;
         state.herbs = 0;
@@ -3598,15 +3565,101 @@ window.__ffStart = function () {
         state.marketLog.unshift({ at: Date.now(), text: "Demo purse" });
       }
       if (!state.ladderOct6) { state.sats = 0; state.ladderOct6 = true; }
+      if (!state.earnCleanOct6) {
+        state.earnCleanOct6 = true;
+        state.cornSeeds = 10;
+        state.carrotSeeds = 0;
+        state.carrots = 0;
+        state.corn = 0;
+        state.herbs = 0;
+        state.mushrooms = 0;
+        state.fish = 0;
+        state.apples = 0;
+        state.wool = 0;
+        state.truffles = 0;
+        state.milk = 0;
+        state.eggs = 0;
+        state.pudding = 0;
+        state.horseHair = 0;
+        state.rocks = 0;
+        state.lumber = 0;
+        state.leather = 0;
+        state.ironOre = 0;
+        state.ironIngots = 0;
+        state.leatherSheets = 0;
+        state.sats = 0;
+        state.pants = 0;
+        state.shirts = 0;
+        state.beanies = 0;
+        state.gloves = 0;
+        state.boots = 0;
+        state.leatherCaps = 0;
+        state.leatherVests = 0;
+        state.leatherPants = 0;
+        state.leatherGloves = 0;
+        state.leatherBoots = 0;
+        state.ironSwords = 0;
+        state.swords = 0;
+        state.water = 0;
+        state.butter = 0;
+        state.cream = 0;
+        state.cheese = 0;
+        state.yogurt = 0;
+        state.omelette = 0;
+        state.friedEggs = 0;
+        state.eggBread = 0;
+        state.pickledEggs = 0;
+        state.truffleButter = 0;
+        state.truffleOmelette = 0;
+        state.copperOre = 0;
+        state.softwood = 0;
+        state.shoreGlass = 0;
+        state.ironCaps = 0;
+        state.ironVests = 0;
+        state.ironPants = 0;
+        state.ironGloves = 0;
+        state.ironBoots = 0;
+        state.charms = {};
+        state.crafted = {};
+        state.barnSample = false;
+        state.hideZero = true;
+        if (!Array.isArray(state.marketLog)) state.marketLog = [];
+        state.marketLog.unshift({ at: Date.now(), text: "Unearned items cleared. Starting corn seeds only." });
+      }
       if (!state.seedStartOct6) { state.seedStartOct6 = true; state.carrotSeeds = 0; state.herbs = 0; state.cornSeeds = 10; }
+      if (!state.bareGearOct6) {
+        state.bareGearOct6 = true;
+        var wipe = ["water","carrots","corn","apples","carrotSeeds","milk","eggs","horseHair","wool","truffles","pudding","butter","cream","cheese","yogurt","omelette","friedEggs","eggBread","pickledEggs","truffleButter","truffleOmelette","truffleSoup","roastTruffle","breakfast","barnStew","creamedCorn","mushroomCream","fishPie","sundayRoast","scarf","blanket","socks","woolVest","woolCoat","saddlePad","rope","brush","bowstring","flyWhisk","horseBraid","rein","stableKit","winterBundle","riderKit","herbs","mushrooms","fish","pants","shirts","beanies","gloves","boots","leatherCaps","leatherVests","leatherPants","leatherGloves","leatherBoots","leather","leatherSheets","rocks","lumber","ironOre","copperOre","silverOre","goldOre","blackStone","ironIngots","softwood","hardwood","ironwood","heartwood","worldroot","shoreGlass","lilyJade","tideCrystal","wreckAmber","moonscale","swords","ironSwords","ironCaps","ironVests","ironPants","ironGloves","ironBoots","sats","iron","ingots"];
+        wipe.forEach(function (k) { state[k] = 0; });
+        state.cornSeeds = 10;
+        state.charms = {};
+        state.crafted = {};
+        state.barnSample = false;
+        state.hideZero = true;
+        ["gearShirt","gearPants","gearBeanie","gearGloves","gearBoots","gearLeatherCap","gearLeatherVest","gearLeatherPants","gearLeatherGloves","gearLeatherBoots","gearIron","gearSword"].forEach(function (k) { state[k] = false; });
+        if (!Array.isArray(state.marketLog)) state.marketLog = [];
+        state.marketLog.unshift({ at: Date.now(), text: "Gear and materials cleared. Corn seeds only." });
+      }
             if (state.ironOre == null && state.iron != null) state.ironOre = state.iron;
       if (state.ironIngots == null && state.ingots != null) state.ironIngots = state.ingots;
 if (false && !state.demoSmithMats) {
-        state.leather = (state.leather || 0) + 20;
-        state.ironOre = (state.ironOre || 0) + 20;
         state.demoSmithMats = true;
+      }
+      if (!state.stripGearMats) {
+        state.stripGearMats = true;
+        var keepSeeds = 10;
+        ["water","carrots","corn","apples","carrotSeeds","milk","eggs","horseHair","wool","truffles","pudding","butter","cream","cheese","yogurt","omelette","friedEggs","eggBread","pickledEggs","truffleButter","truffleOmelette","truffleSoup","roastTruffle","breakfast","barnStew","creamedCorn","mushroomCream","fishPie","sundayRoast","scarf","blanket","socks","woolVest","woolCoat","saddlePad","rope","brush","bowstring","flyWhisk","horseBraid","rein","stableKit","winterBundle","riderKit","herbs","mushrooms","fish","pants","shirts","beanies","gloves","boots","leatherCaps","leatherVests","leatherPants","leatherGloves","leatherBoots","leather","leatherSheets","rocks","lumber","ironOre","copperOre","silverOre","goldOre","blackStone","ironIngots","softwood","hardwood","ironwood","heartwood","worldroot","shoreGlass","lilyJade","tideCrystal","wreckAmber","moonscale","swords","ironSwords","copperSwords","silverSwords","goldSwords","blackSwords","ironCaps","ironVests","ironPants","ironGloves","ironBoots","copperCaps","copperVests","copperPants","copperGloves","copperBoots","silverCaps","silverVests","silverPants","silverGloves","silverBoots","goldCaps","goldVests","goldPants","goldGloves","goldBoots","blackCaps","blackVests","blackPants","blackGloves","blackBoots","sats"].forEach(function (k) { state[k] = 0; });
+        state.cornSeeds = keepSeeds;
+        state.charms = {};
+        state.wornCharms = [];
+        state.crafted = {};
+        state.barnSample = false;
+        state.hideZero = true;
+        state.zoneLootSeed = true;
+        ["gearBeanie","gearBlack","gearBlackBoots","gearBlackCap","gearBlackGloves","gearBlackPants","gearBlackVest","gearBoots","gearCopper","gearCopperBoots","gearCopperCap","gearCopperGloves","gearCopperPants","gearCopperVest","gearGloves","gearGold","gearGoldBoots","gearGoldCap","gearGoldGloves","gearGoldPants","gearGoldVest","gearIron","gearIronBoots","gearIronCap","gearIronGloves","gearIronPants","gearIronVest","gearLeatherBoots","gearLeatherCap","gearLeatherGloves","gearLeatherPants","gearLeatherVest","gearPants","gearShirt","gearSilver","gearSilverBoots","gearSilverCap","gearSilverGloves","gearSilverPants","gearSilverVest","gearSword"].forEach(function (k) { state[k] = false; });
+        state.gearPackOct = true;
         if (!Array.isArray(state.marketLog)) state.marketLog = [];
-        state.marketLog.unshift({ at: Date.now(), text: "Demo +20 leather strips +20 iron ore" });
+        state.marketLog.unshift({ at: Date.now(), text: "Gear and materials cleared. Starting corn seeds only." });
         try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
       }
     }
@@ -7279,6 +7332,7 @@ function autoTick() {
       return scaleLoot(Math.floor(Math.random() * 3));
     }
     function lootIcon(kind) {
+      if (kind === "gold" || kind === "sats") return '<svg viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="32" cy="31" rx="14" ry="5" fill="#6a4010"/><circle cx="32" cy="22" r="14" fill="#a56b16"/><circle cx="32" cy="22" r="12.2" fill="#f0c14b"/><circle cx="32" cy="22" r="9" fill="none" stroke="#a97820" stroke-width="1.3"/><ellipse cx="27" cy="17" rx="4" ry="2.4" fill="#ffe9a8"/><path d="M32 15.2 v13.2 M26.4 19.4 h11.2 M26.4 24.6 h11.2" fill="none" stroke="#7a4e10" stroke-width="1.6" stroke-linecap="round"/></svg>';
       if (kind === "fish") return '<svg viewBox="0 0 64 48" aria-hidden="true"><path d="M8 24 L22 14 L22 34 Z" fill="#7eb8c9"/><ellipse cx="36" cy="24" rx="18" ry="10" fill="#d7eef2"/><ellipse cx="36" cy="24" rx="14" ry="7" fill="#9fd0dc"/><path d="M30 24 L40 16 L40 32 Z" fill="#5f9aab"/><circle cx="46" cy="22" r="1.6" fill="#1c140e"/></svg>';
       if (kind === "ironOre" || kind === "iron") return '<svg viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="34" cy="30" rx="18" ry="12" fill="#2c333c"/><ellipse cx="22" cy="26" rx="12" ry="9" fill="#8d97a3"/><ellipse cx="42" cy="28" rx="10" ry="8" fill="#1a1e24"/><path fill="#e7edf2" d="M20 22 l8-8 5 4-4 7z"/><path fill="#b7c0ca" d="M36 18 l6 2-2 6-6-2z"/></svg>';
       if (kind === "mushroom" || kind === "mushrooms") return '<svg viewBox="0 0 64 48" aria-hidden="true"><ellipse cx="32" cy="22" rx="20" ry="12" fill="#c45a3a"/><ellipse cx="24" cy="18" rx="4" ry="3" fill="#f0d2b0"/><ellipse cx="38" cy="16" rx="3" ry="2" fill="#f0d2b0"/><rect x="28" y="26" width="8" height="12" rx="3" fill="#efe6cf"/></svg>';
@@ -11731,6 +11785,8 @@ async function buySilo() {
       return hit ? hit.name : key;
     }
     function seedZoneLoot() {
+      state.zoneLootSeed = true;
+      return;
       if (state.zoneLootSeed) return;
       ZONE_MATS.mine.concat(ZONE_MATS.forest, ZONE_MATS.lake).forEach(function (m) {
         if ((state[m.key] || 0) < 5) state[m.key] = 5;
@@ -13705,6 +13761,7 @@ document.addEventListener("click", function (ev) {
     });
   }
   function sample() {
+    return;
     var s = window.state;
     if (!s) return;
     var add = {
@@ -13739,7 +13796,8 @@ document.addEventListener("click", function (ev) {
     var items = allItems().filter(function (it) {
       if (cat !== "All" && it.cat !== cat) return false;
       if (query && (it.name + " " + (it.key || "")).toLowerCase().indexOf(query) < 0) return false;
-      if (!showEmpty && qty(it) <= 0) return false;
+      if (it.key === "cornSeeds") return true;
+      if (qty(it) <= 0) return false;
       return true;
     });
     var kinds = ownedKinds();
