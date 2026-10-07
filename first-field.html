@@ -1577,7 +1577,24 @@
       border: 2px solid #e8c36a;
       box-shadow: 0 4px 10px rgba(0,0,0,.55);
     }
-    #fight-box .fight-miner { display: none !important; }
+    #fight-box .fight-miner { display: block !important; }
+    #fight-stage .fight-miner {
+      display: block !important;
+      position: absolute;
+      left: 30%;
+      bottom: 12px;
+      z-index: 5;
+      margin: 0;
+      width: 36px;
+      height: 78px;
+      transform-origin: 50% 100%;
+    }
+    #fight-stage .fight-miner.swing { animation: youSwing 0.34s ease; }
+    @keyframes youSwing {
+      0% { transform: translateX(0) rotate(0deg); }
+      42% { transform: translateX(42px) rotate(12deg); }
+      100% { transform: translateX(0) rotate(0deg); }
+    }
     #roster-panel { display: none; position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 960; width: min(420px, 94vw); max-height: 86vh; overflow: auto; background: #1c140e; color: #f3e6c8; border: 1px solid #c9a227; border-radius: 14px; padding: 14px; }
     #roster-panel.open { display: block; }
     #roster-panel .row { display: flex; gap: 6px; align-items: center; margin: 8px 0; flex-wrap: wrap; }
@@ -2149,9 +2166,23 @@
       left: 10%; right: 10%; bottom: 22px; height: 6px;
       background: #6a5a32; border-radius: 6px; opacity: .7;
     }
-    #fight-box .fight-miner { display: none !important; }
+    #fight-box .fight-miner { display: block !important; }
     #fight-stage.sprite-arena .fight-mob.boss { width: 150px; height: 120px; bottom: 16px; }
-    #fight-stage.sprite-arena #fight-pet,
+    #fight-stage.sprite-arena .fight-miner {
+      display: block !important;
+      position: absolute;
+      left: 2%;
+      bottom: 18px;
+      width: 72px;
+      height: 110px;
+      margin: 0;
+      z-index: 4;
+      transform-origin: 50% 100%;
+      transition: left .45s ease;
+    }
+    #fight-stage.sprite-arena .fight-miner.in-fight { left: 18%; z-index: 5; }
+    #fight-stage.sprite-arena .fight-miner.swing { animation: spriteLunge 0.42s ease-in-out 1; }
+#fight-stage.sprite-arena #fight-pet,
     #fight-stage.sprite-arena .fight-mob {
       display: block !important;
       position: absolute; bottom: 28px; width: 108px; height: 86px; margin: 0;
@@ -3172,18 +3203,8 @@ window.__ffStart = function () {
       delete s.savedAt;
       Object.assign(state, s);
       if (!Array.isArray(state.pets)) state.pets = [];
-      if (!state.seededBeastPack || !(state.pets && state.pets.length)) {
-        state.pets = [
-          { id: "mouse-test", species: "mouse", lvl: 1, xp: 0 },
-          { id: "bird-test", species: "bird", lvl: 1, xp: 0 },
-          { id: "rock-test", species: "rock", lvl: 1, xp: 0 },
-          { id: "skull-test", species: "skull", lvl: 1, xp: 0 }
-        ];
-        state.equippedPet = "mouse-test";
-        state.seenBeasts = { mouse: true, bird: true, rock: true, skull: true };
-        state.capturedBeasts = { mouse: true, bird: true, rock: true, skull: true };
-        state.seededBeastPack = true;
-      }
+      state.seededBeastPack = true;
+      if (!state.equippedPet || !(state.pets || []).some(function (pet) { return pet.id === state.equippedPet; })) state.equippedPet = null;
 
       if (!state.seenBeasts || typeof state.seenBeasts !== "object") state.seenBeasts = {};
       if (!state.capturedBeasts || typeof state.capturedBeasts !== "object") state.capturedBeasts = {};
@@ -3219,7 +3240,7 @@ window.__ffStart = function () {
         state.petBeds = state.petBeds || [];
         if (!state.petBeds.length) state.petBeds.push({ id: "bed-test", x: 0.72, y: 0.62 });
         (state.pets || []).forEach(function (pet) {
-          if (pet.id === "mouse-test") pet.hp = 4;
+          if (pet.id === "mouse-test") pet.hp = pet.hp;
         });
         state.petBedRate = true;
       }
@@ -3354,13 +3375,8 @@ window.__ffStart = function () {
         state.pets = (state.pets || []).filter(function (pet) { return pet.id !== "lake-" + id; });
         if (state.capturedBeasts) delete state.capturedBeasts[id];
       });
-      ["reedminnow", "shorecrab"].forEach(function (id) {
-        state.seenBeasts[id] = true;
-        state.capturedBeasts[id] = true;
-        if (!state.pets.some(function (pet) { return pet.species === id; })) {
-          state.pets.push({ id: "lake-" + id, species: id, lvl: 1, xp: 0 });
-        }
-      });
+      state.pets = (state.pets || []).filter(function (pet) { return pet.id !== "lake-reedminnow" && pet.id !== "lake-shorecrab"; });
+      if (state.equippedPet === "lake-reedminnow" || state.equippedPet === "lake-shorecrab") state.equippedPet = null;
     }
     function ensureDemoClothes() {
       const have = (state.pants || 0) + (state.shirts || 0) + (state.gearPants ? 1 : 0) + (state.gearShirt ? 1 : 0);
@@ -5218,6 +5234,9 @@ function autoTick() {
       pan.setAttribute("aria-hidden", "false");
     }
     const BASE_UPDATES = [
+      "Oct 6 — Pet holds the front. You wait back, and step in only when the pet goes down.",
+      "Oct 6 — Take closes the loot popup and the fight.",
+      "Oct 6 — No pet at the start. You fight. Fists or a sword, armor chips the hit. A pet can join later.",
       "Oct 6 — Barn is a shelf. Close stays on top. Crops, stock, materials, gear, charms.",
       "Oct 6 — Level 1 fight is slower. A fast mouse waits about 1.2s. x2 still halves that.",
       "Oct 6 — Each stage has its own look. Card shows all three forms for the demo.",
@@ -6304,13 +6323,14 @@ function autoTick() {
       if (petName) petName.firstChild && (petName.childNodes[0].textContent = "Pet ");
       const petEl = document.getElementById("fight-pet");
       const mobEl = document.querySelector("#fight-box .fight-mob");
+      const youEl = document.querySelector("#fight-box .fight-miner");
       if (petEl && petEl.parentElement !== stage) stage.appendChild(petEl);
+      if (youEl && youEl.parentElement !== stage) stage.appendChild(youEl);
       if (mobEl && mobEl.parentElement !== stage) stage.appendChild(mobEl);
-      if (petEl) { petEl.hidden = false; petEl.style.display = "block"; petEl.style.left = "-28%"; petEl.style.right = "auto"; }
-      if (mobEl) { mobEl.style.display = "block"; mobEl.style.left = "108%"; mobEl.style.right = "auto"; }
+      if (petEl) { petEl.hidden = !((state.pets || []).some(function (p) { return p.id === state.equippedPet; })); petEl.style.display = petEl.hidden ? "none" : "block"; petEl.style.left = ""; petEl.style.right = ""; }
+      if (youEl) { youEl.style.display = "block"; youEl.style.left = ""; youEl.style.right = "auto"; youEl.style.bottom = "18px"; youEl.classList.remove("in-fight"); }
+      if (mobEl) { mobEl.style.display = "block"; mobEl.style.left = ""; mobEl.style.right = ""; }
       setTimeout(function () {
-        if (petEl) petEl.style.left = "8%";
-        if (mobEl) mobEl.style.left = "58%";
         try { hopIdle(petEl); hopIdle(mobEl); } catch (e) {}
       }, 40);
       [petEl, mobEl].forEach(function (el) {
@@ -6325,7 +6345,7 @@ function autoTick() {
       if (nameEl) {
         const pop = nameEl.querySelector(".pop");
         var petPace = beastStyle(pet && pet.species);
-        nameEl.textContent = (pet ? beastForm(pet) : "Pet") + " · Lv " + ((pet && pet.lvl) || 1);
+        nameEl.textContent = pet ? (beastForm(pet) + " · Lv " + (pet.lvl || 1)) : "You";
         if (pop) nameEl.appendChild(pop);
       }
       const foeName = document.querySelectorAll("#fight-box .fight-name")[1];
@@ -6485,21 +6505,10 @@ function autoTick() {
       };
     }
     function petCanFight(retry) {
-      const worn = (state.pets || []).find(function (p) { return p.id === state.equippedPet; });
-      if (worn && petOut(worn)) {
-        showHurtPetPopup(worn, retry);
-        return false;
-      }
       return true;
     }
     function startFight() {
       try { repairPetHp(); } catch (e) {}
-      const worn = (state.pets || []).find(function (p) { return p.id === state.equippedPet; });
-      if (worn && petOut(worn)) {
-        state.pendingFight = false;
-        showHurtPetPopup(worn, function () { startFight(); });
-        return;
-      }
       cancelLootPop();
       if (fightTimer) { cancelAnimationFrame(fightTimer); fightTimer = 0; }
       document.querySelectorAll("audio").forEach(function (a) {
@@ -6538,14 +6547,22 @@ function autoTick() {
         if (box.parentElement !== document.body) document.body.appendChild(box);
         box.style.zIndex = "800";
         box.classList.add("open");
-        box.style.display = "flex"; window.fightPhase = "style"; window.petAt = Date.now() + 1400; window.beastAt = Date.now() + 700;
+        box.style.display = "flex"; window.fightPhase = "style"; window.petAt = Date.now() + 1400; window.youAt = Date.now() + 800; window.beastAt = Date.now() + 700;
         box.setAttribute("aria-hidden", "false");
         try { dressMiner(); } catch (e) {}
       }
       const petNow = (state.pets || []).find(function (p) { return p.id === state.equippedPet; });
-      const mMax = petNow ? petMax(petNow) : 12;
+      const youMax = Math.max(20, 16 + ((typeof minerDef === "function") ? minerDef() : 0));
+      let petDown = !petNow;
+      let youHp = youMax;
+      let mMax = petNow ? petMax(petNow) : youMax;
       if (petNow && (petNow.hp == null || petNow.hp <= 0)) petNow.hp = mMax;
-      let m = petNow ? petHp(petNow) : mMax;
+      let m = petNow ? petHp(petNow) : youHp;
+      const solo = petDown;
+      const soloPet = document.getElementById("fight-pet");
+      if (soloPet) { soloPet.hidden = petDown; soloPet.style.left = ""; }
+      const youEl0 = document.querySelector("#fight-stage .fight-miner") || document.querySelector("#fight-box .fight-miner");
+      if (youEl0) { youEl0.style.display = "block"; youEl0.style.left = ""; youEl0.classList.toggle("in-fight", petDown); }
       const cMax = Math.round((boss ? 18 + chapter * 4 : 12 + lvl * 2) * beastStyle(state.wildBeast).hp);
       let c = cMax;
       const hm = document.getElementById("hp-miner");
@@ -6620,7 +6637,7 @@ function autoTick() {
           if (!window.beastAt) window.beastAt = nowHit + Math.round(2200 / growStyle(state.wildBeast, lvl).speed);
           const clash = c > 0 && m > 0 && nowHit >= window.petAt && nowHit >= window.beastAt;
           if (clash) { try { showClash(); } catch (e) {} }
-          if (c > 0 && m > 0 && nowHit >= window.petAt) {
+          if (petHit && c > 0 && m > 0 && nowHit >= window.petAt) {
             window.petAt = nowHit + Math.round(2200 / growStyle(petHit && petHit.species, (petHit && petHit.lvl) || 1).speed);
             window._strikeSpeed = growStyle(petHit && petHit.species, (petHit && petHit.lvl) || 1).speed; try { playStrike(fp, mobEl, 1); } catch (e) {}
             const lvlN = (petHit && petHit.lvl) || 1;
@@ -6636,22 +6653,61 @@ function autoTick() {
             paintHp();
             if (st) st.textContent = (petHit ? beastForm(petHit) : "Pet") + " · " + petPace.tag;
           }
+          if (!window.youAt) window.youAt = nowHit + 800;
+          if (petDown && c > 0 && youHp > 0 && nowHit >= window.youAt) {
+            window.youAt = nowHit + Math.round(1600 / (window.fightSpeed || 1));
+            if (minerEl) {
+              const atk = minerAtk();
+              const span = Math.max(0, atk.max - atk.min);
+              const rawYou = atk.min + (span ? Math.floor(Math.random() * (span + 1)) : 0);
+              const share = solo ? 3 : 5;
+              const youDmg = Math.max(solo ? 3 : 2, Math.round(rawYou / share));
+              const youHit = rollHit(youDmg);
+              minerEl.classList.remove("swing");
+              void minerEl.offsetWidth;
+              minerEl.classList.add("swing");
+              c -= youHit.dmg;
+              if (c < 0) c = 0;
+              try { floatHit(mobEl, youHit.dmg, youHit.crit, false); } catch (e) {}
+              if (po) { po.textContent = (youHit.crit ? "CRIT " : "") + "you -" + youHit.dmg; po.classList.toggle("crit", youHit.crit); }
+              const sword = state.gearBlack ? "black sword" : state.gearGold ? "gold sword" : state.gearSilver ? "silver sword" : state.gearCopper ? "copper sword" : state.gearIron ? "iron sword" : state.gearSword ? "stone sword" : "fists";
+              if (st) st.textContent = "You · " + sword + " · " + youHit.dmg;
+              paintHp();
+            }
+          }
           if (c > 0 && m > 0 && nowHit >= window.beastAt) {
             window.beastAt = nowHit + Math.round(2200 / growStyle(state.wildBeast, lvl).speed);
-            window._strikeSpeed = growStyle(state.wildBeast, lvl).speed; try { playStrike(mobEl, fp, -1); } catch (e) {}
+            const body = petDown ? minerEl : fp;
+            window._strikeSpeed = growStyle(state.wildBeast, lvl).speed; try { playStrike(mobEl, body, -1); } catch (e) {}
             const foeGrown = growStyle(state.wildBeast, lvl);
             window._strikeSpeed = foeGrown.speed;
             const raw = foeGrown.dmg;
             const hit = clash ? asCrit(rollHit(raw)) : rollHit(raw);
-            const taken = Math.max(1, hit.dmg);
+            let taken = Math.max(1, hit.dmg);
+            const guard = (typeof minerDef === "function") ? minerDef() : 0;
+            const blocked = Math.min(Math.max(0, taken - 1), Math.floor(guard / 6));
+            taken -= blocked;
             m -= taken;
             if (m < 0) m = 0;
-            const hurtPet = (state.pets || []).find(function (p) { return p.id === state.equippedPet; });
+            const hurtPet = petDown ? null : (state.pets || []).find(function (p) { return p.id === state.equippedPet; });
             if (hurtPet) { hurtPet.hp = Math.max(0, Math.round(m)); hurtPet.ko = m <= 0; save(); }
+            if (!petDown && m <= 0) {
+              petDown = true;
+              m = youHp;
+              mMax = youMax;
+              if (fp) { fp.classList.add("ko"); fp.hidden = true; }
+              if (minerEl) { minerEl.style.left = ""; minerEl.classList.add("in-fight"); }
+              window.youAt = Date.now() + 500;
+              if (st) st.textContent = "Pet is down. You step in.";
+              try { toast("Pet is down. You step in."); } catch (e) {}
+            } else if (petDown) {
+              youHp = m;
+              if (st) st.textContent = "You · " + (blocked ? "blocked " + blocked : "hit");
+            }
             if (pm) { pm.textContent = (hit.crit ? "CRIT " : "") + "-" + taken; pm.classList.toggle("crit", hit.crit); }
-            floatHit(fp, taken, hit.crit, true);
+            floatHit(petDown ? minerEl : fp, taken, hit.crit, true);
             paintHp();
-            if (st) st.textContent = ((state.wildBeast && BEASTS[state.wildBeast]) ? BEASTS[state.wildBeast].name : "Beast") + " · " + foePace.tag;
+            if (st && !petDown) st.textContent = ((state.wildBeast && BEASTS[state.wildBeast]) ? BEASTS[state.wildBeast].name : "Beast") + " · " + foePace.tag;
           }
         } else if (window.fightPhase === "you") {
           if (fp) fp.classList.remove("swing", "hit");
@@ -6705,7 +6761,7 @@ function autoTick() {
           }, 280);
         }
         paintHp();
-        if (c <= 0 || m <= 0) {
+        if (c <= 0 || (petDown && youHp <= 0)) {
           cancelAnimationFrame(fightTimer); clearInterval(fightTimer);
           fightTimer = 0;
           const fsNow = document.getElementById("fight-song");
@@ -6714,7 +6770,7 @@ function autoTick() {
           const fpEnd = document.getElementById("fight-pet");
           const mobEnd = document.querySelector("#fight-box .fight-mob");
           try {
-            var koEl = (c <= 0) ? document.querySelector("#fight-stage .fight-mob") : document.getElementById("fight-pet");
+            var koEl = (c <= 0) ? document.querySelector("#fight-stage .fight-mob") : document.querySelector("#fight-stage .fight-miner");
             if (koEl) {
               floatHit(koEl, "KO", true, false);
               setTimeout(function () { koEl.classList.add("ko"); try { playKo(koEl, c <= 0 ? 1 : -1); } catch (e) {} }, 520);
@@ -6729,7 +6785,9 @@ function autoTick() {
           } else if (box) { box.classList.remove("open"); box.classList.remove("on"); box.style.display = "none"; box.setAttribute("aria-hidden", "true"); }
           state.lastFightWin = !!win;
           if (st) st.textContent = win ? "Creature down." : "Miner is down.";
+          window._lootClosed = false;
           setTimeout(function () {
+            if (window._lootClosed) return;
             var oldPop = document.getElementById("loot-force");
             if (oldPop) oldPop.remove();
             var pop = document.createElement("div");
@@ -6743,7 +6801,7 @@ function autoTick() {
             }).join("");
             pop.innerHTML = '<div style="width:min(280px,92vw);background:#1c140e;border:2px solid #e8c36a;border-radius:14px;padding:16px;text-align:center"><style>#loot-force svg{width:48px;height:40px}</style><div style="font-size:28px;font-weight:900;color:' + (win ? "#e8a04a" : "#b388ff") + '">' + (win ? "WIN" : "LOST") + '</div>' + list + '<button type="button" id="loot-force-take" style="margin-top:12px;width:100%;min-height:44px">Take</button></div>';
             document.body.appendChild(pop);
-            pop.querySelector("#loot-force-take").onclick = function () { pop.remove(); };
+            pop.querySelector("#loot-force-take").onclick = function () { if (typeof dismissLoot === "function") dismissLoot(); else pop.remove(); }; pop.onclick = function (ev) { if (ev.target === pop) { if (typeof dismissLoot === "function") dismissLoot(); else pop.remove(); } };
           }, 700);
           if (win) {
             const forest = state.fightKind === "forest";
@@ -6765,7 +6823,7 @@ function autoTick() {
             const lvl = state.mobLevel || 1;
             const leatherN = rollExtra(lvl);
             const ironN = rollExtra(lvl);
-            const parts = [];
+            let parts = [];
             if (forest) {
               state.lumber = (state.lumber || 0) + n;
               if (n) parts.push({ kind: "lumber", n: n, label: n + " lumber" });
@@ -6847,6 +6905,7 @@ function autoTick() {
             if (loot) { if (loot.parentElement !== document.body) document.body.appendChild(loot); loot.style.display = "flex"; loot.style.position = "fixed"; loot.style.inset = "0"; loot.style.zIndex = "2600"; loot.style.alignItems = "center"; loot.style.justifyContent = "center"; loot.style.background = "rgba(0,0,0,.72)"; loot.classList.add("open"); loot.setAttribute("aria-hidden", "false"); }
             try { openLoot(lootText, lootN, true);
             setTimeout(function () {
+              if (window._lootClosed) return;
               var old = document.getElementById("loot-force");
               if (old) old.remove();
               var pop = document.createElement("div");
@@ -6859,7 +6918,7 @@ function autoTick() {
               return '<div style="display:flex;align-items:center;gap:10px;margin:8px 0;font-weight:700"><span style="width:36px;height:28px;flex:none">' + icon + '</span><span>' + (part.n || 1) + "x " + (part.name || part.kind) + "</span></div>"; }).join("");
               pop.innerHTML = '<div style="width:min(280px,90vw);background:#1c2418;border:1px solid #e8c36a;border-radius:14px;padding:16px;text-align:center;color:#efe6cf"><div style="font-size:28px;font-weight:900;color:' + (win ? "#e8a04a" : "#b388ff") + '">' + (win ? "WIN" : "LOST") + '</div>' + body + '<button type="button" id="loot-force-take" style="margin-top:12px;width:100%;min-height:44px">Take</button></div>';
               document.body.appendChild(pop);
-              pop.querySelector("#loot-force-take").onclick = function () { pop.remove(); };
+              pop.querySelector("#loot-force-take").onclick = function () { if (typeof dismissLoot === "function") dismissLoot(); else pop.remove(); }; pop.onclick = function (ev) { if (ev.target === pop) { if (typeof dismissLoot === "function") dismissLoot(); else pop.remove(); } };
             }, 1600);
  } catch (e) {}
             var loot = document.getElementById("loot-box");
@@ -6966,14 +7025,19 @@ function autoTick() {
         dressMiner();
       }
     }
-    function closeLoot() {
+    function dismissLoot() {
+      window._lootClosed = true;
+      document.querySelectorAll("#loot-force").forEach(function (el) { el.remove(); });
       const box = document.getElementById("loot-box");
       if (box) { box.classList.remove("open"); box.style.display = "none"; box.style.pointerEvents = "none"; box.setAttribute("aria-hidden", "true"); }
       const fight = document.getElementById("fight-box");
-      if (fight) { fight.classList.remove("open"); fight.style.display = "none"; fight.style.pointerEvents = "none"; fight.setAttribute("aria-hidden", "true"); }
+      if (fight) { fight.classList.remove("open"); fight.classList.remove("on"); fight.style.display = "none"; fight.style.pointerEvents = "none"; fight.setAttribute("aria-hidden", "true"); }
       state.pendingLoot = "";
       state.pendingLootN = 0;
       state.pendingFight = false;
+    }
+    function closeLoot() {
+      dismissLoot();
       const job = document.querySelector("#mine-panel.open, #forest-panel.open");
       if (state.inAdventure && job) {
         job.style.display = "block";
@@ -9534,18 +9598,9 @@ async function buySilo() {
     }
 
     function paintPetStrip() {
-      if (!state.seededBeastPack || !(state.pets && state.pets.length)) {
-        state.pets = [
-          { id: "mouse-test", species: "mouse", lvl: 1, xp: 0 },
-          { id: "bird-test", species: "bird", lvl: 1, xp: 0 },
-          { id: "rock-test", species: "rock", lvl: 1, xp: 0 },
-          { id: "skull-test", species: "skull", lvl: 1, xp: 0 }
-        ];
-        state.equippedPet = state.equippedPet || "mouse-test";
-        state.seenBeasts = { mouse: true, bird: true, rock: true, skull: true };
-        state.capturedBeasts = { mouse: true, bird: true, rock: true, skull: true };
-        state.seededBeastPack = true;
-      }
+      if (!Array.isArray(state.pets)) state.pets = [];
+      state.seededBeastPack = true;
+      if (!state.equippedPet || !state.pets.some(function (pet) { return pet.id === state.equippedPet; })) state.equippedPet = null;
       ["forest-pets", "mine-pets"].forEach(function (id) {
         const ul = document.getElementById(id);
         if (!ul) return;
@@ -13228,26 +13283,6 @@ document.addEventListener("click", function (ev) {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
 })();
-</script>
-<!-- cont -->
-dow.openPetCard) openPetCard(pet.id); } catch (e) { toast("Could not open pet"); }
-    });
-  }
-  shutOverlays();
-})();
-</script>
-
-
-<script>
-document.addEventListener("click", function (ev) {
-  var t = ev.target;
-  if (!t) return;
-  if (t.id === "pet-heal-pop" || t.id === "ask-box" || t.id === "fight-box") {
-    t.style.display = "none";
-    t.classList.remove("open");
-    t.setAttribute("aria-hidden", "true");
-  }
-}, true);
 </script>
 
 
