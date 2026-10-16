@@ -1,6 +1,7 @@
 /* 2026-09-30-start-music */
 window.FF = window.FF || {};
 window.FF.updates = [
+  "Oct 16 \u2014 New players get 3 herbs and 3 mushrooms; the first time a pet faints you get a free bed. Tutorial tips now wait until their button is on screen, close once you do the step, and no longer cover buttons or text. Every starter, Pebble too, goes straight to its home area. Your first 3 corn can be sold. Reloading during a fight gives the \u26a1 Energy back. Old saves get a full team and never lose pet levels. Split copies stand beside the slime and match its evolved look. The LOST screen tells you what to do next, and long messages fit on phones.",
   "Oct 16 \u2014 Drip Slime can now be found and caught in Lake chapter 3.",
   "Oct 16 \u2014 Added a loading screen so the game never shows half-loaded. Removed the old Help page.",
   "Oct 16 \u2014 Tutorial: tips now wait until you tap Got it. The farm tutorial comes first; the Adventure tutorial starts the first time you open Adventure. Tap a starter pet to read about it before you choose. New starter Drip Slime, a balanced Lake pet with Split and Absorb skills, replaces Reed Minnow. Pet skill descriptions are rewritten in plain words.",
