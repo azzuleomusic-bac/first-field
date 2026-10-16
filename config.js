@@ -1,6 +1,7 @@
 /* 2026-09-30-start-music */
 window.FF = window.FF || {};
 window.FF.updates = [
+  "Oct 16 \u2014 Drip Slime can now be found and caught in Lake chapter 3.",
   "Oct 16 \u2014 Added a loading screen so the game never shows half-loaded. Removed the old Help page.",
   "Oct 16 \u2014 Tutorial: tips now wait until you tap Got it. The farm tutorial comes first; the Adventure tutorial starts the first time you open Adventure. Tap a starter pet to read about it before you choose. New starter Drip Slime, a balanced Lake pet with Split and Absorb skills, replaces Reed Minnow. Pet skill descriptions are rewritten in plain words.",
   "Oct 15 \u2014 Balance: pets now need more total damage to reach Lv 100 (2.2M, up from 1.46M), so they level a bit slower. Losing a fight gives half XP for the damage your pets dealt. Mine/Forest/Lake enemies have more HP from chapter 3 on: \u00d72.1 in chapter 3, \u00d72.2 in chapter 4 and \u00d72 in chapter 5.",
