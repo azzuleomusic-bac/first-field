@@ -1,6 +1,7 @@
 /* 2026-09-30-start-music */
 window.FF = window.FF || {};
 window.FF.updates = [
+  "Oct 17 \u2014 Easier on phones: bigger buttons, Back to farm always visible in Adventure, a Done button in Settings, and a Next goal you can tap. Adventure shows your team and Pet shelter room and folds later chapters; the CAUGHT! card has View pet. Clearer Catch messages when there's no room, an Auto-farm button that shows how many free runs are left this hour, a Look around first option before the first fight, and the play-style question now waits until after your first boss or catch. Rank › Preview shows your real farm as visitors see it, with correct counts. Evolutions stay a surprise: the next form's name and art stay hidden until it happens.",
   "Oct 17 \u2014 New capture animation: chains of light seal the pet and it turns into light that joins your team (or your Pet shelter). No more gold for being away for now; the away summary still shows wells, crops and Work.",
   "Oct 16 \u2014 Catching a pet now ends the fight with a Caught! screen. Chapter bosses pay much more (and show a recommended level), Work pays more, and you get a summary of what happened while you were away. Also: clan names, team auto-fill for old saves, a working Overflow skill and tutorial fixes.",
   "Oct 16 \u2014 When the slime splits, it shrinks to the same size as its copies (they all fit in the fight), and it grows back when healed above half. Each copy hits as hard as the slime's basic attack.",
@@ -77,14 +78,14 @@ window.FF.updates = [
   "Oct 13 \u2014 The pond panel is redone: capacity bar, fish icons, and buttons that show their cost.",
   "Oct 13 \u2014 Feeding the pond now takes 30 minutes.",
   "Oct 13 \u2014 Breeding now costs 50 fish from your bag.",
-  "Oct 13 \u2014 Fights show skill effects: poison, burn, bleed and drain ticks, dodges, blocks and revives. Mine Skull's Clamp and Gnaw now deal their damage.",
+  "Oct 13 \u2014 Fights show skill effects: poison, burn, bleed and drain ticks, dodges, blocks and revives. Skull Bit's Clamp and Gnaw skills now deal their damage.",
   "Oct 13 \u2014 Winning a fight no longer catches a pet by itself. Beat a wild species 3 times to unlock it in the bestiary.",
   "Oct 13 \u2014 Unlocked wild pets under 30% HP show a Catch button with your chance. A miss gives the enemy a free hit. You can catch the same species again.",
   "Oct 13 \u2014 New Pet shelter in the Market. It holds pets outside your team: 5 per level, and it grows on the farm as you upgrade it. Your first pet needs no shelter.",
   "Oct 13 \u2014 Existing saves keep every pet and get a free shelter big enough for them.",
   "Oct 13 \u2014 Pets now pick a skill at level 12 and level 35, with two paths each, and every pet in the Mine, Forest and Lake has its own tree.",
   "Oct 13 \u2014 Pets you already evolved get to pick their skills now. Look for the prompt on their card.",
-  "Oct 13 \u2014 The Mine newt's forms are renamed Crystal Newt, Quartz Newt and Prism Lord.",
+  "Oct 13 \u2014 The Mine newt's forms have new names.",
   "Oct 12 \u2014 Pet levels now come from the total damage a pet has dealt, with a much longer climb to 100. Existing pets were recalculated, and cards show % to the next level.",
   "Oct 12 \u2014 Enemies and chapter bosses are retuned for each zone and chapter, so fights last longer.",
   "Oct 12 \u2014 A pet bed passes leftover rest time to the next queued pet, so queued pets heal on time.",
