@@ -1,7 +1,8 @@
 /* 2026-09-30-start-music */
 window.FF = window.FF || {};
 window.FF.updates = [
-  "Oct 16 \u2014 Catching a pet now ends the fight with a Caught! screen. Chapter bosses pay much more (and show a recommended level), Work pays more, and you get a little gold while away, with a summary when you come back. Also: clan names, team auto-fill for old saves, a working Overflow skill and tutorial fixes.",
+  "Oct 17 \u2014 New capture animation: chains of light seal the pet and it turns into light that joins your team (or your Pet shelter). No more gold for being away for now; the away summary still shows wells, crops and Work.",
+  "Oct 16 \u2014 Catching a pet now ends the fight with a Caught! screen. Chapter bosses pay much more (and show a recommended level), Work pays more, and you get a summary of what happened while you were away. Also: clan names, team auto-fill for old saves, a working Overflow skill and tutorial fixes.",
   "Oct 16 \u2014 When the slime splits, it shrinks to the same size as its copies (they all fit in the fight), and it grows back when healed above half. Each copy hits as hard as the slime's basic attack.",
   "Oct 16 \u2014 New players get 3 herbs and 3 mushrooms; the first time a pet faints you get a free bed. Tutorial tips now wait until their button is on screen, close once you do the step, and no longer cover buttons or text. Every starter, Pebble too, goes straight to its home area. Your first 3 corn can be sold. Reloading during a fight gives the \u26a1 Energy back. Old saves get a full team and never lose pet levels. Split copies stand beside the slime and match its evolved look. The LOST screen tells you what to do next, and long messages fit on phones.",
   "Oct 16 \u2014 Drip Slime can now be found and caught in Lake chapter 3.",
