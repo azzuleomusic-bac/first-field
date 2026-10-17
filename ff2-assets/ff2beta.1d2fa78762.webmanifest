@@ -1,0 +1,22 @@
+{
+ "name": "FF2 Beta",
+ "short_name": "FF2 Beta",
+ "id": "/first-field-2-test",
+ "start_url": "/first-field-2-test",
+ "scope": "/first-field-2-test",
+ "display": "standalone",
+ "background_color": "#1a2e16",
+ "theme_color": "#1a2e16",
+ "icons": [
+  {
+   "src": "/ff2-assets/ff2beta-192.a0b96c33aa.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "/ff2-assets/ff2beta-512.41b740ae51.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  }
+ ]
+}
